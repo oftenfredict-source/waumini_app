@@ -1,0 +1,189 @@
+@extends('layouts.church')
+
+@section('title', 'Pledges')
+
+@section('content')
+<div class="app-title">
+    <div>
+        <h1><i class="fa fa-handshake-o"></i> Pledges</h1>
+        <p>Track member pledge commitments and payment progress</p>
+    </div>
+    <ul class="app-breadcrumb breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item">Pledges</li>
+    </ul>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="widget-small primary coloured-icon">
+            <i class="icon fa fa-bolt fa-3x"></i>
+            <div class="info">
+                <h4>{{ $stats['active_count'] }}</h4>
+                <p>Active Pledges</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="widget-small info coloured-icon">
+            <i class="icon fa fa-money fa-3x"></i>
+            <div class="info">
+                <h4>TZS {{ number_format($stats['total_pledged'], 0) }}</h4>
+                <p>Total Pledged</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="widget-small warning coloured-icon">
+            <i class="icon fa fa-check fa-3x"></i>
+            <div class="info">
+                <h4>TZS {{ number_format($stats['total_paid'], 0) }}</h4>
+                <p>Total Paid</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="widget-small success coloured-icon">
+            <i class="icon fa fa-trophy fa-3x"></i>
+            <div class="info">
+                <h4>{{ $stats['completed_count'] }}</h4>
+                <p>Completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-9">
+        <form method="GET" class="form-inline">
+            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="Search member or purpose..."
+                value="{{ $filters['search'] ?? '' }}">
+            <select name="member_id" class="form-control mr-2 mb-2">
+                <option value="">All members</option>
+                @foreach($members as $member)
+                    <option value="{{ $member->id }}" @selected(($filters['member_id'] ?? '') == $member->id)>
+                        {{ $member->full_name }}
+                    </option>
+                @endforeach
+            </select>
+            <select name="pledge_type" class="form-control mr-2 mb-2">
+                <option value="">All types</option>
+                @foreach($pledgeTypes as $type)
+                    <option value="{{ $type->value }}" @selected(($filters['pledge_type'] ?? '') === $type->value)>
+                        {{ $type->label() }}
+                    </option>
+                @endforeach
+            </select>
+            <select name="status" class="form-control mr-2 mb-2">
+                <option value="">All statuses</option>
+                @foreach($statuses as $status)
+                    <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>
+                        {{ $status->label() }}
+                    </option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> Filter</button>
+        </form>
+    </div>
+    <div class="col-md-3 text-md-right">
+        @can('create', \App\Models\Pledge::class)
+            <a href="{{ route('church.pledges.create') }}" class="btn btn-primary mb-2">
+                <i class="fa fa-plus"></i> Record Pledge
+            </a>
+        @endcan
+        @can('finance.approve')
+            <a href="{{ route('church.finance.approvals') }}" class="btn btn-outline-primary mb-2">
+                <i class="fa fa-check-circle"></i> Approvals
+            </a>
+        @endcan
+    </div>
+</div>
+
+<div class="tile">
+    <div class="tile-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Type</th>
+                        <th>Pledged</th>
+                        <th>Paid</th>
+                        <th>Progress</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th width="130">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($pledges as $pledge)
+                        <tr>
+                            <td>
+                                {{ $pledge->member?->full_name ?? '—' }}
+                                @if($pledge->member?->envelope_number)
+                                    <br><small class="text-muted">{{ $pledge->member->envelope_number }}</small>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge badge-info">{{ $pledge->pledgeTypeLabel() }}</span>
+                            </td>
+                            <td><strong>TZS {{ number_format($pledge->pledge_amount, 2) }}</strong></td>
+                            <td>TZS {{ number_format($pledge->amount_paid, 2) }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ min(100, $pledge->progressPercentage()) }}%">
+                                        {{ $pledge->progressPercentage() }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ $pledge->due_date?->format('M d, Y') ?? '—' }}</td>
+                            <td>
+                                <span class="badge badge-{{ $pledge->status->badgeClass() }}">
+                                    {{ $pledge->status->label() }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    @can('view', $pledge)
+                                        <a href="{{ route('church.pledges.show', $pledge) }}" class="btn btn-sm btn-info" title="View">
+                                            <i class="fa fa-eye"></i>
+                                        </a>
+                                    @endcan
+                                    @can('update', $pledge)
+                                        <a href="{{ route('church.pledges.edit', $pledge) }}" class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="fa fa-pencil"></i>
+                                        </a>
+                                    @endcan
+                                    @can('delete', $pledge)
+                                        <form method="POST" action="{{ route('church.pledges.destroy', $pledge) }}" class="d-inline"
+                                            data-swal-confirm="Delete this pledge record?"
+                                            data-swal-delete
+                                            data-swal-confirm-text="Yes, delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No pledge records found.
+                                @can('create', \App\Models\Pledge::class)
+                                    <a href="{{ route('church.pledges.create') }}">Record a pledge</a>.
+                                @endcan
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        {{ $pledges->links() }}
+    </div>
+</div>
+@endsection

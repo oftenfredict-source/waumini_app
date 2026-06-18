@@ -1,0 +1,85 @@
+.member-wizard-steps {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.member-wizard-step .step-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-weight: 700;
+    background: #6c757d;
+    color: #fff;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.member-wizard-step.active .step-circle {
+    background: var(--waumini-brand, #940000);
+}
+
+.member-wizard-step.completed .step-circle {
+    background: #28a745;
+}
+
+.member-wizard-step .step-label {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    text-align: center;
+    color: #666;
+}
+
+.member-wizard-step.active .step-label {
+    color: var(--waumini-brand, #940000);
+    font-weight: 700;
+}
+
+.wizard-panel {
+    display: none;
+}
+
+.wizard-panel.active {
+    display: block;
+}
+
+.profile-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+}
+
+.dependant-row {
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #fafafa;
+}
+
+.summary-table th {
+    width: 35%;
+    font-weight: 600;
+}
+
+.envelope-status {
+    font-size: 0.8rem;
+    min-height: 18px;
+}
+
+.envelope-status.ok { color: #28a745; }
+.envelope-status.error { color: #dc3545; }
+
+.phone-input-group .input-group-text {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}

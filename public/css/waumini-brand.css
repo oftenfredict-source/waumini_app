@@ -1,0 +1,364 @@
+:root {
+  --primary: #940000;
+  --waumini-brand: #940000;
+  --waumini-brand-hover: #750000;
+  --waumini-brand-active: #600000;
+  --waumini-brand-darkest: #550000;
+  --waumini-brand-logo: #750000;
+  --waumini-brand-rgb: 148, 0, 0;
+  --waumini-font: "Century Gothic", CenturyGothic, "Apple SD Gothic Neo", "Trebuchet MS", "Segoe UI", Roboto, sans-serif;
+  --font-family-sans-serif: var(--waumini-font);
+}
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea,
+.btn,
+.form-control,
+.dropdown-menu,
+.app-menu__label,
+.app-title h1,
+.tile,
+.login-content,
+.login-content .login-box {
+  font-family: var(--waumini-font);
+}
+
+.app-header__logo,
+.login-content .logo h1 {
+  font-family: var(--waumini-font);
+  font-weight: 400;
+}
+
+::selection,
+::-moz-selection {
+  background-color: var(--waumini-brand-active);
+}
+
+a {
+  color: var(--waumini-brand);
+}
+
+a:hover {
+  color: var(--waumini-brand-hover);
+}
+
+.btn-primary {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-primary:hover {
+  background-color: var(--waumini-brand-hover);
+  border-color: var(--waumini-brand-active);
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.5);
+}
+
+.btn-primary.disabled,
+.btn-primary:disabled {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active,
+.show > .btn-primary.dropdown-toggle {
+  background-color: var(--waumini-brand-active);
+  border-color: var(--waumini-brand-darkest);
+}
+
+.btn-primary:not(:disabled):not(.disabled):active:focus,
+.btn-primary:not(:disabled):not(.disabled).active:focus,
+.show > .btn-primary.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.5);
+}
+
+.btn-outline-primary {
+  color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-outline-primary:focus,
+.btn-outline-primary.focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.5);
+}
+
+.btn-outline-primary:not(:disabled):not(.disabled):active,
+.btn-outline-primary:not(:disabled):not(.disabled).active,
+.show > .btn-outline-primary.dropdown-toggle {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.bg-primary {
+  background-color: var(--waumini-brand) !important;
+}
+
+a.bg-primary:hover,
+a.bg-primary:focus,
+button.bg-primary:hover,
+button.bg-primary:focus {
+  background-color: var(--waumini-brand-active) !important;
+}
+
+.text-primary {
+  color: var(--waumini-brand) !important;
+}
+
+a.text-primary:hover,
+a.text-primary:focus {
+  color: var(--waumini-brand-active) !important;
+}
+
+.border-primary {
+  border-color: var(--waumini-brand) !important;
+}
+
+.badge-primary {
+  background-color: var(--waumini-brand);
+}
+
+.page-item.active .page-link {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.page-link {
+  color: var(--waumini-brand);
+}
+
+.page-link:hover {
+  color: var(--waumini-brand-hover);
+}
+
+.custom-control-input:checked ~ .custom-control-label::before,
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before,
+.custom-radio .custom-control-input:checked ~ .custom-control-label::before {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.custom-control-input:focus ~ .custom-control-label::before {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.25);
+}
+
+.form-control:focus {
+  border-color: var(--waumini-brand);
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.25);
+}
+
+.animated-checkbox input[type="checkbox"]:checked + .label-text:before,
+.animated-radio input[type="radio"]:checked + .label-text:before {
+  color: var(--waumini-brand);
+}
+
+.app-header {
+  background-color: var(--waumini-brand);
+}
+
+@media (min-width: 768px) {
+  .app-header__logo {
+    background-color: var(--waumini-brand-logo);
+  }
+}
+
+.app-header__logo--brand-image {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  line-height: normal;
+  overflow: hidden;
+}
+
+.app-header__brand-logo {
+  display: block;
+  max-height: 40px;
+  max-width: 210px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.app-sidebar__user-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--waumini-brand-rgb), 0.12);
+  color: var(--waumini-brand);
+  font-size: 18px;
+}
+
+.app-sidebar__toggle:focus,
+.app-sidebar__toggle:hover {
+  background-color: var(--waumini-brand-active);
+}
+
+.app-sidebar,
+.treeview-menu {
+  background-color: #fff0f0;
+}
+
+.app-sidebar__user {
+  color: var(--waumini-brand-darkest);
+}
+
+.app-menu__item,
+.treeview-item {
+  color: var(--waumini-brand-darkest);
+  font-weight: 700;
+}
+
+.app-menu__section {
+  margin: 12px 8px 10px;
+  padding: 13px 16px;
+  border-radius: 5px;
+  background-color: var(--waumini-brand);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(var(--waumini-brand-rgb), 0.18);
+}
+
+.app-menu__item.active,
+.app-menu__item:hover,
+.app-menu__item:focus,
+.treeview.is-expanded [data-toggle='treeview'],
+.treeview-item.active,
+.treeview-item:hover,
+.treeview-item:focus {
+  background-color: #ffe0e0;
+  color: var(--waumini-brand-darkest);
+}
+
+.app-menu__item.active,
+.treeview.is-expanded [data-toggle='treeview'] {
+  border-left-color: var(--waumini-brand);
+}
+
+.widget-small.primary {
+  background-color: var(--waumini-brand);
+}
+
+.widget-small.primary.coloured-icon .icon {
+  background-color: var(--waumini-brand);
+}
+
+.material-half-bg .cover {
+  background-color: var(--waumini-brand);
+}
+
+.path {
+  stroke: var(--waumini-brand);
+}
+
+.login-content .logo h1 {
+  color: var(--waumini-brand);
+}
+
+.card.border-primary {
+  border-color: var(--waumini-brand) !important;
+}
+
+.list-group-item.active {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: var(--waumini-brand);
+}
+
+.progress-bar {
+  background-color: var(--waumini-brand);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: var(--waumini-brand);
+}
+
+.datepicker table tr td.active,
+.datepicker table tr td.active.highlighted,
+.datepicker table tr td.active:hover,
+.datepicker table tr td.active.highlighted:hover,
+.datepicker table tr td.active:active,
+.datepicker table tr td.active.highlighted:active,
+.datepicker table tr td.active.active,
+.datepicker table tr td.active.highlighted.active {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand-logo);
+}
+
+.datepicker table tr td.active:active:hover,
+.datepicker table tr td.active.highlighted:active:hover,
+.datepicker table tr td.active.active:hover,
+.datepicker table tr td.active.highlighted.active:hover,
+.datepicker table tr td.active:active:focus,
+.datepicker table tr td.active.highlighted:active:focus,
+.datepicker table tr td.active.active:focus,
+.datepicker table tr td.active.highlighted.active:focus {
+  background-color: var(--waumini-brand-hover);
+  border-color: var(--waumini-brand-logo);
+}
+
+.toggle.lg input[type="checkbox"]:checked + .button-indecator:before,
+.toggle input[type="checkbox"]:checked + .button-indecator:before {
+  color: var(--waumini-brand);
+}
+
+.toggle.lg input[type="checkbox"]:checked + .button-indecator:after,
+.toggle input[type="checkbox"]:checked + .button-indecator:after {
+  background-color: var(--waumini-brand);
+}
+
+.app-nav__notification {
+  position: relative;
+}
+
+.app-nav__notification > .app-nav__item {
+  position: relative;
+}
+
+.app-nav__notification-badge {
+  position: absolute;
+  top: 6px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: #dc3545;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.chat .message.me .message-body {
+  background-color: var(--waumini-brand);
+}
+
+.chat .message.me .message-body:before {
+  border-color: transparent var(--waumini-brand) transparent transparent;
+}
+
+.chat .message-input {
+  border-color: var(--waumini-brand);
+}

@@ -1,0 +1,327 @@
+{
+  "regions": [
+    {
+      "name": "Arusha",
+      "districts": [
+        { "name": "Arusha City", "wards": ["Central", "Sekei", "Themi", "Unga Limited", "Kaloleni", "Levolosi", "Daraja Mbili"] },
+        { "name": "Arusha Rural", "wards": ["Ngaramtoni", "Kimandolu", "Moshono", "Oljoro", "Elerai"] },
+        { "name": "Karatu", "wards": ["Karatu", "Rhotia", "Endabash", "Mang'ola", "Qurus"] },
+        { "name": "Longido", "wards": ["Longido", "Kimokouwa", "Gelai", "Engarenaibor"] },
+        { "name": "Meru", "wards": ["Akheri", "Maji ya Chai", "Usa River", "Leguruki", "King'ori"] },
+        { "name": "Monduli", "wards": ["Monduli", "Mto wa Mbu", "Selela", "Makuyuni"] },
+        { "name": "Ngorongoro", "wards": ["Nainokanoka", "Sale", "Soit Sambu", "Loliondo"] }
+      ]
+    },
+    {
+      "name": "Dar es Salaam",
+      "districts": [
+        { "name": "Ilala", "wards": ["Buguruni", "Kariakoo", "Kisutu", "Tabata", "Vingunguti", "Gerezani", "Kurasini"] },
+        { "name": "Kinondoni", "wards": ["Kawe", "Msasani", "Oyster Bay", "Sinza", "Kijitonyama", "Makumbusho", "Mwananyamala"] },
+        { "name": "Temeke", "wards": ["Chamazi", "Mbagala", "Tandika", "Chang'ombe", "Azimio", "Mtoni", "Sandali"] },
+        { "name": "Ubungo", "wards": ["Saranga", "Makuburi", "Kimara", "Mbezi", "Goba", "Kibamba"] },
+        { "name": "Kigamboni", "wards": ["Kibada", "Kisarawe II", "Tungi", "Kimbiji", "Somangila", "Vijibweni"] }
+      ]
+    },
+    {
+      "name": "Dodoma",
+      "districts": [
+        { "name": "Dodoma City", "wards": ["Central", "Makutupora", "Ntyuka", "Mvumi", "Chamwino"] },
+        { "name": "Chamwino", "wards": ["Chamwino", "Mvumi", "Ntyuka", "Makutupora", "Mpwapwa"] },
+        { "name": "Chemba", "wards": ["Chemba", "Mpwaywa", "Mvumi", "Ntyuka"] },
+        { "name": "Kondoa", "wards": ["Kondoa", "Mpwaywa", "Chemba", "Mvumi"] },
+        { "name": "Kongwa", "wards": ["Kongwa", "Mpwapwa", "Chemba", "Mvumi"] },
+        { "name": "Mpwapwa", "wards": ["Mpwapwa", "Kongwa", "Chemba", "Mvumi"] }
+      ]
+    },
+    {
+      "name": "Geita",
+      "districts": [
+        { "name": "Geita", "wards": ["Geita", "Bukoli", "Kakubilo", "Kasamwa", "Nyakamwaga"] },
+        { "name": "Bukombe", "wards": ["Bukombe", "Kakubilo", "Kasamwa", "Nyakamwaga"] },
+        { "name": "Chato", "wards": ["Chato", "Kakubilo", "Kasamwa", "Nyakamwaga"] },
+        { "name": "Mbogwe", "wards": ["Mbogwe", "Kakubilo", "Kasamwa", "Nyakamwaga"] },
+        { "name": "Nyang'hwale", "wards": ["Nyang'hwale", "Kakubilo", "Kasamwa", "Nyakamwaga"] }
+      ]
+    },
+    {
+      "name": "Iringa",
+      "districts": [
+        { "name": "Iringa Urban", "wards": ["Central", "Mkwawa", "Mlandege", "Mtwivila", "Tumaini"] },
+        { "name": "Iringa Rural", "wards": ["Mlandege", "Mtwivila", "Tumaini", "Mkwawa"] },
+        { "name": "Kilolo", "wards": ["Kilolo", "Mlandege", "Mtwivila", "Tumaini"] },
+        { "name": "Mafinga", "wards": ["Mafinga", "Mlandege", "Mtwivila", "Tumaini"] },
+        { "name": "Mufindi", "wards": ["Mufindi", "Mlandege", "Mtwivila", "Tumaini"] }
+      ]
+    },
+    {
+      "name": "Kagera",
+      "districts": [
+        { "name": "Bukoba Urban", "wards": ["Central", "Kashai", "Muleba", "Nshamba", "Rugazi"] },
+        { "name": "Bukoba Rural", "wards": ["Kashai", "Muleba", "Nshamba", "Rugazi"] },
+        { "name": "Karagwe", "wards": ["Karagwe", "Muleba", "Nshamba", "Rugazi"] },
+        { "name": "Kyerwa", "wards": ["Kyerwa", "Muleba", "Nshamba", "Rugazi"] },
+        { "name": "Missenyi", "wards": ["Missenyi", "Muleba", "Nshamba", "Rugazi"] },
+        { "name": "Muleba", "wards": ["Muleba", "Nshamba", "Rugazi", "Kashai"] },
+        { "name": "Ngara", "wards": ["Ngara", "Muleba", "Nshamba", "Rugazi"] }
+      ]
+    },
+    {
+      "name": "Kaskazini Pemba",
+      "districts": [
+        { "name": "Micheweni", "wards": ["Micheweni", "Wete", "Konde", "Mkoani"] },
+        { "name": "Wete", "wards": ["Wete", "Micheweni", "Konde", "Mkoani"] }
+      ]
+    },
+    {
+      "name": "Kaskazini Unguja",
+      "districts": [
+        { "name": "Kaskazini A", "wards": ["Mkokotoni", "Micheweni", "Wete", "Konde"] },
+        { "name": "Kaskazini B", "wards": ["Mkokotoni", "Micheweni", "Wete", "Konde"] }
+      ]
+    },
+    {
+      "name": "Katavi",
+      "districts": [
+        { "name": "Mpanda Urban", "wards": ["Central", "Mpanda", "Karema", "Mlele"] },
+        { "name": "Mpanda Rural", "wards": ["Mpanda", "Karema", "Mlele", "Central"] },
+        { "name": "Mlele", "wards": ["Mlele", "Mpanda", "Karema", "Central"] }
+      ]
+    },
+    {
+      "name": "Kigoma",
+      "districts": [
+        { "name": "Kigoma Urban", "wards": ["Central", "Kigoma", "Kasulu", "Kibondo"] },
+        { "name": "Kigoma Rural", "wards": ["Kigoma", "Kasulu", "Kibondo", "Central"] },
+        { "name": "Kasulu", "wards": ["Kasulu", "Kigoma", "Kibondo", "Central"] },
+        { "name": "Kibondo", "wards": ["Kibondo", "Kigoma", "Kasulu", "Central"] },
+        { "name": "Uvinza", "wards": ["Uvinza", "Kigoma", "Kasulu", "Kibondo"] }
+      ]
+    },
+    {
+      "name": "Kilimanjaro",
+      "districts": [
+        { "name": "Moshi Urban", "wards": ["Kaloleni", "Kiboriloni", "Rau", "Majengo", "Shirimatunda", "Soweto"] },
+        { "name": "Moshi Rural", "wards": ["Kahe", "Uru Mashariki", "Uru Kusini", "Mamba", "Kilema Kaskazini"] },
+        { "name": "Hai", "wards": ["Machame Uroki", "Machame Narumu", "Machame Kaskazini", "Masama Rundugai"] },
+        { "name": "Rombo", "wards": ["Rombo", "Machame Uroki", "Machame Narumu", "Machame Kaskazini"] },
+        { "name": "Same", "wards": ["Same", "Machame Uroki", "Machame Narumu", "Machame Kaskazini"] },
+        { "name": "Siha", "wards": ["Siha", "Machame Uroki", "Machame Narumu", "Machame Kaskazini"] }
+      ]
+    },
+    {
+      "name": "Lindi",
+      "districts": [
+        { "name": "Lindi Urban", "wards": ["Central", "Lindi", "Kilwa", "Nachingwea"] },
+        { "name": "Lindi Rural", "wards": ["Lindi", "Kilwa", "Nachingwea", "Central"] },
+        { "name": "Kilwa", "wards": ["Kilwa", "Lindi", "Nachingwea", "Central"] },
+        { "name": "Liwale", "wards": ["Liwale", "Lindi", "Kilwa", "Nachingwea"] },
+        { "name": "Nachingwea", "wards": ["Nachingwea", "Lindi", "Kilwa", "Central"] },
+        { "name": "Ruangwa", "wards": ["Ruangwa", "Lindi", "Kilwa", "Nachingwea"] }
+      ]
+    },
+    {
+      "name": "Manyara",
+      "districts": [
+        { "name": "Babati Urban", "wards": ["Central", "Babati", "Hanang", "Kiteto"] },
+        { "name": "Babati Rural", "wards": ["Babati", "Hanang", "Kiteto", "Central"] },
+        { "name": "Hanang", "wards": ["Hanang", "Babati", "Kiteto", "Central"] },
+        { "name": "Kiteto", "wards": ["Kiteto", "Babati", "Hanang", "Central"] },
+        { "name": "Mbulu", "wards": ["Mbulu", "Babati", "Hanang", "Kiteto"] },
+        { "name": "Simanjiro", "wards": ["Simanjiro", "Babati", "Hanang", "Kiteto"] }
+      ]
+    },
+    {
+      "name": "Mara",
+      "districts": [
+        { "name": "Musoma Urban", "wards": ["Central", "Musoma", "Bunda", "Rorya"] },
+        { "name": "Musoma Rural", "wards": ["Musoma", "Bunda", "Rorya", "Central"] },
+        { "name": "Bunda", "wards": ["Bunda", "Musoma", "Rorya", "Central"] },
+        { "name": "Butiama", "wards": ["Butiama", "Musoma", "Bunda", "Rorya"] },
+        { "name": "Rorya", "wards": ["Rorya", "Musoma", "Bunda", "Central"] },
+        { "name": "Serengeti", "wards": ["Serengeti", "Musoma", "Bunda", "Rorya"] },
+        { "name": "Tarime", "wards": ["Tarime", "Musoma", "Bunda", "Rorya"] }
+      ]
+    },
+    {
+      "name": "Mbeya",
+      "districts": [
+        { "name": "Mbeya Urban", "wards": ["Central", "Mbeya", "Chunya", "Kyela"] },
+        { "name": "Mbeya Rural", "wards": ["Mbeya", "Chunya", "Kyela", "Central"] },
+        { "name": "Chunya", "wards": ["Chunya", "Mbeya", "Kyela", "Central"] },
+        { "name": "Kyela", "wards": ["Kyela", "Mbeya", "Chunya", "Central"] },
+        { "name": "Mbarali", "wards": ["Mbarali", "Mbeya", "Chunya", "Kyela"] },
+        { "name": "Rungwe", "wards": ["Rungwe", "Mbeya", "Chunya", "Kyela"] }
+      ]
+    },
+    {
+      "name": "Mjini Magharibi",
+      "districts": [
+        { "name": "Magharibi A", "wards": ["Mkokotoni", "Micheweni", "Wete", "Konde"] },
+        { "name": "Magharibi B", "wards": ["Mkokotoni", "Micheweni", "Wete", "Konde"] }
+      ]
+    },
+    {
+      "name": "Morogoro",
+      "districts": [
+        { "name": "Morogoro Urban", "wards": ["Central", "Morogoro", "Kilosa", "Mvomero"] },
+        { "name": "Morogoro Rural", "wards": ["Morogoro", "Kilosa", "Mvomero", "Central"] },
+        { "name": "Gairo", "wards": ["Gairo", "Morogoro", "Kilosa", "Mvomero"] },
+        { "name": "Ifakara", "wards": ["Ifakara", "Morogoro", "Kilosa", "Mvomero"] },
+        { "name": "Kilosa", "wards": ["Kilosa", "Morogoro", "Mvomero", "Central"] },
+        { "name": "Kilombero", "wards": ["Kilombero", "Morogoro", "Kilosa", "Mvomero"] },
+        { "name": "Malinyi", "wards": ["Malinyi", "Morogoro", "Kilosa", "Mvomero"] },
+        { "name": "Mlimba", "wards": ["Mlimba", "Morogoro", "Kilosa", "Mvomero"] },
+        { "name": "Mvomero", "wards": ["Mvomero", "Morogoro", "Kilosa", "Central"] },
+        { "name": "Ulanga", "wards": ["Ulanga", "Morogoro", "Kilosa", "Mvomero"] }
+      ]
+    },
+    {
+      "name": "Mtwara",
+      "districts": [
+        { "name": "Mtwara Urban", "wards": ["Central", "Mtwara", "Newala", "Tandahimba"] },
+        { "name": "Mtwara Rural", "wards": ["Mtwara", "Newala", "Tandahimba", "Central"] },
+        { "name": "Masasi", "wards": ["Masasi", "Mtwara", "Newala", "Tandahimba"] },
+        { "name": "Nanyumbu", "wards": ["Nanyumbu", "Mtwara", "Newala", "Tandahimba"] },
+        { "name": "Newala", "wards": ["Newala", "Mtwara", "Tandahimba", "Central"] },
+        { "name": "Tandahimba", "wards": ["Tandahimba", "Mtwara", "Newala", "Central"] }
+      ]
+    },
+    {
+      "name": "Mwanza",
+      "districts": [
+        { "name": "Mwanza Urban", "wards": ["Central", "Mwanza", "Sengerema", "Ukerewe"] },
+        { "name": "Mwanza Rural", "wards": ["Mwanza", "Sengerema", "Ukerewe", "Central"] },
+        { "name": "Ilemela", "wards": ["Ilemela", "Mwanza", "Sengerema", "Ukerewe"] },
+        { "name": "Kwimba", "wards": ["Kwimba", "Mwanza", "Sengerema", "Ukerewe"] },
+        { "name": "Magu", "wards": ["Magu", "Mwanza", "Sengerema", "Ukerewe"] },
+        { "name": "Misungwi", "wards": ["Misungwi", "Mwanza", "Sengerema", "Ukerewe"] },
+        { "name": "Sengerema", "wards": ["Sengerema", "Mwanza", "Ukerewe", "Central"] },
+        { "name": "Ukerewe", "wards": ["Ukerewe", "Mwanza", "Sengerema", "Central"] }
+      ]
+    },
+    {
+      "name": "Njombe",
+      "districts": [
+        { "name": "Njombe Urban", "wards": ["Central", "Njombe", "Ludewa", "Makete"] },
+        { "name": "Njombe Rural", "wards": ["Njombe", "Ludewa", "Makete", "Central"] },
+        { "name": "Ludewa", "wards": ["Ludewa", "Njombe", "Makete", "Central"] },
+        { "name": "Makete", "wards": ["Makete", "Njombe", "Ludewa", "Central"] },
+        { "name": "Wanging'ombe", "wards": ["Wanging'ombe", "Njombe", "Ludewa", "Makete"] }
+      ]
+    },
+    {
+      "name": "Pwani",
+      "districts": [
+        { "name": "Kibaha Urban", "wards": ["Central", "Kibaha", "Bagamoyo", "Kisarawe"] },
+        { "name": "Kibaha Rural", "wards": ["Kibaha", "Bagamoyo", "Kisarawe", "Central"] },
+        { "name": "Bagamoyo", "wards": ["Bagamoyo", "Kibaha", "Kisarawe", "Central"] },
+        { "name": "Chalinze", "wards": ["Chalinze", "Kibaha", "Bagamoyo", "Kisarawe"] },
+        { "name": "Kibiti", "wards": ["Kibiti", "Kibaha", "Bagamoyo", "Kisarawe"] },
+        { "name": "Kisarawe", "wards": ["Kisarawe", "Kibaha", "Bagamoyo", "Central"] },
+        { "name": "Mafia", "wards": ["Mafia", "Kibaha", "Bagamoyo", "Kisarawe"] },
+        { "name": "Mkuranga", "wards": ["Mkuranga", "Kibaha", "Bagamoyo", "Kisarawe"] },
+        { "name": "Rufiji", "wards": ["Rufiji", "Kibaha", "Bagamoyo", "Kisarawe"] }
+      ]
+    },
+    {
+      "name": "Rukwa",
+      "districts": [
+        { "name": "Sumbawanga Urban", "wards": ["Central", "Sumbawanga", "Nkasi", "Kalambo"] },
+        { "name": "Sumbawanga Rural", "wards": ["Sumbawanga", "Nkasi", "Kalambo", "Central"] },
+        { "name": "Kalambo", "wards": ["Kalambo", "Sumbawanga", "Nkasi", "Central"] },
+        { "name": "Nkasi", "wards": ["Nkasi", "Sumbawanga", "Kalambo", "Central"] }
+      ]
+    },
+    {
+      "name": "Ruvuma",
+      "districts": [
+        { "name": "Songea Urban", "wards": ["Central", "Songea", "Tunduru", "Namtumbo"] },
+        { "name": "Songea Rural", "wards": ["Songea", "Tunduru", "Namtumbo", "Central"] },
+        { "name": "Mbinga", "wards": ["Mbinga", "Songea", "Tunduru", "Namtumbo"] },
+        { "name": "Namtumbo", "wards": ["Namtumbo", "Songea", "Tunduru", "Central"] },
+        { "name": "Nyasa", "wards": ["Nyasa", "Songea", "Tunduru", "Namtumbo"] },
+        { "name": "Tunduru", "wards": ["Tunduru", "Songea", "Namtumbo", "Central"] }
+      ]
+    },
+    {
+      "name": "Shinyanga",
+      "districts": [
+        { "name": "Shinyanga Urban", "wards": ["Central", "Shinyanga", "Kahama", "Kishapu"] },
+        { "name": "Shinyanga Rural", "wards": ["Shinyanga", "Kahama", "Kishapu", "Central"] },
+        { "name": "Kahama", "wards": ["Kahama", "Shinyanga", "Kishapu", "Central"] },
+        { "name": "Kishapu", "wards": ["Kishapu", "Shinyanga", "Kahama", "Central"] }
+      ]
+    },
+    {
+      "name": "Simiyu",
+      "districts": [
+        { "name": "Bariadi", "wards": ["Bariadi", "Busega", "Itilima", "Maswa", "Meatu"] },
+        { "name": "Busega", "wards": ["Busega", "Bariadi", "Itilima", "Maswa", "Meatu"] },
+        { "name": "Itilima", "wards": ["Itilima", "Bariadi", "Busega", "Maswa", "Meatu"] },
+        { "name": "Maswa", "wards": ["Maswa", "Bariadi", "Busega", "Itilima", "Meatu"] },
+        { "name": "Meatu", "wards": ["Meatu", "Bariadi", "Busega", "Itilima", "Maswa"] }
+      ]
+    },
+    {
+      "name": "Singida",
+      "districts": [
+        { "name": "Singida Urban", "wards": ["Central", "Singida", "Ikungi", "Manyoni"] },
+        { "name": "Singida Rural", "wards": ["Singida", "Ikungi", "Manyoni", "Central"] },
+        { "name": "Ikungi", "wards": ["Ikungi", "Singida", "Manyoni", "Central"] },
+        { "name": "Iramba", "wards": ["Iramba", "Singida", "Ikungi", "Manyoni"] },
+        { "name": "Manyoni", "wards": ["Manyoni", "Singida", "Ikungi", "Central"] },
+        { "name": "Mkalama", "wards": ["Mkalama", "Singida", "Ikungi", "Manyoni"] }
+      ]
+    },
+    {
+      "name": "Songwe",
+      "districts": [
+        { "name": "Mbozi", "wards": ["Mbozi", "Momba", "Songwe", "Tunduma"] },
+        { "name": "Momba", "wards": ["Momba", "Mbozi", "Songwe", "Tunduma"] },
+        { "name": "Songwe", "wards": ["Songwe", "Mbozi", "Momba", "Tunduma"] },
+        { "name": "Tunduma", "wards": ["Tunduma", "Mbozi", "Momba", "Songwe"] }
+      ]
+    },
+    {
+      "name": "Tabora",
+      "districts": [
+        { "name": "Tabora Urban", "wards": ["Central", "Tabora", "Igunga", "Nzega"] },
+        { "name": "Tabora Rural", "wards": ["Tabora", "Igunga", "Nzega", "Central"] },
+        { "name": "Igunga", "wards": ["Igunga", "Tabora", "Nzega", "Central"] },
+        { "name": "Kaliua", "wards": ["Kaliua", "Tabora", "Igunga", "Nzega"] },
+        { "name": "Nzega", "wards": ["Nzega", "Tabora", "Igunga", "Central"] },
+        { "name": "Sikonge", "wards": ["Sikonge", "Tabora", "Igunga", "Nzega"] },
+        { "name": "Urambo", "wards": ["Urambo", "Tabora", "Igunga", "Nzega"] },
+        { "name": "Uyui", "wards": ["Uyui", "Tabora", "Igunga", "Nzega"] }
+      ]
+    },
+    {
+      "name": "Tanga",
+      "districts": [
+        { "name": "Tanga Urban", "wards": ["Central", "Tanga", "Handeni", "Kilindi"] },
+        { "name": "Tanga Rural", "wards": ["Tanga", "Handeni", "Kilindi", "Central"] },
+        { "name": "Handeni", "wards": ["Handeni", "Tanga", "Kilindi", "Central"] },
+        { "name": "Kilindi", "wards": ["Kilindi", "Tanga", "Handeni", "Central"] },
+        { "name": "Korogwe", "wards": ["Korogwe", "Tanga", "Handeni", "Kilindi"] },
+        { "name": "Lushoto", "wards": ["Lushoto", "Tanga", "Handeni", "Kilindi"] },
+        { "name": "Mkinga", "wards": ["Mkinga", "Tanga", "Handeni", "Kilindi"] },
+        { "name": "Muheza", "wards": ["Muheza", "Tanga", "Handeni", "Kilindi"] },
+        { "name": "Pangani", "wards": ["Pangani", "Tanga", "Handeni", "Kilindi"] }
+      ]
+    },
+    {
+      "name": "Kusini Pemba",
+      "districts": [
+        { "name": "Chake Chake", "wards": ["Chake Chake", "Mkoani", "Wete", "Konde"] },
+        { "name": "Mkoani", "wards": ["Mkoani", "Chake Chake", "Wete", "Konde"] }
+      ]
+    },
+    {
+      "name": "Kusini Unguja",
+      "districts": [
+        { "name": "Kusini A", "wards": ["Mkokotoni", "Micheweni", "Wete", "Konde"] },
+        { "name": "Kusini B", "wards": ["Mkokotoni", "Micheweni", "Wete", "Konde"] }
+      ]
+    }
+  ]
+}
