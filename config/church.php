@@ -19,6 +19,7 @@ return [
         'attendance' => ['label' => 'Attendance', 'icon' => 'fa-check-square-o'],
         'bereavements' => ['label' => 'Bereavements', 'icon' => 'fa-heart'],
         'finance' => ['label' => 'Finance', 'icon' => 'fa-money'],
+        'assets' => ['label' => 'Assets', 'icon' => 'fa-cubes'],
         'reports' => ['label' => 'Reports', 'icon' => 'fa-file-text'],
         'analytics' => ['label' => 'Analytics', 'icon' => 'fa-line-chart'],
         'member_requests' => ['label' => 'Member Requests', 'icon' => 'fa-envelope'],
@@ -143,6 +144,7 @@ return [
             'active' => 'church.members.*',
             'children' => [
                 ['label' => 'Register Member', 'route' => 'church.members.create', 'permission' => 'members.create'],
+                ['label' => 'Registration Approvals', 'route' => 'church.member-registrations.index', 'permission' => 'member_registrations.view'],
                 ['label' => 'View Members', 'route' => 'church.members.index', 'permission' => 'members.view'],
                 ['label' => 'Archived Members', 'route' => 'church.members.archived', 'permission' => 'members.view'],
                 ['label' => 'View Children', 'route' => 'church.members.children.index', 'permission' => 'members.view'],
@@ -201,7 +203,7 @@ return [
             'label' => 'Finance',
             'icon' => 'fa-money',
             'permission' => 'finance.view',
-            'active' => 'church.finance.*|church.tithes.*|church.offerings.*|church.pledges.*|church.budget.*',
+            'active' => 'church.finance.*|church.tithes.*|church.offerings.*|church.pledges.*|church.budget.*|church.assets.*',
             'children' => [
                 ['label' => 'Dashboard', 'route' => 'church.finance.dashboard', 'permission' => 'finance.view'],
                 ['label' => 'Approval Dashboard', 'route' => 'church.finance.approvals', 'permission' => 'finance.approve'],
@@ -209,6 +211,7 @@ return [
                 ['label' => 'Offerings', 'route' => 'church.offerings.index', 'permission' => 'finance.view'],
                 ['label' => 'Pledges', 'route' => 'church.pledges.index', 'permission' => 'finance.view'],
                 ['label' => 'Budget & Expenses', 'route' => 'church.budget.index', 'permission' => 'finance.view'],
+                ['label' => 'Church Assets', 'route' => 'church.assets.index', 'permission' => 'assets.view'],
             ],
         ],
         [

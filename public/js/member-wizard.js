@@ -25,7 +25,21 @@
         nextBtn.style.display = step < totalSteps ? 'inline-block' : 'none';
         submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
         if (step === totalSteps) buildSummary();
+        updateRegisterProgress(step);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateRegisterProgress(step) {
+        var fill = document.getElementById('registerProgressFill');
+        var label = document.getElementById('registerProgressLabel');
+        var stepName = document.getElementById('registerProgressStepName');
+        if (!fill) return;
+
+        fill.style.width = ((step / totalSteps) * 100) + '%';
+        if (label) label.textContent = step;
+        if (stepName && window.registerStepNames) {
+            stepName.textContent = window.registerStepNames[step - 1] || '';
+        }
     }
 
     function getField(name) {
@@ -166,17 +180,58 @@
             });
     }
 
-    function validateStep(step) {
+    function isInHiddenContainer(input) {
+        if (input.disabled || input.type === 'hidden') {
+            return true;
+        }
+
+        var el = input.parentElement;
+        while (el && el !== form) {
+            if (el.classList && el.classList.contains('wizard-panel')) {
+                return false;
+            }
+
+            var style = window.getComputedStyle(el);
+            if (style.display === 'none' || style.visibility === 'hidden') {
+                return true;
+            }
+
+            el = el.parentElement;
+        }
+
+        return false;
+    }
+
+    function validateStep(step, forFinalSubmit) {
         var panel = form.querySelector('.wizard-panel[data-step="' + step + '"]');
+        if (!panel) {
+            return true;
+        }
+
         var inputs = panel.querySelectorAll('input, select, textarea');
         for (var i = 0; i < inputs.length; i++) {
             var input = inputs[i];
-            if (input.offsetParent === null || input.disabled) continue;
+            if (input.disabled || input.type === 'hidden') {
+                continue;
+            }
+
+            if (forFinalSubmit) {
+                if (isInHiddenContainer(input)) {
+                    continue;
+                }
+            } else if (input.offsetParent === null) {
+                continue;
+            }
+
             if (!input.checkValidity()) {
+                if (forFinalSubmit) {
+                    showStep(step);
+                }
                 input.reportValidity();
                 return false;
             }
         }
+
         return true;
     }
 
@@ -336,10 +391,47 @@
         }
     }
 
+    function toggleMemberBaptismFields() {
+        var baptizedCheckbox = document.getElementById('is_baptized');
+        var wrap = document.getElementById('memberBaptismFields');
+        if (!baptizedCheckbox) {
+            return;
+        }
+
+        var checked = baptizedCheckbox.checked;
+        if (wrap) {
+            wrap.style.display = checked ? 'block' : 'none';
+        }
+
+        if (!checked) {
+            ['baptism_date', 'baptism_place', 'baptized_by'].forEach(function (name) {
+                var el = form.querySelector('[name="' + name + '"]');
+                if (el) {
+                    el.value = '';
+                }
+            });
+        }
+    }
+
     function prepareFormForSubmit() {
+        var baptizedCheckbox = document.getElementById('is_baptized');
+        if (baptizedCheckbox && !baptizedCheckbox.checked) {
+            ['baptism_date', 'baptism_place', 'baptized_by'].forEach(function (name) {
+                var el = form.querySelector('[name="' + name + '"]');
+                if (el) {
+                    el.value = '';
+                }
+            });
+        }
+
         form.querySelectorAll('input, select, textarea').forEach(function (el) {
-            if (el.offsetParent === null || el.disabled) {
+            if (el.disabled || isInHiddenContainer(el)) {
                 el.removeAttribute('required');
+                el.removeAttribute('pattern');
+                el.removeAttribute('min');
+                el.removeAttribute('max');
+                el.removeAttribute('minlength');
+                el.removeAttribute('maxlength');
             }
         });
     }
@@ -553,16 +645,16 @@
 
     var memberBaptized = document.getElementById('is_baptized');
     if (memberBaptized) {
-        memberBaptized.addEventListener('change', function () {
-            var wrap = document.getElementById('memberBaptismFields');
-            if (wrap) {
-                wrap.style.display = this.checked ? 'block' : 'none';
-            }
-        });
+        memberBaptized.addEventListener('change', toggleMemberBaptismFields);
+        toggleMemberBaptismFields();
     }
 
+    form.setAttribute('novalidate', 'novalidate');
+
+    var formSubmitting = false;
+
     nextBtn.addEventListener('click', function () {
-        if (!validateStep(currentStep)) return;
+        if (!validateStep(currentStep, false)) return;
         if (currentStep < totalSteps) showStep(currentStep + 1);
     });
 
@@ -570,15 +662,25 @@
         if (currentStep > 1) showStep(currentStep - 1);
     });
 
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (e) {
+        if (formSubmitting) {
+            return;
+        }
+
+        e.preventDefault();
         prepareFormForSubmit();
+
+        for (var step = 1; step <= totalSteps; step++) {
+            if (!validateStep(step, true)) {
+                return;
+            }
+        }
+
         syncDependantNames();
         syncSpouseEnvelopeFieldName();
         formatPhoneForSubmit();
-    });
-
-    submitBtn.addEventListener('click', function () {
-        prepareFormForSubmit();
+        formSubmitting = true;
+        form.submit();
     });
 
     var maritalStatus = document.getElementById('marital_status');

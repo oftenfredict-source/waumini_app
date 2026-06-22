@@ -14,6 +14,8 @@
     </ul>
 </div>
 
+@include('partials.member-registration-link')
+
 <div class="row mb-3">
     <div class="col-md-8">
         <form method="GET" class="form-inline">

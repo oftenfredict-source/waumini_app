@@ -107,12 +107,16 @@
                 <p class="text-muted">{{ $package->description }}</p>
 
                 <div class="mb-3">
+                    @php
+                        $planCurrency = \App\Support\Currency::label($package->currency ?: $currency);
+                        $planDecimals = \App\Support\Currency::decimals($package->currency ?: $currency);
+                    @endphp
                     <div class="plan-price">
-                        {{ $currency }} {{ number_format($package->installation_price, 2) }}
+                        {{ $planCurrency }} {{ number_format($package->installation_price, $planDecimals) }}
                         <small>installation</small>
                     </div>
                     <div class="text-muted">
-                        then {{ $currency }} {{ number_format($package->yearly_price, 2) }} /year
+                        then {{ $planCurrency }} {{ number_format($package->yearly_price, $planDecimals) }} /year
                     </div>
                 </div>
 

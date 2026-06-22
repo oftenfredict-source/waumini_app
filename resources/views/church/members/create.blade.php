@@ -26,6 +26,8 @@
     </ul>
 </div>
 
+@include('partials.member-registration-link')
+
 @include('church.members._wizard-form')
 @endsection
 
@@ -38,5 +40,5 @@
         csrfToken: @json(csrf_token()),
     };
 </script>
-<script src="{{ asset('js/member-wizard.js') }}"></script>
+@include('partials.member-wizard-script')
 @endpush

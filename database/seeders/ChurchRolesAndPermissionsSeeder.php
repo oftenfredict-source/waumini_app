@@ -38,10 +38,14 @@ class ChurchRolesAndPermissionsSeeder extends Seeder
             'finance.view',
             'finance.manage',
             'finance.approve',
+            'assets.view',
+            'assets.manage',
             'reports.view',
             'analytics.view',
             'member_requests.view',
             'member_requests.manage',
+            'member_registrations.view',
+            'member_registrations.manage',
             'branches.view',
             'branches.manage',
             'system.logs',
@@ -80,6 +84,7 @@ class ChurchRolesAndPermissionsSeeder extends Seeder
 
         $treasurerPermissions = $nonSystemPermissions->filter(function (Permission $permission) {
             return str_starts_with($permission->name, 'finance.')
+                || str_starts_with($permission->name, 'assets.')
                 || in_array($permission->name, [
                     'reports.view',
                     'analytics.view',
@@ -96,6 +101,8 @@ class ChurchRolesAndPermissionsSeeder extends Seeder
             return in_array($permission->name, [
                 'finance.view',
                 'finance.manage',
+                'assets.view',
+                'assets.manage',
                 'reports.view',
                 'analytics.view',
                 'members.view',

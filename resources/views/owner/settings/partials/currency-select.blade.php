@@ -1,6 +1,6 @@
 @php
     $currencies = config('currencies', []);
-    $selected = old($fieldName, $fieldValue ?? 'USD');
+    $selected = old($fieldName, $fieldValue ?? 'TZS');
 @endphp
 <select name="{{ $fieldName }}" id="{{ $fieldId ?? $fieldName }}" class="form-control" @if(!empty($required)) required @endif>
     @foreach($currencies as $code => $label)

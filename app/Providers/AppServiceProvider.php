@@ -6,6 +6,7 @@ use App\Models\AttendanceRecord;
 use App\Models\Announcement;
 use App\Models\BereavementEvent;
 use App\Models\Church;
+use App\Models\ChurchAsset;
 use App\Models\ChurchBranch;
 use App\Models\Celebration;
 use App\Models\ChurchService;
@@ -13,7 +14,7 @@ use App\Models\Department;
 use App\Models\Leader;
 use App\Models\Member;
 use App\Models\MemberDependant;
-use App\Models\MemberRequest;
+use App\Models\MemberRegistrationApplication;
 use App\Models\Payment;
 use App\Models\Offering;
 use App\Models\Pledge;
@@ -27,6 +28,7 @@ use App\Models\SupportTicket;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Policies\BereavementEventPolicy;
+use App\Policies\ChurchAssetPolicy;
 use App\Policies\ChurchBranchPolicy;
 use App\Policies\ChurchPolicy;
 use App\Policies\AttendancePolicy;
@@ -36,6 +38,7 @@ use App\Policies\ChurchServicePolicy;
 use App\Policies\DepartmentPolicy;
 use App\Policies\LeaderPolicy;
 use App\Policies\MemberPolicy;
+use App\Policies\MemberRegistrationApplicationPolicy;
 use App\Policies\MemberRequestPolicy;
 use App\Policies\MemberDependantPolicy;
 use App\Policies\PaymentPolicy;
@@ -53,6 +56,7 @@ use App\Policies\UserPolicy;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Services\Church\HeaderNotificationService;
 use Illuminate\Support\ServiceProvider;
@@ -75,13 +79,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (! $this->app->runningInConsole() && $this->app->bound('request')) {
+            $request = $this->app->make('request');
+            URL::forceRootUrl($request->getSchemeAndHttpHost().$request->getBaseUrl());
+        }
+
         Gate::policy(Church::class, ChurchPolicy::class);
         Gate::policy(Member::class, MemberPolicy::class);
+        Gate::policy(MemberRegistrationApplication::class, MemberRegistrationApplicationPolicy::class);
         Gate::policy(MemberRequest::class, MemberRequestPolicy::class);
         Gate::policy(MemberDependant::class, MemberDependantPolicy::class);
         Gate::policy(AttendanceRecord::class, AttendancePolicy::class);
         Gate::policy(Leader::class, LeaderPolicy::class);
         Gate::policy(Department::class, DepartmentPolicy::class);
+        Gate::policy(ChurchAsset::class, ChurchAssetPolicy::class);
         Gate::policy(ChurchBranch::class, ChurchBranchPolicy::class);
         Gate::policy(ChurchService::class, ChurchServicePolicy::class);
         Gate::policy(Announcement::class, AnnouncementPolicy::class);
@@ -157,6 +168,16 @@ class AppServiceProvider extends ServiceProvider
             abort_unless($churchId, 404);
 
             return Announcement::forChurch($churchId)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
+
+        Route::bind('registration', function (string $value) {
+            $churchId = auth()->user()?->church_id;
+
+            abort_unless($churchId, 404);
+
+            return MemberRegistrationApplication::forChurch($churchId)
                 ->whereKey($value)
                 ->firstOrFail();
         });
@@ -257,6 +278,16 @@ class AppServiceProvider extends ServiceProvider
             abort_unless($churchId, 404);
 
             return Expense::forChurch($churchId)
+                ->whereKey($value)
+                ->firstOrFail();
+        });
+
+        Route::bind('asset', function (string $value) {
+            $churchId = auth()->user()?->church_id;
+
+            abort_unless($churchId, 404);
+
+            return ChurchAsset::forChurch($churchId)
                 ->whereKey($value)
                 ->firstOrFail();
         });

@@ -17,6 +17,7 @@ use App\Http\Requests\Church\UpdateMemberRequest;
 use App\Models\Member;
 use App\Services\Church\MemberService;
 use App\Services\Church\BranchAccessService;
+use App\Services\Church\ChurchContextService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class MemberController extends Controller
     public function __construct(
         private readonly MemberService $memberService,
         private readonly BranchAccessService $branchAccessService,
+        private readonly ChurchContextService $churchContextService,
     ) {
         $this->authorizeResource(Member::class, 'member', [
             'except' => ['checkEnvelope', 'resetPassword', 'archive', 'restore', 'archived', 'convertToPermanent', 'extendMembership'],
@@ -72,6 +74,9 @@ class MemberController extends Controller
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
                 && $this->branchAccessService->managesAllBranches($user),
             'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
+            'registrationUrl' => $user->can('member_registrations.view') || $user->can('members.create')
+                ? $this->churchContextService->registrationUrl($church)
+                : null,
         ]);
     }
 
@@ -97,6 +102,7 @@ class MemberController extends Controller
             'dependantRelationships' => DependantRelationship::cases(),
             'tribes' => config('tanzania.tribes'),
             'durationUnits' => \App\Enums\TemporaryDurationUnit::cases(),
+            'registrationUrl' => $this->churchContextService->registrationUrl($church),
         ]);
     }
 

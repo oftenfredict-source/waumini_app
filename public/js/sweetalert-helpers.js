@@ -1,153 +1,108 @@
-/**
- * SweetAlert2 Helper Functions
- */
+(function (window) {
+    'use strict';
 
-if (typeof Swal === 'undefined') {
-    console.error('SweetAlert2 is not loaded. Please include SweetAlert2 library.');
-}
+    if (typeof window.Swal === 'undefined') {
+        return;
+    }
 
-function showSuccess(title, message, callback) {
-    return Swal.fire({
-        icon: 'success',
-        title: title || 'Success!',
-        text: message || '',
-        confirmButtonColor: document.querySelector('meta[name="brand-color"]')?.content || '#940000',
-        timer: 3000,
-        timerProgressBar: true,
-    }).then((result) => {
-        if (callback && typeof callback === 'function') {
-            callback(result);
-        }
-        return result;
-    });
-}
+    const defaults = {
+        confirmButtonColor: '#940000',
+    };
 
-function showError(title, message, callback) {
-    return Swal.fire({
-        icon: 'error',
-        title: title || 'Error!',
-        text: message || 'An error occurred',
-        confirmButtonColor: '#dc3545',
-    }).then((result) => {
-        if (callback && typeof callback === 'function') {
-            callback(result);
-        }
-        return result;
-    });
-}
+    function baseOptions(overrides) {
+        return Object.assign({}, defaults, overrides || {});
+    }
 
-function showWarning(title, message, callback) {
-    return Swal.fire({
-        icon: 'warning',
-        title: title || 'Warning!',
-        text: message || '',
-        confirmButtonColor: '#ffc107',
-        confirmButtonText: 'OK',
-    }).then((result) => {
-        if (callback && typeof callback === 'function') {
-            callback(result);
-        }
-        return result;
-    });
-}
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
-function showInfo(title, message, callback) {
-    return Swal.fire({
-        icon: 'info',
-        title: title || 'Information',
-        text: message || '',
-        confirmButtonColor: '#0dcaf0',
-    }).then((result) => {
-        if (callback && typeof callback === 'function') {
-            callback(result);
-        }
-        return result;
-    });
-}
-
-function showConfirm(title, message, confirmText, cancelText, callback) {
-    return Swal.fire({
-        title: title || 'Are you sure?',
-        text: message || "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: confirmText || 'Yes, do it!',
-        cancelButtonText: cancelText || 'Cancel',
-        reverseButtons: true,
-    }).then((result) => {
-        if (result.isConfirmed && callback && typeof callback === 'function') {
-            callback(result);
-        }
-        return result;
-    });
-}
-
-function showDeleteConfirm(title, message, callback) {
-    return showConfirm(
-        title || 'Delete?',
-        message || 'This action cannot be undone!',
-        'Yes, delete it!',
-        'Cancel',
-        callback
-    );
-}
-
-function showLoading(title, text) {
-    Swal.fire({
-        title: title || 'Loading...',
-        text: text || 'Please wait',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-        didOpen: () => {
-            Swal.showLoading();
+    window.WauminiAlert = {
+        fire(options) {
+            return window.Swal.fire(baseOptions(options));
         },
-    });
-}
 
-function closeAlert() {
-    Swal.close();
-}
-
-function showToast(icon, title, timer) {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: timer || 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        success(message, options) {
+            return this.fire(Object.assign({
+                icon: 'success',
+                title: options && options.title ? options.title : 'Success',
+                text: message,
+            }, options || {}));
         },
-    });
 
-    return Toast.fire({
-        icon: icon || 'success',
-        title: title || 'Action completed',
-    });
-}
+        error(message, options) {
+            return this.fire(Object.assign({
+                icon: 'error',
+                title: options && options.title ? options.title : 'Error',
+                text: message,
+            }, options || {}));
+        },
 
-function showSuccessToast(title) {
-    return showToast('success', title);
-}
+        info(message, options) {
+            return this.fire(Object.assign({
+                icon: 'info',
+                title: options && options.title ? options.title : 'Notice',
+                text: message,
+            }, options || {}));
+        },
 
-function showErrorToast(title) {
-    return showToast('error', title);
-}
+        warning(message, options) {
+            return this.fire(Object.assign({
+                icon: 'warning',
+                title: options && options.title ? options.title : 'Warning',
+                text: message,
+            }, options || {}));
+        },
 
-window.SwalHelpers = {
-    success: showSuccess,
-    error: showError,
-    warning: showWarning,
-    info: showInfo,
-    confirm: showConfirm,
-    deleteConfirm: showDeleteConfirm,
-    loading: showLoading,
-    close: closeAlert,
-    toast: showToast,
-    successToast: showSuccessToast,
-    errorToast: showErrorToast,
-};
+        credentials(title, email, password) {
+            const html = '<div class="text-left">'
+                + '<p class="mb-2">Save these credentials securely.</p>'
+                + '<p class="mb-1"><strong>Login:</strong> <code>' + escapeHtml(email || '') + '</code></p>'
+                + '<p class="mb-0"><strong>Password:</strong> <code>' + escapeHtml(password || '') + '</code></p>'
+                + '</div>';
+
+            return this.fire({
+                icon: 'info',
+                title: title || 'Account credentials',
+                html: html,
+                confirmButtonText: 'OK',
+            });
+        },
+
+        fromFlashItem(item) {
+            if (!item || !item.type) {
+                return Promise.resolve();
+            }
+
+            if (item.type === 'credentials') {
+                return this.credentials(item.title, item.email, item.password);
+            }
+
+            const options = {
+                title: item.title || undefined,
+            };
+
+            if (item.html) {
+                options.html = item.html;
+            } else {
+                options.text = item.message || '';
+            }
+
+            const map = {
+                success: 'success',
+                error: 'error',
+                info: 'info',
+                warning: 'warning',
+            };
+
+            return this.fire(Object.assign({
+                icon: map[item.type] || 'info',
+            }, options));
+        },
+    };
+})(window);

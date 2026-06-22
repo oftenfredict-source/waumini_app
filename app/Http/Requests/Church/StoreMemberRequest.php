@@ -67,8 +67,8 @@ class StoreMemberRequest extends FormRequest
             'profession' => ['nullable', 'string', 'max:150'],
             'nida_number' => ['nullable', 'string', 'max:50'],
             'is_baptized' => ['nullable', 'boolean'],
-            'baptism_date' => ['required_if:is_baptized,1,true', 'nullable', 'date', 'before_or_equal:today'],
-            'baptism_place' => ['required_if:is_baptized,1,true', 'nullable', 'string', 'max:255'],
+            'baptism_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'baptism_place' => ['nullable', 'string', 'max:255'],
             'baptized_by' => ['nullable', 'string', 'max:255'],
             'profile_picture' => ['nullable', 'image', 'max:2048'],
 

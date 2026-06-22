@@ -15,8 +15,9 @@ class SubscriptionPackagesSeeder extends Seeder
                 'name' => 'Basic',
                 'slug' => 'basic',
                 'description' => 'Essential tools for small churches.',
-                'installation_price' => 29.00,
-                'yearly_price' => 290.00,
+                'currency' => 'TZS',
+                'installation_price' => 200000,
+                'yearly_price' => 600000,
                 'trial_days' => 14,
                 'max_members' => 200,
                 'max_sms_monthly' => 100,
@@ -27,8 +28,9 @@ class SubscriptionPackagesSeeder extends Seeder
                 'name' => 'Standard',
                 'slug' => 'standard',
                 'description' => 'Full management for growing churches.',
-                'installation_price' => 59.00,
-                'yearly_price' => 590.00,
+                'currency' => 'TZS',
+                'installation_price' => 400000,
+                'yearly_price' => 1500000,
                 'trial_days' => 14,
                 'max_members' => 1000,
                 'max_sms_monthly' => 500,
@@ -39,8 +41,9 @@ class SubscriptionPackagesSeeder extends Seeder
                 'name' => 'Premium',
                 'slug' => 'premium',
                 'description' => 'Complete suite with SMS and advanced reports.',
-                'installation_price' => 99.00,
-                'yearly_price' => 990.00,
+                'currency' => 'TZS',
+                'installation_price' => 600000,
+                'yearly_price' => 3000000,
                 'trial_days' => 14,
                 'max_members' => null,
                 'max_sms_monthly' => 2000,
@@ -53,7 +56,7 @@ class SubscriptionPackagesSeeder extends Seeder
             $featureKeys = $data['features'];
             unset($data['features']);
 
-            $package = SubscriptionPackage::firstOrCreate(
+            $package = SubscriptionPackage::updateOrCreate(
                 ['slug' => $data['slug']],
                 $data,
             );

@@ -44,7 +44,7 @@ class SystemSetting extends Model
 
     public static function platformCurrency(): string
     {
-        return strtoupper((string) self::getValue('billing', 'currency', 'USD'));
+        return strtoupper((string) self::getValue('billing', 'currency', 'TZS'));
     }
 
     public static function defaultChurchCurrency(): string

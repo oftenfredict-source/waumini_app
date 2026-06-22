@@ -8,11 +8,41 @@
     <link rel="stylesheet" href="{{ $vali }}/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     @include('partials.brand-styles')
+    <style>
+        .login-content .logo-mark {
+            display: inline-block;
+            background: #fff;
+            border-radius: 0.65rem;
+            padding: 0.5rem 0.85rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            margin-bottom: 1.5rem;
+        }
+        .login-content .logo-mark img {
+            display: block;
+            max-height: 4.5rem;
+            width: auto;
+            max-width: min(280px, 80vw);
+            object-fit: contain;
+        }
+        .login-content .logo-mark h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: var(--waumini-brand, #940000);
+        }
+    </style>
 </head>
 <body>
     <section class="material-half-bg"><div class="cover"></div></section>
     <section class="login-content">
-        <div class="logo"><h1>{{ config('app.name') }}</h1></div>
+        <div class="logo text-center">
+            @if($logoUrl = \App\Support\WauminiBrand::logoUrl())
+                <div class="logo-mark">
+                    <img src="{{ $logoUrl }}" alt="{{ \App\Support\WauminiBrand::appDisplayName() }}">
+                </div>
+            @else
+                <h1>{{ \App\Support\WauminiBrand::appDisplayName() }}</h1>
+            @endif
+        </div>
         <div class="login-box">
             <form class="login-form" method="POST" action="{{ route('church.login.submit') }}">
                 @csrf
@@ -51,6 +81,9 @@
                     </button>
                 </div>
                 <p class="semibold-text mb-0 text-center mt-3">
+                    New member? <a href="{{ route('church.register') }}">Register now</a>
+                </p>
+                <p class="semibold-text mb-0 text-center mt-2">
                     Platform owner? <a href="{{ route('owner.login') }}">Owner login</a>
                 </p>
             </form>

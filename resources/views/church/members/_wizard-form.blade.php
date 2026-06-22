@@ -1,5 +1,7 @@
 @php
     $isEdit = $isEdit ?? false;
+    $isSelfRegistration = $isSelfRegistration ?? false;
+    $member = $member ?? null;
 
     $d = function (string $field, mixed $fallback = null) use ($isEdit, $member) {
         $memberValue = $fallback;
@@ -57,10 +59,16 @@
         @endforeach
     </div>
 
-    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data">
+    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate>
         @csrf
         @if($isEdit)
             @method('PUT')
+        @endif
+        @if($isSelfRegistration ?? false)
+            <input type="hidden" name="spouse_input_method" value="manual">
+            @if(isset($church))
+                <input type="hidden" name="church" value="{{ $church->slug }}">
+            @endif
         @endif
 
         {{-- STEP 1 --}}
@@ -123,12 +131,16 @@
                         <small class="text-muted">How long this temporary member will stay (months or years).</small>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="envelopeFieldWrap" @if($isSelfRegistration ?? false) style="display:none;" @endif>
                     <div class="form-group">
                         <label>Envelope Number *</label>
                         <input type="text" name="envelope_number" id="envelope_number" class="form-control"
-                            maxlength="3" pattern="\d{3}" value="{{ $d('envelope_number') }}" required>
+                            maxlength="3" pattern="\d{3}" value="{{ $d('envelope_number') }}"
+                            @unless($isSelfRegistration ?? false) required @endunless>
                         <div id="envelope_status" class="envelope-status"></div>
+                        @if($isSelfRegistration ?? false)
+                            <small class="text-muted">Your envelope number will be assigned after church approval.</small>
+                        @endif
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -416,6 +428,7 @@
                         </div>
                     </div>
                     <div class="col-md-8" id="spouseInputMethodWrap" style="display:none;">
+                        @unless($isSelfRegistration ?? false)
                         <div class="form-group">
                             <label>How do you want to add spouse details? *</label>
                             <select name="spouse_input_method" id="spouse_input_method" class="form-control">
@@ -424,9 +437,13 @@
                             </select>
                             <small class="text-muted">Choose one option — select from the list or enter details yourself.</small>
                         </div>
+                        @else
+                            <p class="text-muted mb-0">Enter your spouse details below. If your spouse is already a registered member, the church office will link your records during approval.</p>
+                        @endunless
                     </div>
                 </div>
 
+                @unless($isSelfRegistration ?? false)
                 <div id="spouseMemberSelect" style="display:none;">
                     <div class="row">
                         <div class="col-md-6">
@@ -459,6 +476,7 @@
                         </div>
                     </div>
                 </div>
+                @endunless
 
                 <div id="spouseManualFields">
                     <div class="row">
@@ -544,7 +562,7 @@
                                     value="{{ $spouseTribe['other'] }}" placeholder="Enter tribe name">
                             </div>
                         </div>
-                        <div class="col-md-4" id="spouseEnvelopeManualWrap" style="display:none;">
+                        <div class="col-md-4" id="spouseEnvelopeManualWrap" style="display:none;" @if($isSelfRegistration ?? false) data-self-registration="1" @endif>
                             <div class="form-group">
                                 <label>Spouse Envelope Number *</label>
                                 <input type="text" id="spouse_envelope_number_manual"
@@ -577,7 +595,15 @@
         {{-- STEP 5 --}}
         <div class="wizard-panel" data-step="5">
             <h3 class="tile-title">Step 5: Summary</h3>
-            <p class="text-muted mb-3">{{ $isEdit ? 'Review all information before saving changes.' : 'Review all information before saving the member.' }}</p>
+            <p class="text-muted mb-3">
+                @if($isSelfRegistration ?? false)
+                    Review all information before submitting your registration for church approval.
+                @elseif($isEdit)
+                    Review all information before saving changes.
+                @else
+                    Review all information before saving the member.
+                @endif
+            </p>
             <div id="summaryContent"></div>
         </div>
 

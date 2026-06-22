@@ -18,6 +18,7 @@ use App\Http\Controllers\Church\PledgeController;
 use App\Http\Controllers\Church\CelebrationController;
 use App\Http\Controllers\Church\PromiseGuestController;
 use App\Http\Controllers\Church\BudgetController;
+use App\Http\Controllers\Church\ChurchAssetController;
 use App\Http\Controllers\Church\ExpenseController;
 use App\Http\Controllers\Church\SpecialEventController;
 use App\Http\Controllers\Church\TitheController;
@@ -48,6 +49,10 @@ Route::middleware('church.maintenance')->group(function () {
     Route::post('login/otp', [LoginController::class, 'verifyOtp'])->name('login.otp.verify');
     Route::post('login/otp/resend', [LoginController::class, 'resendOtp'])->name('login.otp.resend');
 
+    Route::get('register', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'create'])->name('register');
+    Route::post('register', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'store'])->name('register.submit');
+    Route::get('register/success/{reference}', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'success'])->name('register.success');
+
     Route::middleware(['auth', 'church'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -67,6 +72,12 @@ Route::middleware('church.maintenance')->group(function () {
         Route::get('requests/{member_request}', [MemberPortalRequestController::class, 'show'])->name('requests.show');
         Route::get('requests/{member_request}/certificate', [MemberPortalRequestController::class, 'downloadCertificate'])->name('requests.certificate');
     });
+
+    Route::get('member-registrations', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'index'])->name('member-registrations.index');
+    Route::get('member-registrations/check-envelope', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'checkEnvelope'])->name('member-registrations.check-envelope');
+    Route::get('member-registrations/{registration}', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'show'])->name('member-registrations.show');
+    Route::post('member-registrations/{registration}/approve', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'approve'])->name('member-registrations.approve');
+    Route::post('member-registrations/{registration}/reject', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'reject'])->name('member-registrations.reject');
 
     Route::get('member-requests', [MemberRequestController::class, 'index'])->name('member-requests.index');
     Route::get('member-requests/{member_request}', [MemberRequestController::class, 'show'])->name('member-requests.show');
@@ -151,6 +162,11 @@ Route::middleware('church.maintenance')->group(function () {
     Route::resource('budget', BudgetController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     Route::post('budget/{budget}/allocate-funds', [BudgetController::class, 'allocateFunds'])
         ->name('budget.allocate-funds');
+
+    Route::resource('church-assets', ChurchAssetController::class)
+        ->names('assets')
+        ->parameters(['church-assets' => 'asset'])
+        ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
 
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');

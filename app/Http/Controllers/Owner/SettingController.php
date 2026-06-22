@@ -222,6 +222,7 @@ class SettingController extends Controller
         }
 
         $data['is_active'] = $request->boolean('is_active');
+        $data['currency'] = SystemSetting::platformCurrency();
 
         $features = $data['features'] ?? null;
         unset($data['features']);

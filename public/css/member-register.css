@@ -1,0 +1,366 @@
+:root {
+    --register-brand: #940000;
+    --register-ink: #1a1d2e;
+    --register-muted: #5c6378;
+    --register-border: rgba(26, 29, 46, 0.08);
+    --register-radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body.register-portal-page {
+    margin: 0;
+    font-family: 'Poppins', var(--waumini-font, sans-serif);
+    color: var(--register-ink);
+    background:
+        radial-gradient(circle at top right, rgba(244, 140, 6, 0.08), transparent 28%),
+        radial-gradient(circle at 10% 0%, rgba(148, 0, 0, 0.06), transparent 32%),
+        #f7f4f1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Top bar */
+.register-topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--register-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.register-topbar-inner {
+    width: min(960px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.85rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.register-topbar-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--register-ink);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.register-topbar-brand img {
+    height: 2.4rem;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
+}
+
+.register-topbar-church {
+    flex: 1;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--register-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.register-topbar-church i {
+    color: var(--register-brand);
+    margin-right: 0.25rem;
+}
+
+.register-topbar-login {
+    flex-shrink: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--register-brand);
+    text-decoration: none;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid rgba(148, 0, 0, 0.2);
+    border-radius: 999px;
+    background: #fff;
+    transition: background 0.2s, color 0.2s;
+}
+
+.register-topbar-login:hover {
+    background: var(--register-brand);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Main */
+.register-main {
+    flex: 1;
+    padding: 2rem 1rem 2.5rem;
+}
+
+.register-wrap {
+    width: min(820px, 100%);
+    margin: 0 auto;
+}
+
+.register-hero {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.register-hero h1 {
+    font-size: clamp(1.5rem, 3vw, 1.85rem);
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+}
+
+.register-hero p {
+    margin: 0;
+    color: var(--register-muted);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Progress */
+.register-progress-box {
+    background: #fff;
+    border: 1px solid var(--register-border);
+    border-radius: var(--register-radius);
+    padding: 1rem 1.15rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(26, 29, 46, 0.04);
+}
+
+.register-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    margin-bottom: 0.55rem;
+    color: var(--register-muted);
+}
+
+.register-progress-meta strong {
+    color: var(--register-brand);
+    font-weight: 700;
+}
+
+.register-progress-track {
+    height: 6px;
+    background: #ece8e4;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.register-progress-fill {
+    height: 100%;
+    width: 20%;
+    background: linear-gradient(90deg, var(--register-brand), #c41e1e);
+    border-radius: 999px;
+    transition: width 0.35s ease;
+}
+
+/* Form card */
+.register-form-card {
+    background: #fff;
+    border: 1px solid var(--register-border);
+    border-radius: var(--register-radius);
+    padding: 1.5rem 1.25rem;
+    box-shadow: 0 8px 32px rgba(26, 29, 46, 0.06);
+}
+
+.register-form-footer {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 0.88rem;
+    color: var(--register-muted);
+}
+
+.register-form-footer a {
+    color: var(--register-brand);
+    font-weight: 600;
+}
+
+/* Hide circle steps — use progress bar instead */
+.register-portal-page .member-wizard-steps {
+    display: none !important;
+}
+
+.register-portal-page .tile {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+}
+
+.register-portal-page .wizard-panel .tile-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--register-ink);
+    margin: 0 0 1.15rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--register-border);
+}
+
+.register-portal-page .form-group {
+    margin-bottom: 1rem;
+}
+
+.register-portal-page label,
+.register-portal-page .control-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--register-ink);
+    margin-bottom: 0.3rem;
+}
+
+.register-portal-page .form-control {
+    border-radius: 8px;
+    border-color: #ddd;
+    font-size: 0.92rem;
+    min-height: 2.5rem;
+}
+
+.register-portal-page .form-control:focus {
+    border-color: var(--register-brand);
+    box-shadow: 0 0 0 3px rgba(148, 0, 0, 0.1);
+}
+
+.register-portal-page .dependant-row {
+    border: 1px solid var(--register-border);
+    border-radius: 10px;
+    background: #faf9f7;
+    padding: 1rem;
+}
+
+.register-portal-page .tile-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--register-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.register-portal-page .tile-footer .ml-auto {
+    margin-left: auto !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.register-portal-page .btn {
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.55rem 1.15rem;
+}
+
+.register-portal-page .btn-primary {
+    background: var(--register-brand);
+    border-color: var(--register-brand);
+}
+
+.register-portal-page .btn-primary:hover {
+    background: #7a0000;
+    border-color: #7a0000;
+}
+
+.register-portal-page .btn-light {
+    background: #f3f0ec;
+    border-color: #e5e0da;
+    color: var(--register-ink);
+}
+
+.register-portal-page .summary-table {
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.register-portal-page .summary-table th {
+    width: 38%;
+    font-weight: 600;
+    background: #faf9f7;
+}
+
+/* Status pages */
+.register-status-card {
+    background: #fff;
+    border: 1px solid var(--register-border);
+    border-radius: var(--register-radius);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(26, 29, 46, 0.06);
+}
+
+.register-status-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1rem;
+    font-size: 1.75rem;
+}
+
+.register-status-icon.success {
+    background: rgba(40, 167, 69, 0.12);
+    color: #28a745;
+}
+
+.register-status-icon.warning {
+    background: rgba(148, 0, 0, 0.1);
+    color: var(--register-brand);
+}
+
+.register-ref-box {
+    display: inline-block;
+    margin: 1rem 0;
+    padding: 0.75rem 1.25rem;
+    background: #faf9f7;
+    border: 1px dashed rgba(148, 0, 0, 0.3);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--register-brand);
+    letter-spacing: 0.03em;
+}
+
+.register-footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: var(--register-muted);
+    border-top: 1px solid var(--register-border);
+    background: #fff;
+}
+
+@media (max-width: 640px) {
+    .register-topbar-church {
+        display: none;
+    }
+
+    .register-form-card {
+        padding: 1.15rem 1rem;
+    }
+
+    .register-portal-page .tile-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .register-portal-page .tile-footer .ml-auto {
+        margin-left: 0 !important;
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .register-portal-page .tile-footer .btn {
+        flex: 1;
+    }
+}
