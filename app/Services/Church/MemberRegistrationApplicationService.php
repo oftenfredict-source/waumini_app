@@ -38,17 +38,19 @@ class MemberRegistrationApplicationService
 
         $phone = $this->memberService->normalizePhoneNumber($data['phone_number'] ?? null);
 
-        return MemberRegistrationApplication::create([
-            'church_id' => $church->id,
-            'branch_id' => $data['branch_id'] ?? null,
-            'application_number' => $this->nextApplicationNumber($church->id),
-            'full_name' => $data['full_name'],
-            'phone_number' => $phone,
-            'registration_data' => $data,
-            'dependants_data' => $dependants,
-            'profile_picture_path' => $profilePath,
-            'status' => MemberRegistrationStatus::Pending,
-        ]);
+        return DB::transaction(function () use ($church, $data, $dependants, $profilePath, $phone) {
+            return MemberRegistrationApplication::create([
+                'church_id' => $church->id,
+                'branch_id' => $data['branch_id'] ?? null,
+                'application_number' => $this->nextApplicationNumber($church->id),
+                'full_name' => $data['full_name'],
+                'phone_number' => $phone,
+                'registration_data' => $data,
+                'dependants_data' => $dependants,
+                'profile_picture_path' => $profilePath,
+                'status' => MemberRegistrationStatus::Pending,
+            ]);
+        });
     }
 
     /**
@@ -140,8 +142,10 @@ class MemberRegistrationApplicationService
     {
         $year = now()->year;
         $prefix = "REG-{$year}-";
-        $latest = MemberRegistrationApplication::forChurch($churchId)
+        $latest = MemberRegistrationApplication::query()
+            ->where('church_id', $churchId)
             ->where('application_number', 'like', $prefix.'%')
+            ->lockForUpdate()
             ->orderByDesc('id')
             ->value('application_number');
 
