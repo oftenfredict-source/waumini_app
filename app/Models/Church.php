@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ChurchStatus;
+use App\Support\TenantDomain;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -118,12 +119,14 @@ class Church extends Model
         return $this->hasOne(ChurchBranch::class)->where('is_headquarters', true);
     }
 
-    public function subdomainUrl(): string
+    public function tenantDomain(): string
     {
-        $domain = $this->primaryDomain?->domain
-            ?? $this->slug.'.'.config('waumini.base_domain');
+        return TenantDomain::forChurch($this);
+    }
 
-        return 'https://'.$domain;
+    public function subdomainUrl(string $path = '/'): string
+    {
+        return TenantDomain::churchUrl($this, $path);
     }
 
     public function branchesEnabled(): bool

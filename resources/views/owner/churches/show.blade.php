@@ -27,7 +27,7 @@
                 <tr><th>Denomination</th><td>{{ $church->denomination ?? '—' }}</td></tr>
                 <tr><th>Location</th><td>{{ collect([$church->city, $church->country])->filter()->implode(', ') ?: '—' }}</td></tr>
                 <tr><th>Address</th><td>{{ $church->address ?? '—' }}</td></tr>
-                <tr><th>Subdomain</th><td><code>{{ $church->primaryDomain?->domain ?? $church->slug }}</code></td></tr>
+                <tr><th>Subdomain</th><td><a href="{{ $church->subdomainUrl() }}" target="_blank" rel="noopener noreferrer"><code>{{ $church->tenantDomain() }}</code></a></td></tr>
                 <tr><th>Branches</th><td>{{ $church->branches_enabled ? 'Enabled' : 'Disabled' }}</td></tr>
                 <tr><th>Trial Ends</th><td>{{ $church->trial_ends_at?->format('M d, Y H:i') ?? '—' }}</td></tr>
                 <tr><th>Registered</th><td>{{ $church->created_at->format('M d, Y H:i') }}</td></tr>
@@ -61,7 +61,7 @@
                     <tr>
                         <th>Login URL</th>
                         <td>
-                            <a href="{{ route('church.login') }}" target="_blank">{{ url('/login') }}</a>
+                            <a href="{{ $church->subdomainUrl('/login') }}" target="_blank" rel="noopener noreferrer">{{ $church->subdomainUrl('/login') }}</a>
                         </td>
                     </tr>
                     <tr>

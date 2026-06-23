@@ -12,6 +12,7 @@ use App\Models\ChurchSubscription;
 use App\Models\SubscriptionPackage;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Support\TenantDomain;
 use App\Services\Church\BranchService;
 use App\Services\Owner\PackageFeatureService;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +52,7 @@ class ChurchService
             ]);
 
             $church->domains()->create([
-                'domain' => $slug.'.'.config('waumini.base_domain'),
+                'domain' => TenantDomain::forSlug($slug),
                 'type' => 'subdomain',
                 'is_primary' => true,
                 'ssl_status' => 'pending',
@@ -182,6 +183,31 @@ class ChurchService
             'ends_at' => $trialEndsAt,
             'auto_renew' => true,
         ]);
+    }
+
+    public function syncPrimaryDomain(Church $church): bool
+    {
+        $expectedDomain = TenantDomain::forChurch($church);
+        $primaryDomain = $church->primaryDomain;
+
+        if ($primaryDomain) {
+            if ($primaryDomain->domain === $expectedDomain) {
+                return false;
+            }
+
+            $primaryDomain->update(['domain' => $expectedDomain]);
+
+            return true;
+        }
+
+        $church->domains()->create([
+            'domain' => $expectedDomain,
+            'type' => 'subdomain',
+            'is_primary' => true,
+            'ssl_status' => 'pending',
+        ]);
+
+        return true;
     }
 
     private function createAdminUser(Church $church, array $data): string

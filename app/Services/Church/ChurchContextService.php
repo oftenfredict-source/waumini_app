@@ -35,6 +35,14 @@ class ChurchContextService
             }
         }
 
+        if (preg_match('/^([a-z0-9-]+)\.wauminilink\.[a-z.]+$/i', $host, $matches)) {
+            $slug = strtolower($matches[1]);
+
+            if ($slug !== 'www' && ($church = Church::query()->where('slug', $slug)->first())) {
+                return $church;
+            }
+        }
+
         if ($slug = $request->route('church')) {
             if ($church = Church::query()->where('slug', $slug)->first()) {
                 return $church;
@@ -70,6 +78,11 @@ class ChurchContextService
 
     public function registrationUrl(Church $church): string
     {
-        return route('church.register', ['church' => $church->slug]);
+        return $church->subdomainUrl('/register');
+    }
+
+    public function loginUrl(Church $church): string
+    {
+        return $church->subdomainUrl('/login');
     }
 }
