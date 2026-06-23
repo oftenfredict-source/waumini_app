@@ -129,6 +129,15 @@ class Church extends Model
         return TenantDomain::churchUrl($this, $path);
     }
 
+    public function portalUrl(string $path = '/'): string
+    {
+        if (config('waumini.use_subdomain_urls')) {
+            return $this->subdomainUrl($path);
+        }
+
+        return TenantDomain::appUrl($path, ['church' => $this->slug]);
+    }
+
     public function branchesEnabled(): bool
     {
         return (bool) $this->branches_enabled;

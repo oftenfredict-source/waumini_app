@@ -63,6 +63,7 @@ class MemberRegistrationApplicationController extends Controller
                 ->where('status', 'pending')
                 ->count(),
             'registrationUrl' => $this->churchContextService->registrationUrl($church),
+            'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church),
         ]);
     }
 

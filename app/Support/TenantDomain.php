@@ -21,6 +21,17 @@ class TenantDomain
         return static::forSlug($church->slug);
     }
 
+    public static function appUrl(string $path = '/', array $query = []): string
+    {
+        $url = static::url(static::base(), $path);
+
+        if ($query !== []) {
+            $url .= '?'.http_build_query($query);
+        }
+
+        return $url;
+    }
+
     public static function url(string $domain, string $path = '/'): string
     {
         $scheme = parse_url((string) config('app.url'), PHP_URL_SCHEME) ?: 'https';

@@ -77,6 +77,9 @@ class MemberController extends Controller
             'registrationUrl' => $user->can('member_registrations.view') || $user->can('members.create')
                 ? $this->churchContextService->registrationUrl($church)
                 : null,
+            'registrationSubdomainUrl' => $user->can('member_registrations.view') || $user->can('members.create')
+                ? $this->churchContextService->registrationSubdomainUrl($church)
+                : null,
         ]);
     }
 
@@ -103,6 +106,7 @@ class MemberController extends Controller
             'tribes' => config('tanzania.tribes'),
             'durationUnits' => \App\Enums\TemporaryDurationUnit::cases(),
             'registrationUrl' => $this->churchContextService->registrationUrl($church),
+            'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church),
         ]);
     }
 

@@ -61,7 +61,10 @@
                     <tr>
                         <th>Login URL</th>
                         <td>
-                            <a href="{{ $church->subdomainUrl('/login') }}" target="_blank" rel="noopener noreferrer">{{ $church->subdomainUrl('/login') }}</a>
+                            <a href="{{ $church->portalUrl('/login') }}" target="_blank" rel="noopener noreferrer">{{ $church->portalUrl('/login') }}</a>
+                            @unless(config('waumini.use_subdomain_urls'))
+                                <br><small class="text-muted">Subdomain (after DNS): <code>{{ $church->subdomainUrl('/login') }}</code></small>
+                            @endunless
                         </td>
                     </tr>
                     <tr>

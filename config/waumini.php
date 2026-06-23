@@ -16,6 +16,7 @@ return [
 
         return 'wauminilink.test';
     })(),
+    'use_subdomain_urls' => env('TENANT_USE_SUBDOMAIN_URLS', false),
     'brand_color' => env('BRAND_COLOR', '#940000'),
     'logo' => env('APP_LOGO', 'waumini_link_logo.png'),
     'font_family' => env('APP_FONT_FAMILY', '"Century Gothic", CenturyGothic, "Apple SD Gothic Neo", "Trebuchet MS", "Segoe UI", Roboto, sans-serif'),

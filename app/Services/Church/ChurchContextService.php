@@ -78,10 +78,20 @@ class ChurchContextService
 
     public function registrationUrl(Church $church): string
     {
+        return $church->portalUrl('/register');
+    }
+
+    public function registrationSubdomainUrl(Church $church): string
+    {
         return $church->subdomainUrl('/register');
     }
 
     public function loginUrl(Church $church): string
+    {
+        return $church->portalUrl('/login');
+    }
+
+    public function loginSubdomainUrl(Church $church): string
     {
         return $church->subdomainUrl('/login');
     }

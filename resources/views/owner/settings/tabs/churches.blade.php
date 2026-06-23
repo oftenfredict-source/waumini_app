@@ -45,6 +45,7 @@
     <h5>Tenant Domains</h5>
     <p>Each church gets a subdomain: <code>{church-slug}.{{ $baseDomain }}</code></p>
     <p class="text-muted">Change base domain via <code>TENANT_BASE_DOMAIN</code> in <code>.env</code> (current: <strong>{{ $baseDomain }}</strong>).</p>
+    <p class="text-muted">Until wildcard DNS is ready, church links use the main domain with <code>?church=slug</code>. Set <code>TENANT_USE_SUBDOMAIN_URLS=true</code> after DNS is configured.</p>
 
     <button type="submit" class="btn btn-primary mt-2"><i class="fa fa-save"></i> Save Church Settings</button>
 </form>
