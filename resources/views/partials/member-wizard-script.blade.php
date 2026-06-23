@@ -1,3 +1,1 @@
-<script>
-{!! file_get_contents(public_path('js/member-wizard.js')) !!}
-</script>
+<script src="{{ asset('js/member-wizard.js') }}"></script>
