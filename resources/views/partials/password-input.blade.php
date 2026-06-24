@@ -4,12 +4,16 @@
     $placeholder = $placeholder ?? '';
     $required = $required ?? true;
     $invalid = $invalid ?? false;
+    $inputClass = trim('form-control '.($class ?? ''));
+    if ($invalid) {
+        $inputClass .= ' is-invalid';
+    }
 @endphp
 
 <div class="password-toggle-field">
     <input
         id="{{ $inputId }}"
-        class="form-control @if($invalid) is-invalid @endif"
+        class="{{ $inputClass }}"
         type="password"
         name="{{ $name }}"
         @if($placeholder !== '') placeholder="{{ $placeholder }}" @endif

@@ -1,71 +1,69 @@
-@php $vali = asset('vali-master/docs'); @endphp
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Verify Code - {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ $vali }}/css/main.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    @include('partials.brand-styles')
-</head>
-<body>
-    <section class="material-half-bg"><div class="cover"></div></section>
-    <section class="login-content">
-        <div class="logo"><h1>{{ config('app.name') }}</h1></div>
-        <div class="login-box">
-            <form class="login-form" method="POST" action="{{ route('church.login.otp.verify') }}">
-                @csrf
-                <h3 class="login-head"><i class="fa fa-lg fa-fw fa-mobile"></i> VERIFY CODE</h3>
+@extends('layouts.auth')
 
-                @include('partials.sweetalert-flash')
+@section('title', 'Verify Code')
 
-                <p class="text-muted text-center mb-3">
-                    Enter the 6-digit code sent to the phone linked to
-                    <strong>{{ $loginIdentifier }}</strong>.
-                </p>
+@section('topbar_action')
+    <a href="{{ route('church.login') }}" class="auth-topbar-link">Back to sign in</a>
+@endsection
 
-                @if($otpExpiresAt)
-                    <p class="text-center small text-muted mb-3">
-                        Code expires at {{ $otpExpiresAt->format('H:i') }}
-                    </p>
-                @endif
+@section('panel_icon', 'fa-mobile')
+@section('panel_eyebrow', 'Two-step verification')
+@section('panel_title')
+    Check your <span>phone</span>
+@endsection
+@section('panel_lead')
+    We sent a 6-digit verification code to the phone number linked to your account. Enter it below to complete sign in.
+@endsection
 
-                <div class="form-group">
-                    <label class="control-label">VERIFICATION CODE</label>
-                    <input class="form-control @error('otp') is-invalid @enderror text-center"
-                           type="text" name="otp" maxlength="6" pattern="[0-9]{6}"
-                           inputmode="numeric" autocomplete="one-time-code" autofocus required
-                           placeholder="000000">
-                    @error('otp')<small class="text-danger">{{ $message }}</small>@enderror
-                </div>
+@section('form_title', 'Enter verification code')
+@section('form_subtitle')
+    Code sent for <strong>{{ $loginIdentifier }}</strong>
+    @if($otpExpiresAt)
+        · expires at {{ $otpExpiresAt->format('H:i') }}
+    @endif
+@endsection
 
-                <div class="form-group btn-container">
-                    <button class="btn btn-primary btn-block" type="submit">
-                        <i class="fa fa-check fa-lg fa-fw"></i> VERIFY &amp; SIGN IN
-                    </button>
-                </div>
+@section('content')
+    <form method="POST" action="{{ route('church.login.otp.verify') }}" novalidate>
+        @csrf
 
-                <p class="semibold-text mb-0 text-center mt-3">
-                    <a href="{{ route('church.login') }}">Back to sign in</a>
-                </p>
-            </form>
+        @include('partials.sweetalert-flash')
 
-            @if($resendAttempts < $maxResendAttempts)
-                <form method="POST" action="{{ route('church.login.otp.resend') }}" class="text-center mt-3">
-                    @csrf
-                    <button type="submit" class="btn btn-link p-0">Resend code</button>
-                    <small class="text-muted d-block">
-                        {{ $maxResendAttempts - $resendAttempts }} resend(s) remaining
-                    </small>
-                </form>
-            @endif
+        <div class="auth-field">
+            <label for="otp_code">Verification code</label>
+            <div class="auth-input-wrap">
+                <i class="fa fa-key auth-input-icon"></i>
+                <input id="otp_code"
+                    class="form-control auth-input auth-otp-input @error('otp') is-invalid @enderror"
+                    type="text"
+                    name="otp"
+                    maxlength="6"
+                    pattern="[0-9]{6}"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    autofocus
+                    required
+                    placeholder="000000">
+            </div>
+            @error('otp')<span class="auth-field-error">{{ $message }}</span>@enderror
         </div>
-    </section>
-    <script src="{{ $vali }}/js/jquery-3.2.1.min.js"></script>
-    <script src="{{ $vali }}/js/popper.min.js"></script>
-    <script src="{{ $vali }}/js/bootstrap.min.js"></script>
-    <script src="{{ $vali }}/js/main.js"></script>
-    @include('partials.sweetalert-assets')
-</body>
-</html>
+
+        <button class="auth-submit" type="submit">
+            <i class="fa fa-check"></i> Verify &amp; sign in
+        </button>
+    </form>
+
+    @if($resendAttempts < $maxResendAttempts)
+        <form method="POST" action="{{ route('church.login.otp.resend') }}" class="auth-resend">
+            @csrf
+            <button type="submit" class="btn btn-link">Resend code</button>
+            <small class="text-muted d-block">
+                {{ $maxResendAttempts - $resendAttempts }} resend(s) remaining
+            </small>
+        </form>
+    @endif
+
+    <a href="{{ route('church.login') }}" class="auth-back-link">
+        <i class="fa fa-arrow-left"></i> Back to sign in
+    </a>
+@endsection

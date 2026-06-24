@@ -1,59 +1,89 @@
-@php $vali = asset('vali-master/docs'); @endphp
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Owner Login - {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ $vali }}/css/main.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    @include('partials.brand-styles')
-    @stack('styles')
-</head>
-<body>
-    <section class="material-half-bg"><div class="cover"></div></section>
-    <section class="login-content">
-        <div class="logo"><h1>{{ config('app.name') }}</h1></div>
-        <div class="login-box">
-            <form class="login-form" method="POST" action="{{ route('owner.login.submit') }}">
-                @csrf
-                <h3 class="login-head"><i class="fa fa-lg fa-fw fa-user"></i> OWNER SIGN IN</h3>
+@extends('layouts.auth')
 
-                @include('partials.sweetalert-flash')
+@section('title', 'Owner Sign In')
 
-                <div class="form-group">
-                    <label class="control-label">EMAIL</label>
-                    <input class="form-control @error('email') is-invalid @enderror" type="email" name="email" value="{{ old('email') }}" placeholder="admin@example.com" autofocus required>
-                    @error('email')<small class="text-danger">{{ $message }}</small>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="control-label">PASSWORD</label>
-                    @include('partials.password-input', [
-                        'placeholder' => 'Password',
-                        'invalid' => $errors->has('password'),
-                    ])
-                    @error('password')<small class="text-danger">{{ $message }}</small>@enderror
-                </div>
-                <div class="form-group">
-                    <div class="utility">
-                        <div class="animated-checkbox">
-                            <label><input type="checkbox" name="remember"><span class="label-text">Stay Signed in</span></label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group btn-container">
-                    <button class="btn btn-primary btn-block" type="submit">
-                        <i class="fa fa-sign-in fa-lg fa-fw"></i> SIGN IN
-                    </button>
-                </div>
-            </form>
+@section('topbar_action')
+    <a href="{{ route('church.login') }}" class="auth-topbar-link">Church login</a>
+@endsection
+
+@section('panel_icon', 'fa-cogs')
+@section('panel_eyebrow', 'Platform owner')
+@section('panel_title')
+    Owner <span>dashboard</span>
+@endsection
+@section('panel_lead')
+    Sign in to manage churches, subscriptions, platform settings, and system-wide administration.
+@endsection
+
+@section('panel_features')
+    <div class="auth-feature">
+        <i class="fa fa-building"></i>
+        <div>
+            <strong>Church management</strong>
+            <span>Create churches, assign packages, and monitor platform activity.</span>
         </div>
-    </section>
-    <script src="{{ $vali }}/js/jquery-3.2.1.min.js"></script>
-    <script src="{{ $vali }}/js/popper.min.js"></script>
-    <script src="{{ $vali }}/js/bootstrap.min.js"></script>
-    <script src="{{ $vali }}/js/main.js"></script>
-    @include('partials.sweetalert-assets')
-    @stack('scripts')
-</body>
-</html>
+    </div>
+    <div class="auth-feature">
+        <i class="fa fa-shield"></i>
+        <div>
+            <strong>Restricted access</strong>
+            <span>This area is for platform owners and authorized administrators only.</span>
+        </div>
+    </div>
+@endsection
+
+@section('form_title', 'Owner sign in')
+@section('form_subtitle', 'Use your owner account credentials')
+
+@section('content')
+    <form method="POST" action="{{ route('owner.login.submit') }}" novalidate>
+        @csrf
+
+        @include('partials.sweetalert-flash')
+
+        <div class="auth-field">
+            <label for="owner_email">Email address</label>
+            <div class="auth-input-wrap">
+                <i class="fa fa-envelope auth-input-icon"></i>
+                <input id="owner_email"
+                    class="form-control auth-input @error('email') is-invalid @enderror"
+                    type="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    placeholder="admin@example.com"
+                    autofocus
+                    required>
+            </div>
+            @error('email')<span class="auth-field-error">{{ $message }}</span>@enderror
+        </div>
+
+        <div class="auth-field">
+            <label for="owner_password">Password</label>
+            <div class="auth-input-wrap">
+                <i class="fa fa-lock auth-input-icon"></i>
+                @include('partials.password-input', [
+                    'id' => 'owner_password',
+                    'placeholder' => 'Your password',
+                    'invalid' => $errors->has('password'),
+                    'class' => 'auth-input',
+                ])
+            </div>
+            @error('password')<span class="auth-field-error">{{ $message }}</span>@enderror
+        </div>
+
+        <div class="auth-options">
+            <label class="auth-remember">
+                <input type="checkbox" name="remember" @checked(old('remember'))>
+                <span>Stay signed in</span>
+            </label>
+        </div>
+
+        <button class="auth-submit" type="submit">
+            <i class="fa fa-sign-in"></i> Sign in
+        </button>
+    </form>
+@endsection
+
+@section('auth_footer')
+    <p>Church staff or member? <a href="{{ route('church.login') }}">Go to church login</a></p>
+@endsection
