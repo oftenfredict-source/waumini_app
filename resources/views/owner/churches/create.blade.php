@@ -51,6 +51,14 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
+                    <label>Member ID Prefix</label>
+                    <input type="text" name="member_id_prefix" class="form-control" value="{{ old('member_id_prefix') }}"
+                        maxlength="6" placeholder="Auto from church name (e.g. TAG IMANI → IM)">
+                    <small class="text-muted">Members will get IDs like IM-{{ now()->format('Y') }}-0001. Must be unique across all churches.</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
                     <label>Denomination</label>
                     <input type="text" name="denomination" class="form-control" value="{{ old('denomination') }}">
                 </div>

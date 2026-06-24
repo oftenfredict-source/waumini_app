@@ -14,6 +14,7 @@ use App\Models\SystemSetting;
 use App\Models\User;
 use App\Support\TenantDomain;
 use App\Services\Church\BranchService;
+use App\Services\Church\MemberIdPrefixService;
 use App\Services\Owner\PackageFeatureService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,6 +25,7 @@ class ChurchService
         private readonly AuditLogService $auditLogService,
         private readonly BranchService $branchService,
         private readonly PackageFeatureService $packageFeatureService,
+        private readonly MemberIdPrefixService $memberIdPrefixService,
     ) {}
 
     /**
@@ -33,6 +35,9 @@ class ChurchService
     {
         return DB::transaction(function () use ($data, $package) {
             $slug = $this->generateUniqueSlug($data['slug'] ?? $data['name']);
+            $memberIdPrefix = ! empty($data['member_id_prefix'])
+                ? $this->memberIdPrefixService->assertAvailable($data['member_id_prefix'])
+                : $this->memberIdPrefixService->generateUnique($data['name']);
 
             $church = Church::create([
                 'name' => $data['name'],
@@ -49,6 +54,10 @@ class ChurchService
                 'timezone' => $data['timezone'] ?? SystemSetting::getValue('churches', 'default_timezone', 'UTC'),
                 'currency' => $data['currency'] ?? SystemSetting::defaultChurchCurrency(),
                 'branches_enabled' => (bool) ($data['branches_enabled'] ?? false),
+                'settings' => [
+                    'member_id_prefix' => $memberIdPrefix,
+                    'auto_generate_member_id' => true,
+                ],
             ]);
 
             $church->domains()->create([

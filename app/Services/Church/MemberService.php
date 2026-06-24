@@ -557,15 +557,21 @@ class MemberService
     public function generateMemberId(?Church $church = null): string
     {
         $year = now()->format('Y');
-        $suffix = strtoupper($church
-            ? app(ChurchSettingsService::class)->get($church, 'member_id_prefix', config('waumini.member_id_suffix', 'WL'))
+        $prefix = strtoupper($church
+            ? (string) app(ChurchSettingsService::class)->get($church, 'member_id_prefix', config('waumini.member_id_suffix', 'WL'))
             : config('waumini.member_id_suffix', 'WL'));
 
-        $maxSequence = Member::withTrashed()
-            ->where('member_number', 'like', "{$year}-%-{$suffix}")
+        $query = Member::withTrashed()
+            ->where('member_number', 'like', "{$prefix}-{$year}-%");
+
+        if ($church) {
+            $query->where('church_id', $church->id)->lockForUpdate();
+        }
+
+        $maxSequence = $query
             ->pluck('member_number')
-            ->map(function (string $memberNumber) use ($year, $suffix) {
-                if (preg_match('/^'.preg_quote($year, '/').'-(\d+)-'.preg_quote($suffix, '/').'$/', $memberNumber, $matches)) {
+            ->map(function (string $memberNumber) use ($prefix, $year) {
+                if (preg_match('/^'.preg_quote($prefix, '/').'-'.preg_quote($year, '/').'-(\d+)$/', $memberNumber, $matches)) {
                     return (int) $matches[1];
                 }
 
@@ -576,7 +582,7 @@ class MemberService
         $sequence = ($maxSequence ?? 0) + 1;
 
         do {
-            $memberId = sprintf('%s-%04d-%s', $year, $sequence, $suffix);
+            $memberId = sprintf('%s-%s-%04d', $prefix, $year, $sequence);
             $sequence++;
         } while (
             Member::withTrashed()->where('member_number', $memberId)->exists()

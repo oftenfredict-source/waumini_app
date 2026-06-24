@@ -17,7 +17,7 @@
                 <label>Member ID Prefix <span class="text-danger">*</span></label>
                 <input type="text" name="member_id_prefix" class="form-control @error('member_id_prefix') is-invalid @enderror"
                        maxlength="10" value="{{ old('member_id_prefix', $settings['member_id_prefix']) }}" required>
-                <small class="form-text text-muted">Used in member numbers, e.g. {{ now()->format('Y') }}-0001-{{ strtoupper(old('member_id_prefix', $settings['member_id_prefix'])) }}</small>
+                <small class="form-text text-muted">Used in member numbers, e.g. {{ strtoupper(old('member_id_prefix', $settings['member_id_prefix'])) }}-{{ now()->format('Y') }}-0001</small>
                 @error('member_id_prefix')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>

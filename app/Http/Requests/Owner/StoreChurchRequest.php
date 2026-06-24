@@ -29,6 +29,7 @@ class StoreChurchRequest extends FormRequest
             'timezone' => ['nullable', 'string', 'max:50'],
             'currency' => ['nullable', 'string', Rule::in(array_keys(config('currencies')))],
             'admin_email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'member_id_prefix' => ['nullable', 'string', 'min:2', 'max:6', 'regex:/^[A-Za-z0-9]+$/'],
             'branches_enabled' => ['nullable', 'boolean'],
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Services\Church;
 
 use App\Models\Church;
+use App\Services\Church\MemberIdPrefixService;
 use App\Services\Owner\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -47,9 +48,9 @@ class ChurchSettingsService
     /**
      * @return array<string, mixed>
      */
-    public function validateTab(string $tab, array $input, ?Request $request = null): array
+    public function validateTab(string $tab, array $input, ?Request $request = null, ?Church $church = null): array
     {
-        return match ($tab) {
+        $data = match ($tab) {
             'general' => array_merge(
                 validator($input, [
                     'church_name' => ['required', 'string', 'max:255'],
@@ -73,7 +74,7 @@ class ChurchSettingsService
             'membership' => array_merge(
                 validator($input, [
                     'child_max_age' => ['required', 'integer', 'min:1', 'max:30'],
-                    'member_id_prefix' => ['required', 'string', 'max:10', 'regex:/^[A-Za-z0-9_-]+$/'],
+                    'member_id_prefix' => ['required', 'string', 'min:2', 'max:6', 'regex:/^[A-Za-z0-9]+$/'],
                 ])->validate(),
                 [
                     'auto_generate_member_id' => filter_var($input['auto_generate_member_id'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -107,6 +108,14 @@ class ChurchSettingsService
             ),
             default => abort(404),
         };
+
+        if ($tab === 'membership') {
+            $data['member_id_prefix'] = $church
+                ? app(MemberIdPrefixService::class)->assertAvailable($data['member_id_prefix'], $church->id)
+                : strtoupper($data['member_id_prefix']);
+        }
+
+        return $data;
     }
 
     public function updateTab(Church $church, string $tab, array $data, ?Request $request = null): Church

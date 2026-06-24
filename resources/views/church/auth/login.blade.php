@@ -59,7 +59,7 @@
                 <div class="form-group">
                     <label class="control-label">EMAIL / MEMBER ID</label>
                     <input class="form-control @error('email') is-invalid @enderror" type="text" name="email"
-                        value="{{ old('email') }}" placeholder="admin@church.org or 2026-0001-WL" autofocus required>
+                        value="{{ old('email') }}" placeholder="admin@church.org or IM-2026-0001" autofocus required>
                     @error('email')<small class="text-danger">{{ $message }}</small>@enderror
                     <small class="text-muted">Church admins: use your login email from church setup. Members: use your Member ID.</small>
                 </div>

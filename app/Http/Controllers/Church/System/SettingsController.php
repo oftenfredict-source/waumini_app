@@ -39,7 +39,7 @@ class SettingsController extends SystemController
     public function update(Request $request, string $tab): RedirectResponse
     {
         $church = $this->church();
-        $data = $this->churchSettingsService->validateTab($tab, $request->all(), $request);
+        $data = $this->churchSettingsService->validateTab($tab, $request->all(), $request, $church);
         $this->churchSettingsService->updateTab($church, $tab, $data, $request);
 
         $label = config("church_settings.categories.{$tab}.name", ucfirst($tab));
