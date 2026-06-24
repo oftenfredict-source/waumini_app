@@ -30,6 +30,7 @@
             color: var(--waumini-brand, #940000);
         }
     </style>
+    @stack('styles')
 </head>
 <body>
     <section class="material-half-bg"><div class="cover"></div></section>
@@ -65,7 +66,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label">PASSWORD</label>
-                    <input class="form-control @error('password') is-invalid @enderror" type="password" name="password" required>
+                    @include('partials.password-input', ['invalid' => $errors->has('password')])
                     @error('password')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
                 <div class="form-group">
@@ -94,5 +95,6 @@
     <script src="{{ $vali }}/js/bootstrap.min.js"></script>
     <script src="{{ $vali }}/js/main.js"></script>
     @include('partials.sweetalert-assets')
+    @stack('scripts')
 </body>
 </html>

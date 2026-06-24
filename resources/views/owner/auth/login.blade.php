@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ $vali }}/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     @include('partials.brand-styles')
+    @stack('styles')
 </head>
 <body>
     <section class="material-half-bg"><div class="cover"></div></section>
@@ -27,7 +28,10 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label">PASSWORD</label>
-                    <input class="form-control @error('password') is-invalid @enderror" type="password" name="password" placeholder="Password" required>
+                    @include('partials.password-input', [
+                        'placeholder' => 'Password',
+                        'invalid' => $errors->has('password'),
+                    ])
                     @error('password')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
                 <div class="form-group">
@@ -50,5 +54,6 @@
     <script src="{{ $vali }}/js/bootstrap.min.js"></script>
     <script src="{{ $vali }}/js/main.js"></script>
     @include('partials.sweetalert-assets')
+    @stack('scripts')
 </body>
 </html>
