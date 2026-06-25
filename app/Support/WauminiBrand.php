@@ -17,6 +17,17 @@ class WauminiBrand
     }
 
     /**
+     * Public file URL relative to the current request base (works across host/port/subfolder).
+     */
+    public static function publicAsset(string $path): string
+    {
+        $path = ltrim($path, '/');
+        $base = rtrim(request()->getBaseUrl(), '/');
+
+        return ($base !== '' ? $base.'/' : '/').$path;
+    }
+
+    /**
      * Logo URL relative to the current request base (works across host/port/subfolder).
      */
     public static function logoUrl(): ?string
@@ -25,9 +36,7 @@ class WauminiBrand
             return null;
         }
 
-        $base = rtrim(request()->getBaseUrl(), '/');
-
-        return $base.'/'.self::logoPath();
+        return self::publicAsset(self::logoPath());
     }
 
     public static function appDisplayName(): string

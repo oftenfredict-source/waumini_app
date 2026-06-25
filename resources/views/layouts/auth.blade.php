@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     @include('partials.brand-styles')
-    <link rel="stylesheet" href="{{ asset('css/auth-login.css') }}?v=1">
+    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/auth-login.css') }}?v=1">
     <style>:root { --auth-brand: {{ $brand }}; }</style>
     @stack('styles')
 </head>

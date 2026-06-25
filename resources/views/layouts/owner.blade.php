@@ -1,4 +1,4 @@
-@php $vali = asset('vali-master/docs'); @endphp
+@php $vali = \App\Support\WauminiBrand::publicAsset('vali-master/docs'); @endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>

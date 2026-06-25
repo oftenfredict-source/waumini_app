@@ -1,8 +1,9 @@
 @php
-    $s = fn (string $path) => asset('skilline/'.$path);
+    $s = fn (string $path) => \App\Support\WauminiBrand::publicAsset('skilline/'.$path);
     $brand = config('waumini.brand_color', '#940000');
     $logoUrl = \App\Support\WauminiBrand::logoUrl();
     $appName = \App\Support\WauminiBrand::appDisplayName();
+    $landingCss = \App\Support\WauminiBrand::publicAsset('css/landing.css');
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -15,8 +16,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v=10">
-    <link rel="icon" href="{{ $logoUrl ?? asset('waumini_link_logo.png') }}" type="image/png">
+    <link rel="stylesheet" href="{{ $landingCss }}?v=11">
+    <link rel="icon" href="{{ $logoUrl ?? \App\Support\WauminiBrand::publicAsset('waumini_link_logo.png') }}" type="image/png">
     <style>
         :root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; }
         html, body.landing-page { overflow-x: clip; max-width: 100%; width: 100%; }
