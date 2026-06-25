@@ -192,6 +192,31 @@ class ChurchSmsService
         return $this->sendTransactionalForChurch($church, $phone, $message, 'login_otp');
     }
 
+    public function sendPasswordResetOtp(Church $church, User $user, string $otpCode): array
+    {
+        if (! (bool) $this->churchSettings->get($church, 'password_reset_sms', true)) {
+            return ['ok' => false, 'reason' => 'setting_disabled'];
+        }
+
+        $phone = $user->loginPhone();
+
+        if ($phone === null || $phone === '') {
+            return ['ok' => false, 'reason' => 'no_phone'];
+        }
+
+        if (! $this->platformSmsEnabled() || ! $church->hasPackageFeature('sms')) {
+            return ['ok' => false, 'reason' => 'disabled'];
+        }
+
+        $message = $this->templates->render($church, 'password_reset_otp', [
+            '{{name}}' => $user->name,
+            '{{church_name}}' => $church->name,
+            '{{otp_code}}' => $otpCode,
+        ]);
+
+        return $this->sendTransactionalForChurch($church, $phone, $message, 'password_reset_otp');
+    }
+
     /**
      * @return array{ok: bool, reason?: string, body?: string}
      */

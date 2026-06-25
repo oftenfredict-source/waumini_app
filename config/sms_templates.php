@@ -26,6 +26,12 @@ return [
       'placeholders' => ['{{name}}', '{{church_name}}', '{{otp_code}}'],
       'default' => "Shalom {{name}}, nambari yako ya kuthibitisha kuingia kwenye {{church_name}} ni: {{otp_code}}\nHalali kwa dakika 5. Usishiriki na mtu yeyote.",
     ],
+    'password_reset_otp' => [
+      'label' => 'Password Reset OTP',
+      'description' => 'Sent when a user requests to reset their password via forgot password.',
+      'placeholders' => ['{{name}}', '{{church_name}}', '{{otp_code}}'],
+      'default' => "Shalom {{name}}, nambari yako ya kubadilisha nenosiri la {{church_name}} ni: {{otp_code}}\nHalali kwa dakika 10. Usishiriki na mtu yeyote.",
+    ],
     'promise_guest_reminder' => [
       'label' => 'Promise Guest — Reminder',
       'description' => 'Reminder for a guest who promised to attend a service or event.',
@@ -70,6 +76,7 @@ return [
     'member_credentials' => 'Member Credentials',
     'password_reset' => 'Password Reset',
     'login_otp' => 'Login OTP',
+    'password_reset_otp' => 'Password Reset OTP',
     'promise_guest' => 'Promise Guest',
     'promise_guest_reminder' => 'Promise Guest Reminder',
     'promise_guest_welcome_back' => 'Promise Guest Welcome Back',

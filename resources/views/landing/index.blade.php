@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v=7">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v=9">
     <link rel="icon" href="{{ $logoUrl ?? asset('waumini_link_logo.png') }}" type="image/png">
     <style>:root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; }</style>
 </head>
@@ -310,9 +310,6 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 0.85rem; justify-content: center;">
                     <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary" style="background: #fff; color: var(--brand); box-shadow: none;">
                         <i class="fa fa-rocket"></i> Get started today
-                    </a>
-                    <a href="{{ route('owner.login') }}" class="landing-btn landing-btn-light">
-                        Platform admin login
                     </a>
                 </div>
             </div>

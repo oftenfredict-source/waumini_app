@@ -82,6 +82,7 @@
                 <input type="checkbox" name="remember" @checked(old('remember'))>
                 <span>Stay signed in</span>
             </label>
+            <a href="{{ route('church.password.forgot') }}" class="auth-forgot-link">Forgot password?</a>
         </div>
 
         <button class="auth-submit" type="submit">
@@ -92,5 +93,4 @@
 
 @section('auth_footer')
     <p>New member? <a href="{{ route('church.register') }}">Register now</a></p>
-    <p>Platform owner? <a href="{{ route('owner.login') }}">Owner login</a></p>
 @endsection

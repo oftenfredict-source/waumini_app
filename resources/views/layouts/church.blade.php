@@ -71,6 +71,7 @@
     <script src="{{ $vali }}/js/bootstrap.min.js"></script>
     <script src="{{ $vali }}/js/main.js"></script>
     @include('partials.sweetalert-assets')
+    @include('partials.mobile-admin')
     @stack('scripts')
 </body>
 </html>

@@ -9,13 +9,7 @@
             </p>
         </div>
         <div style="flex: 1; min-width: 280px; max-width: 100%;">
-            <label class="small text-muted mb-1">
-                @if(config('waumini.use_subdomain_urls'))
-                    Registration URL
-                @else
-                    Registration URL (works without subdomain DNS)
-                @endif
-            </label>
+            <label class="small text-muted mb-1">Registration URL</label>
             <div class="input-group">
                 <input type="text" class="form-control" id="memberRegistrationLinkInput" value="{{ $registrationUrl }}" readonly>
                 <div class="input-group-append">
@@ -28,21 +22,6 @@
                 </div>
             </div>
             <small id="memberRegistrationLinkStatus" class="form-text text-success" style="display:none;">Link copied to clipboard.</small>
-
-            @if(!config('waumini.use_subdomain_urls') && !empty($registrationSubdomainUrl))
-                <label class="small text-muted mb-1 mt-3">Subdomain URL (after wildcard DNS is configured)</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" value="{{ $registrationSubdomainUrl }}" readonly>
-                    <div class="input-group-append">
-                        <a href="{{ $registrationSubdomainUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary" title="Open subdomain link">
-                            <i class="fa fa-external-link"></i>
-                        </a>
-                    </div>
-                </div>
-                <small class="form-text text-muted">
-                    Set <code>TENANT_USE_SUBDOMAIN_URLS=true</code> in <code>.env</code> after adding wildcard DNS for <code>*.{{ config('waumini.base_domain') }}</code>.
-                </small>
-            @endif
         </div>
     </div>
 </div>

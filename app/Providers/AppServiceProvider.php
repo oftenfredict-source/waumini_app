@@ -15,6 +15,7 @@ use App\Models\Leader;
 use App\Models\Member;
 use App\Models\MemberDependant;
 use App\Models\MemberRegistrationApplication;
+use App\Models\MemberRequest;
 use App\Models\Payment;
 use App\Models\Offering;
 use App\Models\Pledge;

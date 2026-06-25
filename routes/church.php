@@ -10,6 +10,7 @@ use App\Http\Controllers\Church\BranchController;
 use App\Http\Controllers\Church\FinanceApprovalController;
 use App\Http\Controllers\Church\FinanceDashboardController;
 use App\Http\Controllers\Church\LeaderController;
+use App\Http\Controllers\Church\ForgotPasswordController;
 use App\Http\Controllers\Church\LoginController;
 use App\Http\Controllers\Church\MemberChildController;
 use App\Http\Controllers\Church\MemberController;
@@ -48,6 +49,14 @@ Route::middleware('church.maintenance')->group(function () {
     Route::get('login/otp', [LoginController::class, 'showOtpForm'])->name('login.otp');
     Route::post('login/otp', [LoginController::class, 'verifyOtp'])->name('login.otp.verify');
     Route::post('login/otp/resend', [LoginController::class, 'resendOtp'])->name('login.otp.resend');
+
+    Route::get('forgot-password', [ForgotPasswordController::class, 'showRequestForm'])->name('password.forgot');
+    Route::post('forgot-password', [ForgotPasswordController::class, 'sendOtp'])->name('password.forgot.send');
+    Route::get('forgot-password/verify', [ForgotPasswordController::class, 'showVerifyForm'])->name('password.forgot.verify');
+    Route::post('forgot-password/verify', [ForgotPasswordController::class, 'verifyOtp'])->name('password.forgot.verify.submit');
+    Route::post('forgot-password/resend', [ForgotPasswordController::class, 'resendOtp'])->name('password.forgot.resend');
+    Route::get('forgot-password/reset', [ForgotPasswordController::class, 'showResetForm'])->name('password.forgot.reset');
+    Route::post('forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])->name('password.forgot.reset.submit');
 
     Route::get('register', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'create'])->name('register');
     Route::post('register', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'store'])->name('register.submit');

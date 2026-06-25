@@ -27,7 +27,16 @@
         box-shadow: 0 6px 18px rgba(148,0,0,0.08); transform: translateY(-2px);
     }
     .report-card-link i { font-size: 1.75rem; color: #940000; margin-bottom: 0.75rem; }
-    .report-chart-wrap { position: relative; min-height: 260px; }
+    .report-chart-wrap { position: relative; min-height: 260px; max-width: 100%; }
+    @media (max-width: 767.98px) {
+        .report-hero {
+            padding: 1.25rem 1rem;
+            border-radius: 6px;
+        }
+        .report-hero h2 { font-size: 1.25rem; }
+        .report-stat-value { font-size: 1.15rem; }
+        .report-chart-wrap { min-height: 220px; }
+    }
     @media print {
         .app-sidebar, .app-header, .app-sidebar__toggle, .no-print { display: none !important; }
         .app-content { margin-left: 0 !important; padding: 0 !important; }

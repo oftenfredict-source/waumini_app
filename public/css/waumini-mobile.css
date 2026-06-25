@@ -1,0 +1,273 @@
+/**
+ * Waumini Link — global mobile responsiveness
+ * Loaded on admin (church/owner), auth, and registration layouts via brand-styles.
+ */
+
+/* ── Global safeguards ───────────────────────────────────────────── */
+img,
+canvas,
+video,
+svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── Admin shell (Vali / church + owner) ─────────────────────────── */
+@media (max-width: 991.98px) {
+    body.app .app-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    body.app .app-title .app-breadcrumb {
+        margin-top: 0;
+        padding-left: 0;
+    }
+
+    body.app .app-title h1 {
+        font-size: 1.35rem;
+        line-height: 1.3;
+    }
+}
+
+@media (max-width: 767.98px) {
+    body.app .app-content {
+        padding: 1rem 0.85rem 1.5rem;
+    }
+
+    /* Header: keep logo + menu + nav usable */
+    body.app .app-header__logo {
+        max-width: calc(100vw - 7.5rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.95rem;
+    }
+
+    body.app .app-header__logo--brand-image {
+        max-width: calc(100vw - 7.5rem);
+        padding: 4px 8px;
+    }
+
+    body.app .app-header__brand-logo {
+        max-width: 100%;
+        max-height: 34px;
+    }
+
+    body.app .app-nav {
+        margin-right: 0.25rem;
+    }
+
+    body.app .app-notification.dropdown-menu {
+        width: min(20rem, calc(100vw - 1.5rem));
+        max-width: calc(100vw - 1.5rem);
+    }
+
+    /* Filter / search toolbars */
+    body.app .app-content .form-inline {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    body.app .app-content .form-inline .form-control,
+    body.app .app-content .form-inline .custom-select,
+    body.app .app-content .form-inline select,
+    body.app .app-content .form-inline .btn,
+    body.app .app-content .form-inline .input-group {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+    }
+
+    body.app .app-content .form-inline .btn {
+        justify-content: center;
+    }
+
+    /* Action columns that sit beside filters */
+    body.app .app-content .text-md-right,
+    body.app .app-content .text-right.col-md-4,
+    body.app .app-content .text-right.col-md-5 {
+        text-align: left !important;
+    }
+
+    body.app .app-content .text-md-right .btn,
+    body.app .app-content .col-md-4.text-md-right .btn,
+    body.app .app-content .col-md-4.text-right .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Tables inside tiles/cards without table-responsive */
+    body.app .app-content .tile,
+    body.app .app-content .card .card-body,
+    body.app .app-content .tile-body,
+    body.app .app-content .widget-body {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+    }
+
+    body.app .app-content .table-responsive {
+        margin-bottom: 0;
+    }
+
+    body.app .app-content .dataTables_wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+    }
+
+    /* Profile / detail layouts */
+    body.app .app-content .tile .d-flex.align-items-start {
+        flex-direction: column;
+    }
+
+    body.app .app-content .profile-preview {
+        margin-right: 0 !important;
+        margin-bottom: 1rem;
+    }
+
+    /* Button groups & action rows */
+    body.app .app-content .btn-group {
+        flex-wrap: wrap;
+    }
+
+    body.app .app-content .btn-toolbar {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    /* Report / print toolbars */
+    body.app .app-content .no-print .float-right {
+        float: none !important;
+        display: block;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    body.app .app-content .no-print .btn {
+        margin-bottom: 0.35rem;
+    }
+
+    /* Charts */
+    body.app .app-content .report-chart-wrap,
+    body.app .app-content canvas {
+        max-width: 100%;
+    }
+
+    /* Member registration link card */
+    body.app #memberRegistrationLinkCard [style*="min-width"] {
+        min-width: 0 !important;
+        flex: 1 1 100% !important;
+    }
+
+    body.app #memberRegistrationLinkCard .input-group {
+        flex-wrap: wrap;
+    }
+
+    body.app #memberRegistrationLinkCard .input-group-append {
+        display: flex;
+        width: 100%;
+        margin-top: 0.35rem;
+    }
+
+    body.app #memberRegistrationLinkCard .input-group-append .btn {
+        flex: 1;
+    }
+
+    /* Modals */
+    body.app .modal-dialog {
+        margin: 0.5rem auto;
+        max-width: calc(100% - 1rem);
+    }
+
+    /* Nav pills / tabs */
+    body.app .nav-pills,
+    body.app .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.25rem;
+    }
+
+    /* Widget stat rows */
+    body.app .widget-small .info {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    body.app .app-content .row > [class*="col-"] {
+        margin-bottom: 0.5rem;
+    }
+
+    body.app .dropdown-menu.settings-menu {
+        right: 0;
+        left: auto;
+    }
+}
+
+/* ── Auth portal ─────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    .auth-portal-page .auth-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    .auth-portal-page .auth-forgot-link {
+        white-space: normal;
+    }
+
+    .auth-portal-page .auth-shell {
+        padding: 0 0.75rem;
+    }
+
+    .auth-portal-page .auth-panel {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .auth-portal-page .auth-card {
+        padding: 1.35rem 1.15rem;
+    }
+}
+
+/* ── Member registration wizard ──────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .register-portal-page .register-shell {
+        padding: 0 0.75rem;
+    }
+
+    .member-wizard-steps {
+        gap: 0.5rem;
+    }
+
+    .member-wizard-step .step-label {
+        font-size: 0.7rem;
+        max-width: 4.5rem;
+    }
+
+    .member-wizard-step .step-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    .dependant-row .row > [class*="col-"] {
+        margin-bottom: 0.75rem;
+    }
+
+    .summary-table th {
+        width: 42%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .member-wizard-step .step-label {
+        display: none;
+    }
+}

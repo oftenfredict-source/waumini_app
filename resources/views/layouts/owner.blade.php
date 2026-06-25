@@ -107,6 +107,7 @@
     <script src="{{ $vali }}/js/main.js"></script>
     <script src="{{ $vali }}/js/plugins/pace.min.js"></script>
     @include('partials.sweetalert-assets')
+    @include('partials.mobile-admin')
     @stack('scripts')
 </body>
 </html>
