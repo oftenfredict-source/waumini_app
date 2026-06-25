@@ -15,9 +15,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v=9">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v=10">
     <link rel="icon" href="{{ $logoUrl ?? asset('waumini_link_logo.png') }}" type="image/png">
-    <style>:root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; }</style>
+    <style>
+        :root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; }
+        html, body.landing-page { overflow-x: clip; max-width: 100%; width: 100%; }
+    </style>
 </head>
 <body class="landing-page" x-data="{ open: false }">
 
@@ -42,6 +45,7 @@
                     <a href="#features" @click="open = false">Features</a>
                     <a href="#about" @click="open = false">About</a>
                     <a href="#pricing" @click="open = false">Pricing</a>
+                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary landing-menu-cta" @click="open = false">Get Started</a>
                 </nav>
 
                 <div class="landing-nav-actions">
@@ -57,7 +61,7 @@
         <div class="landing-hero-deco two" aria-hidden="true"></div>
 
         <div class="landing-container landing-hero-grid">
-            <div data-aos="fade-right">
+            <div data-aos="fade-up">
                 <div class="landing-eyebrow">
                     <i class="fa fa-shield"></i> Trusted church management platform
                 </div>
@@ -89,7 +93,7 @@
                 </div>
             </div>
 
-            <div class="landing-hero-visual" data-aos="fade-left">
+            <div class="landing-hero-visual" data-aos="fade-up">
                 <div class="landing-hero-badge calendar">
                     <img src="{{ $s('img/calendar.svg') }}" alt="">
                 </div>
@@ -174,7 +178,7 @@
 
     <section class="landing-section alt" id="about">
         <div class="landing-container landing-about">
-            <div class="landing-about-copy" data-aos="fade-right">
+            <div class="landing-about-copy" data-aos="fade-up">
                 <span class="eyebrow">About {{ $appName }}</span>
                 <h2>Built for how churches really work</h2>
                 <p class="landing-about-lead">
@@ -207,7 +211,7 @@
                 </div>
             </div>
 
-            <div class="landing-about-visual" data-aos="fade-left">
+            <div class="landing-about-visual" data-aos="fade-up">
                 <div class="landing-about-frame">
                     <img src="{{ $s('img/teacher-explaining.png') }}" alt="Church team using {{ $appName }}">
                 </div>
@@ -396,7 +400,14 @@
     <script type="module" src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        AOS.init({ duration: 700, once: true, offset: 80 });
+        AOS.init({
+            duration: 700,
+            once: true,
+            offset: 80,
+            disable: function () {
+                return window.innerWidth < 992;
+            },
+        });
     </script>
 </body>
 </html>
