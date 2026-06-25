@@ -12,10 +12,11 @@
     <title>@yield('title', 'Sign In') — {{ $appName }}</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
     @include('partials.brand-styles')
-    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/auth-login.css') }}?v=1">
+    @include('partials.inline-resource-css', ['file' => 'auth-login.css'])
+    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/auth-login.css') }}?v=2">
     <style>:root { --auth-brand: {{ $brand }}; }</style>
     @stack('styles')
 </head>

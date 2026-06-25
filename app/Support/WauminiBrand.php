@@ -17,14 +17,25 @@ class WauminiBrand
     }
 
     /**
-     * Public file URL relative to the current request base (works across host/port/subfolder).
+     * Absolute URL for a file in /public (respects URL::forceRootUrl and subfolder deploys).
      */
     public static function publicAsset(string $path): string
     {
-        $path = ltrim($path, '/');
-        $base = rtrim(request()->getBaseUrl(), '/');
+        return url('/'.ltrim($path, '/'));
+    }
 
-        return ($base !== '' ? $base.'/' : '/').$path;
+    /**
+     * Inline stylesheet from resources/css (ships with the app; not dependent on /public deploy).
+     */
+    public static function inlineResourceCss(string $filename): string
+    {
+        $path = resource_path('css/'.ltrim($filename, '/'));
+
+        if (! is_file($path)) {
+            return '';
+        }
+
+        return '<style>'.file_get_contents($path).'</style>';
     }
 
     /**
