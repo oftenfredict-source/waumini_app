@@ -9,21 +9,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{{ $appName }} — Church Management Platform</title>
     <meta name="description" content="{{ $appName }} helps churches manage members, finance, attendance, communications, and more — all in one secure cloud platform.">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="{{ $landingCss }}?v=11">
+    <link rel="stylesheet" href="{{ $landingCss }}?v=12">
     <link rel="icon" href="{{ $logoUrl ?? \App\Support\WauminiBrand::publicAsset('waumini_link_logo.png') }}" type="image/png">
     <style>
         :root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; }
-        html, body.landing-page { overflow-x: clip; max-width: 100%; width: 100%; }
+        html, body.landing-page, .landing-shell {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        @media (max-width: 991.98px) {
+            .landing-nav-actions { display: none !important; }
+            .landing-hero-grid, .landing-about, .landing-container { min-width: 0; max-width: 100%; }
+            .landing-page img { max-width: 100% !important; height: auto; }
+        }
     </style>
 </head>
 <body class="landing-page" x-data="{ open: false }">
+<div class="landing-shell">
 
     <header class="landing-nav">
         <div class="landing-container landing-nav-wrap">
@@ -62,7 +71,7 @@
         <div class="landing-hero-deco two" aria-hidden="true"></div>
 
         <div class="landing-container landing-hero-grid">
-            <div data-aos="fade-up">
+            <div>
                 <div class="landing-eyebrow">
                     <i class="fa fa-shield"></i> Trusted church management platform
                 </div>
@@ -94,7 +103,7 @@
                 </div>
             </div>
 
-            <div class="landing-hero-visual" data-aos="fade-up">
+            <div class="landing-hero-visual">
                 <div class="landing-hero-badge calendar">
                     <img src="{{ $s('img/calendar.svg') }}" alt="">
                 </div>
@@ -116,7 +125,7 @@
 
     <section class="landing-section" id="features">
         <div class="landing-container">
-            <div class="landing-pill-row" data-aos="fade-up">
+            <div class="landing-pill-row">
                 <span class="landing-pill"><i class="fa fa-users"></i> Members</span>
                 <span class="landing-pill"><i class="fa fa-money"></i> Finance</span>
                 <span class="landing-pill"><i class="fa fa-calendar"></i> Attendance</span>
@@ -124,49 +133,49 @@
                 <span class="landing-pill"><i class="fa fa-line-chart"></i> Reports</span>
             </div>
 
-            <div class="landing-section-head" data-aos="fade-up">
+            <div class="landing-section-head">
                 <span class="eyebrow">Features</span>
                 <h2>Everything your church team needs in one place</h2>
                 <p>From the secretary’s desk to the treasurer’s office — manage people, money, and ministry without scattered spreadsheets.</p>
             </div>
 
             <div class="landing-feature-grid">
-                <article class="landing-feature-card" data-aos="fade-up">
+                <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #5b72ee, #7b8cff);">
                         <i class="fa fa-users"></i>
                     </div>
                     <h3>Member Management</h3>
                     <p>Register members, families, leadership, and keep your membership records organized.</p>
                 </article>
-                <article class="landing-feature-card" data-aos="fade-up" data-aos-delay="100">
+                <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #940000, #c41e1e);">
                         <i class="fa fa-money"></i>
                     </div>
                     <h3>Finance & Giving</h3>
                     <p>Record tithes, offerings, pledges, budgets, and expenses with approval workflows.</p>
                 </article>
-                <article class="landing-feature-card" data-aos="fade-up" data-aos-delay="200">
+                <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #29b9e7, #5ed0f7);">
                         <i class="fa fa-calendar-check-o"></i>
                     </div>
                     <h3>Services & Attendance</h3>
                     <p>Plan services, track attendance, and manage special events with ease.</p>
                 </article>
-                <article class="landing-feature-card" data-aos="fade-up" data-aos-delay="50">
+                <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #f48c06, #ffb347);">
                         <i class="fa fa-bullhorn"></i>
                     </div>
                     <h3>Announcements & SMS</h3>
                     <p>Reach your congregation with announcements and SMS notifications.</p>
                 </article>
-                <article class="landing-feature-card" data-aos="fade-up" data-aos-delay="150">
+                <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #33c18f, #5fe0ad);">
                         <i class="fa fa-sitemap"></i>
                     </div>
                     <h3>Branches & Roles</h3>
                     <p>Support multiple branches with role-based permissions for each staff member.</p>
                 </article>
-                <article class="landing-feature-card" data-aos="fade-up" data-aos-delay="250">
+                <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #2f327d, #4b4f9b);">
                         <i class="fa fa-bar-chart"></i>
                     </div>
@@ -179,7 +188,7 @@
 
     <section class="landing-section alt" id="about">
         <div class="landing-container landing-about">
-            <div class="landing-about-copy" data-aos="fade-up">
+            <div class="landing-about-copy">
                 <span class="eyebrow">About {{ $appName }}</span>
                 <h2>Built for how churches really work</h2>
                 <p class="landing-about-lead">
@@ -212,7 +221,7 @@
                 </div>
             </div>
 
-            <div class="landing-about-visual" data-aos="fade-up">
+            <div class="landing-about-visual">
                 <div class="landing-about-frame">
                     <img src="{{ $s('img/teacher-explaining.png') }}" alt="Church team using {{ $appName }}">
                 </div>
@@ -229,27 +238,27 @@
 
     <section class="landing-section">
         <div class="landing-container">
-            <div class="landing-section-head" data-aos="fade-up">
+            <div class="landing-section-head">
                 <span class="eyebrow">How it works</span>
                 <h2>Get started in three simple steps</h2>
                 <p>Your church gets onboarded, your team logs in, and you start managing with confidence.</p>
             </div>
             <div class="landing-steps">
-                <div class="landing-step" data-aos="fade-up">
+                <div class="landing-step">
                     <div class="landing-step-num">1</div>
                     <div>
                         <h3>Choose your plan</h3>
                         <p>Pick a package that fits your church size and ministry needs.</p>
                     </div>
                 </div>
-                <div class="landing-step" data-aos="fade-up" data-aos-delay="100">
+                <div class="landing-step">
                     <div class="landing-step-num">2</div>
                     <div>
                         <h3>Set up your church</h3>
                         <p>Add members, configure branches, and invite your leadership team.</p>
                     </div>
                 </div>
-                <div class="landing-step" data-aos="fade-up" data-aos-delay="200">
+                <div class="landing-step">
                     <div class="landing-step-num">3</div>
                     <div>
                         <h3>Manage with confidence</h3>
@@ -262,7 +271,7 @@
 
     <section class="landing-section alt" id="pricing">
         <div class="landing-container">
-            <div class="landing-section-head" data-aos="fade-up">
+            <div class="landing-section-head">
                 <span class="eyebrow">Pricing</span>
                 <h2>Simple, transparent plans</h2>
                 <p>Every plan includes secure cloud hosting{{ $packages->isNotEmpty() ? ' and a free trial period' : '' }}. Prices are managed by your platform administrator.</p>
@@ -273,7 +282,7 @@
                     @php
                         $isPopular = $packages->count() > 1 && $loop->index === (int) floor($packages->count() / 2);
                     @endphp
-                    <article class="landing-price-card {{ $isPopular ? 'popular' : '' }}" data-aos="fade-up" data-aos-delay="{{ $loop->index * 80 }}">
+                    <article class="landing-price-card {{ $isPopular ? 'popular' : '' }}">
                         @if($isPopular)
                             <span class="landing-price-badge">Most popular</span>
                         @endif
@@ -293,14 +302,14 @@
                                 <li><i class="fa fa-check"></i><span>{{ $feature->name }}</span></li>
                             @endforeach
                         </ul>
-                        <a href="{{ route('church.login') }}" class="landing-btn {{ $isPopular ? 'landing-btn-primary' : 'landing-btn-ghost' }}" style="width: 100%;">
+                        <a href="{{ route('church.login') }}" class="landing-btn {{ $isPopular ? 'landing-btn-primary' : 'landing-btn-ghost' }}">
                             Get started
                         </a>
                     </article>
                 @empty
-                    <div style="grid-column: 1 / -1; text-align: center; color: var(--ink-soft); padding: 3rem 0;">
+                    <div class="landing-pricing-empty">
                         <p>Pricing plans will be published soon.</p>
-                        <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary" style="margin-top: 1rem;">Contact us to get started</a>
+                        <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary">Contact us to get started</a>
                     </div>
                 @endforelse
             </div>
@@ -309,11 +318,11 @@
 
     <section class="landing-section">
         <div class="landing-container">
-            <div class="landing-cta" data-aos="zoom-in">
+            <div class="landing-cta">
                 <h2>Ready to modernize your church administration?</h2>
                 <p>Join churches using {{ $appName }} to manage members, finances, and ministry with less paperwork and more impact.</p>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.85rem; justify-content: center;">
-                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary" style="background: #fff; color: var(--brand); box-shadow: none;">
+                <div class="landing-cta-actions">
+                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary landing-cta-btn-light">
                         <i class="fa fa-rocket"></i> Get started today
                     </a>
                 </div>
@@ -398,17 +407,8 @@
         </div>
     </footer>
 
+</div>
+
     <script type="module" src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script>
-        AOS.init({
-            duration: 700,
-            once: true,
-            offset: 80,
-            disable: function () {
-                return window.innerWidth < 992;
-            },
-        });
-    </script>
 </body>
 </html>

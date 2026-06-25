@@ -20,6 +20,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
     overflow-x: clip;
     width: 100%;
     max-width: 100%;
@@ -30,17 +31,40 @@ body.landing-page {
     color: var(--ink);
     background: var(--surface);
     line-height: 1.6;
+    overflow-x: hidden;
     overflow-x: clip;
     width: 100%;
     max-width: 100%;
     position: relative;
+    margin: 0;
+}
+
+.landing-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-x: clip;
+    position: relative;
+}
+
+.landing-page img,
+.landing-page svg.landing-wave {
+    max-width: 100%;
+    height: auto;
 }
 
 .landing-page header,
 .landing-page section,
 .landing-page footer {
     max-width: 100%;
+    overflow-x: hidden;
     overflow-x: clip;
+}
+
+.landing-hero-grid > *,
+.landing-about > *,
+.landing-container > * {
+    min-width: 0;
 }
 
 .landing-container {
@@ -166,6 +190,7 @@ body.landing-page {
     font-weight: 600;
     text-decoration: none;
     transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    max-width: 100%;
 }
 
 .landing-btn:hover { transform: translateY(-1px); }
@@ -654,9 +679,19 @@ body.landing-page {
     color: var(--ink-soft);
 }
 
-.landing-price-features i {
-    color: var(--brand);
-    margin-top: 0.15rem;
+.landing-price-card .landing-btn {
+    width: 100%;
+}
+
+.landing-pricing-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 3rem 0;
+}
+
+.landing-pricing-empty .landing-btn {
+    margin-top: 1rem;
 }
 
 .landing-cta {
@@ -677,6 +712,19 @@ body.landing-page {
     max-width: 36rem;
     margin: 0 auto 1.5rem;
     color: rgba(255, 255, 255, 0.86);
+}
+
+.landing-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    justify-content: center;
+}
+
+.landing-cta-btn-light {
+    background: #fff;
+    color: var(--brand);
+    box-shadow: none;
 }
 
 .landing-footer {
@@ -1125,16 +1173,8 @@ body.landing-page {
     .landing-hide-mobile { display: none !important; }
     .landing-hide-desktop { display: inline-flex; }
 
-    /* AOS horizontal fades push content off-screen on mobile */
-    .landing-page [data-aos="fade-right"],
-    .landing-page [data-aos="fade-left"] {
-        transform: none !important;
-        opacity: 1 !important;
-    }
-
     .landing-nav-inner {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         gap: 0.5rem 0.65rem;
     }
@@ -1144,13 +1184,16 @@ body.landing-page {
     }
 
     .landing-brand-logo {
-        max-width: 8.5rem;
+        max-width: 7.5rem;
+    }
+
+    .landing-nav-actions {
+        display: none !important;
     }
 
     .landing-nav-center {
         grid-column: 1 / -1;
         flex: none;
-        order: 4;
     }
 
     .landing-menu {
@@ -1168,29 +1211,65 @@ body.landing-page {
         z-index: 60;
     }
 
-    .landing-nav-actions .landing-btn {
-        width: auto;
-        padding: 0.62rem 0.9rem;
-        font-size: 0.84rem;
-        white-space: nowrap;
+    .landing-menu-cta {
+        display: flex !important;
+        justify-content: center;
+        margin-top: 0.35rem;
+        width: 100%;
+        white-space: normal;
     }
 
     .landing-stats {
         grid-template-columns: 1fr;
         max-width: 100%;
     }
-}
 
-@media (max-width: 480px) {
-    .landing-nav-actions {
-        display: none;
+    .landing-hero h1 {
+        font-size: clamp(1.65rem, 7.5vw, 2.2rem);
     }
 
-    .landing-menu-cta {
-        display: flex !important;
-        justify-content: center;
-        margin-top: 0.35rem;
+    .landing-hero-actions .landing-btn,
+    .landing-hero-actions .landing-btn-ghost,
+    .landing-hero-actions .landing-btn-primary {
         width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .landing-pill-row {
+        justify-content: flex-start;
+    }
+
+    .landing-footer-contact span,
+    .landing-footer-contact a {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .landing-price-card {
+        padding: 1.5rem 1.15rem;
+    }
+
+    .landing-section {
+        padding: 3.5rem 0;
+    }
+
+    .landing-feature-card:hover {
+        transform: none;
+    }
+
+    .landing-footer-col a:hover {
+        transform: none;
+    }
+
+    .landing-brand {
+        overflow: hidden;
+    }
+
+    .landing-brand > span:not(.landing-brand-mark) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
