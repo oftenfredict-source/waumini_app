@@ -20,6 +20,7 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--nav-height);
     overflow-x: hidden;
     overflow-x: clip;
     width: 100%;
@@ -45,9 +46,10 @@ body.landing-page {
     overflow-x: hidden;
     overflow-x: clip;
     position: relative;
+    padding-top: var(--nav-height);
 }
 
-.landing-page img,
+.landing-page img:not(.landing-brand-logo):not(.landing-footer-brand-logo),
 .landing-page svg.landing-wave {
     max-width: 100%;
     height: auto;
@@ -77,8 +79,11 @@ body.landing-page {
 
 /* Navbar */
 .landing-nav {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
     z-index: 50;
     backdrop-filter: blur(14px);
     background: rgba(255, 255, 255, 0.88);
@@ -127,6 +132,14 @@ body.landing-page {
     display: block;
     object-fit: contain;
     border-radius: 0.45rem;
+}
+
+.landing-page img.landing-brand-logo,
+.landing-page img.landing-footer-brand-logo {
+    height: 2.75rem;
+    width: auto;
+    max-width: 11rem;
+    object-fit: contain;
 }
 
 .landing-footer-brand-logo {
@@ -1188,6 +1201,13 @@ body.landing-page {
     }
 
     .landing-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .landing-nav-actions .landing-hide-mobile {
         display: none !important;
     }
 

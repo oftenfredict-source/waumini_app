@@ -15,20 +15,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{{ $landingCss }}?v=12">
+    <link rel="stylesheet" href="{{ $landingCss }}?v=15">
     <link rel="icon" href="{{ $logoUrl ?? \App\Support\WauminiBrand::publicAsset('waumini_link_logo.png') }}" type="image/png">
     <style>
-        :root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; }
+        :root { --brand: {{ $brand }}; --brand-dark: {{ $brand }}; --nav-height: 4.5rem; }
         html, body.landing-page, .landing-shell {
             overflow-x: hidden !important;
             max-width: 100% !important;
             width: 100% !important;
         }
-        @media (max-width: 991.98px) {
-            .landing-nav-actions { display: none !important; }
-            .landing-hero-grid, .landing-about, .landing-container { min-width: 0; max-width: 100%; }
-            .landing-page img { max-width: 100% !important; height: auto; }
+        .landing-shell { padding-top: var(--nav-height); }
+        .landing-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid rgba(26, 29, 46, 0.06);
         }
+        @media (max-width: 991.98px) {
+            .landing-nav-actions { display: flex !important; }
+            .landing-nav-actions .landing-hide-mobile { display: none !important; }
+            .landing-hero-grid, .landing-about, .landing-container { min-width: 0; max-width: 100%; }
+            .landing-page img:not(.landing-brand-logo):not(.landing-footer-brand-logo) { max-width: 100% !important; height: auto; }
+        }
+        .landing-page img.landing-brand-logo,
+        .landing-page img.landing-footer-brand-logo {
+            height: 2.75rem;
+            width: auto;
+            max-width: 11rem;
+            object-fit: contain;
+        }
+        .landing-page img.landing-footer-brand-logo { height: 3.25rem; max-width: 13rem; }
     </style>
 </head>
 <body class="landing-page" x-data="{ open: false }">
@@ -55,7 +75,6 @@
                     <a href="#features" @click="open = false">Features</a>
                     <a href="#about" @click="open = false">About</a>
                     <a href="#pricing" @click="open = false">Pricing</a>
-                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary landing-menu-cta" @click="open = false">Get Started</a>
                 </nav>
 
                 <div class="landing-nav-actions">
