@@ -317,7 +317,8 @@ class FinanceDashboardService
                 'route' => route('church.expenses.show', $expense),
             ]);
 
-        return $bereavement->merge($tithes)->merge($offerings)->merge($pledgePayments)->merge($expenses)
+        return collect([$bereavement, $tithes, $offerings, $pledgePayments, $expenses])
+            ->flatten(1)
             ->sortByDesc(fn ($item) => $item['date']?->timestamp ?? 0)
             ->take($limit)
             ->values();

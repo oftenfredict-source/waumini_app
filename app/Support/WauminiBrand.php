@@ -39,15 +39,20 @@ class WauminiBrand
     }
 
     /**
-     * Logo URL relative to the current request base (works across host/port/subfolder).
+     * Public URL for the configured app logo.
+     *
+     * Does not require the file to exist on the PHP filesystem — production
+     * deploys sometimes serve /public assets from a different document root.
      */
     public static function logoUrl(): ?string
     {
-        if (! self::logoAbsolutePath()) {
+        $path = self::logoPath();
+
+        if ($path === '') {
             return null;
         }
 
-        return self::publicAsset(self::logoPath());
+        return self::publicAsset($path);
     }
 
     public static function appDisplayName(): string
