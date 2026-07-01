@@ -36,7 +36,7 @@
     <div class="col-md-3">
         <div class="widget-small info coloured-icon">
             <i class="icon fa fa-dollar fa-3x"></i>
-            <div class="info"><h4>{{ __('owner.pay.collected') }}</h4><p><b>${{ number_format($stats['revenue'], 2) }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.pay.collected') }}</h4><p><b>{{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($stats['revenue'], 0) }}</b></p></div>
         </div>
     </div>
 </div>

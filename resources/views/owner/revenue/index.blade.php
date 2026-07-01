@@ -18,19 +18,19 @@
     <div class="col-md-4">
         <div class="widget-small success coloured-icon">
             <i class="icon fa fa-money fa-3x"></i>
-            <div class="info"><h4>{{ __('owner.rev.mrr') }}</h4><p><b>${{ number_format($overview['mrr'], 2) }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.rev.mrr') }}</h4><p><b>{{ $overview['currency'] }} {{ number_format($overview['mrr'], 0) }}</b></p></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="widget-small primary coloured-icon">
             <i class="icon fa fa-line-chart fa-3x"></i>
-            <div class="info"><h4>{{ __('owner.rev.arr') }}</h4><p><b>${{ number_format($overview['arr'], 2) }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.rev.arr') }}</h4><p><b>{{ $overview['currency'] }} {{ number_format($overview['arr'], 0) }}</b></p></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="widget-small info coloured-icon">
             <i class="icon fa fa-building fa-3x"></i>
-            <div class="info"><h4>{{ __('owner.rev.paying_churches') }}</h4><p><b>{{ $overview['active_churches'] }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.rev.paying_churches') }}</h4><p><b>{{ $overview['paying_churches'] }}</b></p></div>
         </div>
     </div>
 </div>
@@ -72,7 +72,7 @@
     new Chart(document.getElementById('revenueChart').getContext('2d')).Line({
         labels: @json($monthlyRevenue['labels']),
         datasets: [{
-            label: @json(__('owner.rev.chart_revenue')),
+            label: @json(__('owner.rev.chart_revenue', ['currency' => $overview['currency']])),
             fillColor: 'rgba(40, 167, 69, 0.2)',
             strokeColor: 'rgba(40, 167, 69, 1)',
             pointColor: 'rgba(40, 167, 69, 1)',

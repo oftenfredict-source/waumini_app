@@ -77,7 +77,7 @@
             <i class="icon fa fa-money fa-3x"></i>
             <div class="info">
                 <h4>{{ __('owner.dash.mrr') }}</h4>
-                <p><b>${{ number_format($overview['mrr'], 2) }}</b></p>
+                <p><b>{{ $overview['currency'] }} {{ number_format($overview['mrr'], 0) }}</b></p>
             </div>
         </div>
     </div>
@@ -86,7 +86,7 @@
             <i class="icon fa fa-line-chart fa-3x"></i>
             <div class="info">
                 <h4>{{ __('owner.dash.arr') }}</h4>
-                <p><b>${{ number_format($overview['arr'], 2) }}</b></p>
+                <p><b>{{ $overview['currency'] }} {{ number_format($overview['arr'], 0) }}</b></p>
             </div>
         </div>
     </div>

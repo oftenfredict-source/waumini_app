@@ -21,8 +21,8 @@
                 <h3 class="tile-title">{{ $package->name }}</h3>
                 <p>{{ $package->description }}</p>
                 <hr>
-                <p><strong>{{ __('owner.subs.installation') }}</strong> ${{ number_format($package->installation_price, 2) }}</p>
-                <p><strong>{{ __('owner.subs.yearly') }}</strong> ${{ number_format($package->yearly_price, 2) }}</p>
+                <p><strong>{{ __('owner.subs.installation') }}</strong> {{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($package->installation_price, 0) }}</p>
+                <p><strong>{{ __('owner.subs.yearly') }}</strong> {{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($package->yearly_price, 0) }}</p>
                 <p><strong>{{ __('owner.subs.trial_days', ['days' => $package->trial_days]) }}</strong></p>
                 @if($package->max_members)
                     <p><strong>{{ __('owner.subs.max_members') }}</strong> {{ number_format($package->max_members) }}</p>

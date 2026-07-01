@@ -6,6 +6,8 @@ use App\Enums\ChurchStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Church;
 use App\Models\ChurchSubscription;
+use App\Models\Payment;
+use App\Models\SystemSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -21,9 +23,6 @@ class DashboardService
         $newSignups30d = Church::where('created_at', '>=', now()->subDays(30))->count();
         $newSignups7d = Church::where('created_at', '>=', now()->subDays(7))->count();
 
-        $mrr = $this->calculateMrr();
-        $arr = $mrr * 12;
-
         return [
             'total_churches' => $totalChurches,
             'active_churches' => $activeChurches + $trialChurches,
@@ -32,8 +31,10 @@ class DashboardService
             'expired_churches' => $expiredChurches,
             'new_signups_30d' => $newSignups30d,
             'new_signups_7d' => $newSignups7d,
-            'mrr' => round($mrr, 2),
-            'arr' => round($arr, 2),
+            'mrr' => round($this->collectedThisMonth(), 2),
+            'arr' => round($this->collectedLastTwelveMonths(), 2),
+            'paying_churches' => $this->payingChurchesCount(),
+            'currency' => SystemSetting::platformCurrency(),
         ];
     }
 
@@ -111,12 +112,27 @@ class DashboardService
         return collect(['labels' => $labels, 'data' => $data]);
     }
 
-    private function calculateMrr(): float
+    private function collectedThisMonth(): float
     {
-        return ChurchSubscription::query()
-            ->whereIn('status', [SubscriptionStatus::Trial, SubscriptionStatus::Active])
-            ->with('package')
-            ->get()
-            ->sum(fn (ChurchSubscription $sub) => $sub->mrrAmount());
+        return (float) Payment::query()
+            ->where('status', 'completed')
+            ->whereBetween('paid_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->sum('amount');
+    }
+
+    private function collectedLastTwelveMonths(): float
+    {
+        return (float) Payment::query()
+            ->where('status', 'completed')
+            ->where('paid_at', '>=', now()->subMonths(12)->startOfMonth())
+            ->sum('amount');
+    }
+
+    private function payingChurchesCount(): int
+    {
+        return (int) Payment::query()
+            ->where('status', 'completed')
+            ->distinct()
+            ->count('church_id');
     }
 }
