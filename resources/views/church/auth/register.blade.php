@@ -43,6 +43,15 @@
 
 @push('scripts')
 @include('partials.member-wizard-i18n')
+@php
+    $registerStepNames = [
+        __('register.steps.personal'),
+        __('register.steps.contact'),
+        __('register.steps.residence'),
+        __('register.steps.family'),
+        __('register.steps.review'),
+    ];
+@endphp
 <script>
     window.memberWizardConfig = {
         isEdit: false,
@@ -57,13 +66,7 @@
         total: 5,
     };
 
-    window.registerStepNames = @json([
-        __('register.steps.personal'),
-        __('register.steps.contact'),
-        __('register.steps.residence'),
-        __('register.steps.family'),
-        __('register.steps.review'),
-    ]);
+    window.registerStepNames = @json($registerStepNames);
 </script>
 @include('partials.member-wizard-script')
 @endpush
