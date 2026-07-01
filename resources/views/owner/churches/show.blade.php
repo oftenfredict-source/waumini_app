@@ -36,6 +36,7 @@
         </div>
 
         @include('owner.churches.partials.subscription-management')
+        @include('owner.churches.partials.sms-usage-summary')
 
         <div class="tile">
             <h3 class="tile-title">{{ __('owner.church.admin_login') }}</h3>

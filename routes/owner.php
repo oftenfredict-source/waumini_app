@@ -7,6 +7,7 @@ use App\Http\Controllers\Owner\LoginController;
 use App\Http\Controllers\Owner\PaymentController;
 use App\Http\Controllers\Owner\RevenueController;
 use App\Http\Controllers\Owner\SettingController;
+use App\Http\Controllers\Owner\SmsUsageController;
 use App\Http\Controllers\Owner\SubscriptionController;
 use App\Http\Controllers\Owner\SupportTicketController;
 use App\Http\Controllers\Owner\UserController;
@@ -35,6 +36,9 @@ Route::middleware(['auth', 'owner'])->group(function () {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
 
     Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
+
+    Route::get('sms-usage', [SmsUsageController::class, 'index'])->name('sms-usage.index');
+    Route::get('sms-usage/{church}', [SmsUsageController::class, 'show'])->name('sms-usage.show');
 
     Route::get('users', [UserController::class, 'index'])->name('users.index');
 

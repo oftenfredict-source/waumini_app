@@ -12,6 +12,7 @@ class SmsLog extends Model
         'recipient',
         'context',
         'message',
+        'segments',
         'status',
         'provider_response',
         'edited_at',
@@ -57,5 +58,14 @@ class SmsLog extends Model
             ->where('status', 'sent')
             ->where('created_at', '>=', now()->startOfMonth())
             ->count();
+    }
+
+    public static function monthlySegmentsForChurch(int $churchId): int
+    {
+        return (int) static::query()
+            ->where('church_id', $churchId)
+            ->where('status', 'sent')
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->sum('segments');
     }
 }

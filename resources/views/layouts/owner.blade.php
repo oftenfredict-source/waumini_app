@@ -77,6 +77,12 @@
                 </a>
             </li>
             <li>
+                <a class="app-menu__item @if(request()->routeIs('owner.sms-usage.*')) active @endif" href="{{ route('owner.sms-usage.index') }}">
+                    <i class="app-menu__icon fa fa-commenting"></i>
+                    <span class="app-menu__label">{{ __('owner.sms_usage') }}</span>
+                </a>
+            </li>
+            <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.users.*')) active @endif" href="{{ route('owner.users.index') }}">
                     <i class="app-menu__icon fa fa-users"></i>
                     <span class="app-menu__label">{{ __('owner.users_roles') }}</span>

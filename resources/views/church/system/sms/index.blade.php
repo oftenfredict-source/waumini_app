@@ -49,8 +49,9 @@
     </div>
     <div class="col-md-3">
         <div class="tile text-center">
-            <h4 class="mb-0">{{ $stats['this_month'] }}</h4>
-            <small class="text-muted">{{ __('pages.system_sms.sent_this_month') }}</small>
+            <h4 class="mb-0">{{ $stats['this_month_segments'] }}</h4>
+            <small class="text-muted">{{ __('pages.system_sms.sent_this_month_units') }}</small>
+            <div class="small text-muted mt-1">{{ __('pages.system_sms.sent_this_month_messages', ['count' => $stats['this_month_messages']]) }}</div>
         </div>
     </div>
 </div>

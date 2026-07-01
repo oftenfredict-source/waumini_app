@@ -13,6 +13,7 @@ use App\Models\SystemSetting;
 use App\Services\Owner\ChurchImpersonationService;
 use App\Services\Owner\ChurchService;
 use App\Services\Owner\OwnerChurchSubscriptionService;
+use App\Services\Owner\OwnerSmsUsageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,6 +24,7 @@ class ChurchController extends Controller
         private readonly ChurchService $churchService,
         private readonly ChurchImpersonationService $impersonationService,
         private readonly OwnerChurchSubscriptionService $subscriptionService,
+        private readonly OwnerSmsUsageService $smsUsageService,
     ) {
         $this->authorizeResource(Church::class, 'church');
     }
@@ -95,6 +97,7 @@ class ChurchController extends Controller
                 ->limit(10)
                 ->get(),
             'platformCurrency' => SystemSetting::platformCurrency(),
+            'smsSummary' => $this->smsUsageService->churchSummary($church),
         ]);
     }
 

@@ -1073,6 +1073,8 @@ return [
         'sent' => 'Imetumwa',
         'failed' => 'Imeshindwa',
         'sent_this_month' => 'Imetumwa Mwezi Huu',
+        'sent_this_month_units' => 'Vipande vya SMS Mwezi Huu',
+        'sent_this_month_messages' => 'ujumbe :count',
         'templates_tab' => 'Violezo vya Ujumbe',
         'messages_tab' => 'Ujumbe Uliotumwa',
         'compose_tab' => 'Andika SMS',

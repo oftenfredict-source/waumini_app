@@ -10,6 +10,7 @@ use App\Models\SmsLog;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\Church\ChurchSettingsService;
+use App\Support\SmsSegmentCounter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -51,7 +52,7 @@ class ChurchSmsService
             return ['ok' => false, 'reason' => 'not_allowed'];
         }
 
-        if (! $this->withinMonthlyLimit($church)) {
+        if (! $this->withinMonthlyLimit($church, $message)) {
             $this->log($church, $phone, $message, $context, 'skipped', 'Monthly SMS limit reached');
 
             return ['ok' => false, 'reason' => 'limit_reached'];
@@ -80,7 +81,7 @@ class ChurchSmsService
             return ['ok' => false, 'reason' => 'disabled'];
         }
 
-        if (! $this->withinMonthlyLimit($church)) {
+        if (! $this->withinMonthlyLimit($church, $message)) {
             $this->log($church, $phone, $message, $context, 'skipped', 'Monthly SMS limit reached');
 
             return ['ok' => false, 'reason' => 'limit_reached'];
@@ -430,7 +431,7 @@ class ChurchSmsService
         return $this->sendManualMessage($church, $log->recipient, $log->message, $log->context);
     }
 
-    private function withinMonthlyLimit(Church $church): bool
+    private function withinMonthlyLimit(Church $church, string $message): bool
     {
         $package = $church->activeSubscription?->package;
         $limit = $package?->max_sms_monthly;
@@ -439,7 +440,10 @@ class ChurchSmsService
             return true;
         }
 
-        return SmsLog::monthlyCountForChurch($church->id) < $limit;
+        $used = SmsLog::monthlySegmentsForChurch($church->id);
+        $next = SmsSegmentCounter::count($message);
+
+        return ($used + $next) <= $limit;
     }
 
     private function log(
@@ -456,6 +460,7 @@ class ChurchSmsService
                 'recipient' => $this->gateway->normalizePhone($phone),
                 'context' => $context,
                 'message' => $message,
+                'segments' => SmsSegmentCounter::count($message),
                 'status' => $status,
                 'provider_response' => $providerResponse,
             ]);

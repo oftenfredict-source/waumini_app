@@ -1073,6 +1073,8 @@ return [
         'sent' => 'Sent',
         'failed' => 'Failed',
         'sent_this_month' => 'Sent This Month',
+        'sent_this_month_units' => 'SMS Units This Month',
+        'sent_this_month_messages' => ':count messages',
         'templates_tab' => 'Message Templates',
         'messages_tab' => 'Sent Messages',
         'compose_tab' => 'Compose SMS',

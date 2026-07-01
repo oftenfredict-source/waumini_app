@@ -6,6 +6,7 @@ use App\Http\Requests\Church\SendManualSmsRequest;
 use App\Http\Requests\Church\UpdateSmsMessageRequest;
 use App\Http\Requests\Church\UpdateSmsTemplateRequest;
 use App\Models\SmsLog;
+use App\Support\SmsSegmentCounter;
 use App\Services\Sms\ChurchSmsService;
 use App\Services\Sms\SmsTemplateService;
 use Illuminate\Http\RedirectResponse;
@@ -74,7 +75,8 @@ class SmsStoreController extends SystemController
                 'total' => (clone $baseQuery)->count(),
                 'sent' => (clone $baseQuery)->where('status', 'sent')->count(),
                 'failed' => (clone $baseQuery)->where('status', 'failed')->count(),
-                'this_month' => SmsLog::monthlyCountForChurch($church->id),
+                'this_month_messages' => SmsLog::monthlyCountForChurch($church->id),
+                'this_month_segments' => SmsLog::monthlySegmentsForChurch($church->id),
             ],
             'smsEnabled' => $this->churchSmsService->churchSmsEnabled($church),
             'platformSmsEnabled' => $this->churchSmsService->platformSmsEnabled(),
@@ -130,8 +132,11 @@ class SmsStoreController extends SystemController
         $church = $this->church();
         abort_unless($smsLog->church_id === $church->id, 404);
 
+        $message = $request->validated('message');
+
         $smsLog->update([
-            'message' => $request->validated('message'),
+            'message' => $message,
+            'segments' => SmsSegmentCounter::count($message),
             'recipient' => $request->validated('recipient'),
             'edited_at' => now(),
             'edited_by' => $request->user()?->id,
