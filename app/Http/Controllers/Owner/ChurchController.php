@@ -7,10 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StoreChurchRequest;
 use App\Http\Requests\Owner\UpdateChurchRequest;
 use App\Models\Church;
+use App\Models\Payment;
 use App\Models\SubscriptionPackage;
 use App\Models\SystemSetting;
 use App\Services\Owner\ChurchImpersonationService;
 use App\Services\Owner\ChurchService;
+use App\Services\Owner\OwnerChurchSubscriptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,6 +22,7 @@ class ChurchController extends Controller
     public function __construct(
         private readonly ChurchService $churchService,
         private readonly ChurchImpersonationService $impersonationService,
+        private readonly OwnerChurchSubscriptionService $subscriptionService,
     ) {
         $this->authorizeResource(Church::class, 'church');
     }
@@ -83,7 +86,16 @@ class ChurchController extends Controller
     {
         $church->load(['domains', 'subscriptions.package', 'activeSubscription.package', 'adminUser']);
 
-        return view('owner.churches.show', compact('church'));
+        return view('owner.churches.show', [
+            'church' => $church,
+            'packages' => $this->subscriptionService->activePackages(),
+            'recentPayments' => Payment::query()
+                ->where('church_id', $church->id)
+                ->latest('paid_at')
+                ->limit(10)
+                ->get(),
+            'platformCurrency' => SystemSetting::platformCurrency(),
+        ]);
     }
 
     public function edit(Church $church): View

@@ -35,17 +35,7 @@
             </table>
         </div>
 
-        @if($church->activeSubscription)
-            <div class="tile">
-                <h3 class="tile-title">{{ __('owner.church.active_subscription') }}</h3>
-                <table class="table table-borderless">
-                    <tr><th width="180">{{ __('owner.package') }}</th><td>{{ $church->activeSubscription->package?->name }}</td></tr>
-                    <tr><th>{{ __('owner.church.billing') }}</th><td>{{ ucfirst($church->activeSubscription->billing_cycle->value) }}</td></tr>
-                    <tr><th>{{ __('owner.status') }}</th><td>{{ ucfirst($church->activeSubscription->status->value) }}</td></tr>
-                    <tr><th>{{ __('owner.subs.ends_trial') }}</th><td>{{ $church->activeSubscription->ends_at?->format('M d, Y') ?? '—' }}</td></tr>
-                </table>
-            </div>
-        @endif
+        @include('owner.churches.partials.subscription-management')
 
         <div class="tile">
             <h3 class="tile-title">{{ __('owner.church.admin_login') }}</h3>

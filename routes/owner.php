@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Owner\ChurchController;
+use App\Http\Controllers\Owner\ChurchSubscriptionController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\LoginController;
 use App\Http\Controllers\Owner\PaymentController;
@@ -22,6 +23,7 @@ Route::middleware(['auth', 'owner'])->group(function () {
 
     Route::resource('churches', ChurchController::class);
     Route::post('churches/{church}/impersonate', [ChurchController::class, 'impersonate'])->name('churches.impersonate');
+    Route::post('churches/{church}/subscription', [ChurchSubscriptionController::class, 'store'])->name('churches.subscription.store');
     Route::post('churches/{church}/suspend', [ChurchController::class, 'suspend'])->name('churches.suspend');
     Route::post('churches/{church}/activate', [ChurchController::class, 'activate'])->name('churches.activate');
     Route::post('churches/{church}/regenerate-admin-password', [ChurchController::class, 'regenerateAdminPassword'])->name('churches.regenerate-admin-password');

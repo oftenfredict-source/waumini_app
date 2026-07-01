@@ -51,4 +51,9 @@ class ChurchPolicy
     {
         return $user->can('churches.impersonate');
     }
+
+    public function manageSubscription(User $user, Church $church): bool
+    {
+        return $user->can('subscriptions.manage');
+    }
 }
