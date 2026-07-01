@@ -11,7 +11,7 @@ class SmsGatewayService
     /**
      * @return array{ok: bool, reason?: string, status?: int, body?: string, request?: array<string, mixed>}
      */
-    public function send(string $toPhone, string $message, bool $debug = false): array
+    public function send(string $toPhone, string $message, bool $debug = false, ?string $senderId = null): array
     {
         if (! $this->isConfigured()) {
             Log::warning('SMS send skipped: gateway not configured');
@@ -20,6 +20,7 @@ class SmsGatewayService
         }
 
         $config = SystemSetting::smsGatewayConfig();
+        $from = $senderId !== null && trim($senderId) !== '' ? trim($senderId) : $config['sender_id'];
         $normalizedPhone = $this->normalizePhone($toPhone);
 
         if ($normalizedPhone === '') {
@@ -29,7 +30,7 @@ class SmsGatewayService
         $query = [
             'username' => $config['username'],
             'password' => $config['password'],
-            'from' => $config['sender_id'],
+            'from' => $from,
             'to' => $normalizedPhone,
             'text' => $message,
         ];
@@ -38,7 +39,7 @@ class SmsGatewayService
             'method' => 'GET',
             'url' => $config['api_url'],
             'to' => $normalizedPhone,
-            'from' => $config['sender_id'],
+            'from' => $from,
         ];
 
         try {

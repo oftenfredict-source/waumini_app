@@ -1,6 +1,6 @@
 @extends('errors.layout')
 
-@section('title', 'Page Not Found')
+@section('title', __('errors.page_not_found'))
 
 @section('content')
     <div class="error-code-wrap">
@@ -11,24 +11,23 @@
     <div class="error-card">
         <div class="error-eyebrow">
             <i class="fa fa-compass"></i>
-            Page not found
+            {{ __('errors.eyebrow') }}
         </div>
 
-        <h1>This page doesn’t exist</h1>
+        <h1>{{ __('errors.heading') }}</h1>
         <p class="error-lead">
-            The link may be broken, outdated, or the page may have been moved.
-            Let’s get you back on track.
+            {{ __('errors.lead') }}
         </p>
 
         <div class="error-actions">
             <a href="{{ route('landing') }}" class="error-btn error-btn-primary">
-                <i class="fa fa-home"></i> Go to homepage
+                <i class="fa fa-home"></i> {{ __('errors.go_to_homepage') }}
             </a>
             <a href="{{ route('church.login') }}" class="error-btn error-btn-ghost">
-                <i class="fa fa-sign-in"></i> Church sign in
+                <i class="fa fa-sign-in"></i> {{ __('errors.church_sign_in') }}
             </a>
             <button type="button" class="error-btn error-btn-ghost" onclick="history.back()">
-                <i class="fa fa-arrow-left"></i> Go back
+                <i class="fa fa-arrow-left"></i> {{ __('errors.go_back') }}
             </button>
         </div>
 
@@ -36,15 +35,15 @@
             <li class="error-hint">
                 <i class="fa fa-link"></i>
                 <div>
-                    <strong>Check the URL</strong>
-                    <span>Make sure the web address is spelled correctly.</span>
+                    <strong>{{ __('errors.hint_check_url') }}</strong>
+                    <span>{{ __('errors.hint_check_url_desc') }}</span>
                 </div>
             </li>
             <li class="error-hint">
                 <i class="fa fa-user"></i>
                 <div>
-                    <strong>Looking for your church dashboard?</strong>
-                    <span>Sign in with your church admin email or member ID.</span>
+                    <strong>{{ __('errors.hint_dashboard') }}</strong>
+                    <span>{{ __('errors.hint_dashboard_desc') }}</span>
                 </div>
             </li>
         </ul>

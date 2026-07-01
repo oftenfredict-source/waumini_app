@@ -1,52 +1,51 @@
 @extends('layouts.church')
 
-@section('title', 'Budget & Expenses')
+@section('title', __('pages.budget.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-briefcase"></i> Budget & Expenses</h1>
-        <p>Create church budgets, allocate funding, and track approved expenses.</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item">Budget & Expenses</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-briefcase',
+    'title' => __('pages.budget.title'),
+    'subtitle' => __('pages.budget.subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.budget_expenses')],
+    ],
+])
 
 <div class="row mb-3">
     <div class="col-md-9">
         <form method="GET" class="form-inline">
             <select name="fiscal_year" class="form-control mr-2 mb-2">
-                <option value="">All years</option>
+                <option value="">{{ __('pages.shared.all_years') }}</option>
                 @for($y = date('Y') - 2; $y <= date('Y') + 2; $y++)
                     <option value="{{ $y }}" @selected(($filters['fiscal_year'] ?? '') == $y)>{{ $y }}</option>
                 @endfor
             </select>
             <select name="budget_type" class="form-control mr-2 mb-2">
-                <option value="">All types</option>
+                <option value="">{{ __('pages.shared.all_types') }}</option>
                 @foreach($budgetTypes as $type)
                     <option value="{{ $type->value }}" @selected(($filters['budget_type'] ?? '') === $type->value)>{{ $type->label() }}</option>
                 @endforeach
             </select>
             <select name="status" class="form-control mr-2 mb-2">
-                <option value="">All statuses</option>
+                <option value="">{{ __('pages.shared.all_statuses') }}</option>
                 @foreach($statuses as $status)
                     <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $status->label() }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> Filter</button>
+            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
         </form>
     </div>
     <div class="col-md-3 text-md-right">
         @can('create', \App\Models\Budget::class)
             <a href="{{ route('church.budget.create') }}" class="btn btn-primary mb-2">
-                <i class="fa fa-plus"></i> Add Budget
+                <i class="fa fa-plus"></i> {{ __('pages.budget.add_budget') }}
             </a>
         @endcan
         @can('viewAny', \App\Models\Expense::class)
             <a href="{{ route('church.expenses.index') }}" class="btn btn-outline-primary mb-2 ml-2">
-                <i class="fa fa-receipt"></i> Expenses
+                <i class="fa fa-receipt"></i> {{ __('pages.budget.expenses') }}
             </a>
         @endcan
     </div>
@@ -57,14 +56,14 @@
         <table class="table table-hover table-bordered">
             <thead>
                 <tr>
-                    <th>Budget</th>
-                    <th>Type</th>
-                    <th>Total</th>
-                    <th>Spent</th>
-                    <th>Remaining</th>
-                    <th>Status</th>
-                    <th>Approval</th>
-                    <th width="140">Actions</th>
+                    <th>{{ __('pages.shared.budget') }}</th>
+                    <th>{{ __('common.type') }}</th>
+                    <th>{{ __('common.total') }}</th>
+                    <th>{{ __('pages.shared.spent') }}</th>
+                    <th>{{ __('pages.shared.remaining') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('common.approval') }}</th>
+                    <th width="140">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -86,11 +85,11 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ route('church.budget.show', $budget) }}" class="btn btn-info" title="View">
+                                <a href="{{ route('church.budget.show', $budget) }}" class="btn btn-info" title="{{ __('common.view') }}">
                                     <i class="fa fa-eye"></i>
                                 </a>
                                 @can('update', $budget)
-                                    <a href="{{ route('church.budget.edit', $budget) }}" class="btn btn-primary" title="Edit">
+                                    <a href="{{ route('church.budget.edit', $budget) }}" class="btn btn-primary" title="{{ __('common.edit') }}">
                                         <i class="fa fa-pencil"></i>
                                     </a>
                                 @endcan
@@ -100,7 +99,7 @@
                 @empty
                     <tr>
                         <td colspan="8" class="text-center text-muted py-4">
-                            No budgets found.
+                            {{ __('pages.budget.empty') }}
                         </td>
                     </tr>
                 @endforelse
@@ -110,4 +109,3 @@
     {{ $budgets->links() }}
 </div>
 @endsection
-

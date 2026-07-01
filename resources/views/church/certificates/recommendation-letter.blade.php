@@ -1,41 +1,42 @@
 @extends('church.certificates.layout')
 
 @section('certificate-body')
-    <div class="doc-title">Barua ya Mapendekezo</div>
+    <div class="doc-title">{{ __('certificates.recommendation_title') }}</div>
 
     <div class="ref-line">
-        Nambari: <strong>{{ $memberRequest->reference_number }}</strong><br>
-        Tarehe: <strong>{{ $issuedAtFormatted }}</strong>
+        {{ __('certificates.number') }} <strong>{{ $memberRequest->reference_number }}</strong><br>
+        {{ __('certificates.date') }} <strong>{{ $issuedAtFormatted }}</strong>
     </div>
 
     <div class="content">
-        <p>Kwa Wote Wanaohusika,</p>
+        <p>{{ __('certificates.to_whom') }}</p>
 
         <p>
-            Sisi, uongozi wa <strong>{{ $displayName ?? $church->name }}</strong>, tunampendekeza mwanachama wetu
-            <strong>{{ $member->full_name }}</strong> (Nambari ya Mwanachama: {{ $member->member_number }})
-            kulingana na ujuzi wetu kuhusu tabia yake, mwenendo wake, na ushiriki wake katika maisha ya kanisa.
+            {!! __('certificates.recommendation_intro', [
+                'church' => e($displayName ?? $church->name),
+                'name' => e($member->full_name),
+                'number' => e($member->member_number),
+            ]) !!}
         </p>
 
         <p>
-            <strong>Mada:</strong> {{ $memberRequest->subject }}
+            <strong>{{ __('certificates.subject') }}</strong> {{ $memberRequest->subject }}
         </p>
 
         <p>
-            <strong>Maelezo:</strong><br>
+            <strong>{{ __('certificates.description') }}</strong><br>
             {{ $memberRequest->description }}
         </p>
 
         @if($memberRequest->response)
             <p>
-                <strong>Maoni ya kanisa:</strong><br>
+                <strong>{{ __('certificates.church_comments') }}</strong><br>
                 {{ $memberRequest->response }}
             </p>
         @endif
 
         <p>
-            Tunaamini mapendekezo haya yatapokelewa kwa imani njema. Kwa uthibitisho wowote,
-            tafadhali wasiliana na ofisi ya kanisa kwa kutumia maelezo yaliyoonyeshwa hapo juu.
+            {{ __('certificates.recommendation_closing') }}
         </p>
     </div>
 

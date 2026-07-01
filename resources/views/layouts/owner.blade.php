@@ -1,11 +1,11 @@
 @php $vali = \App\Support\WauminiBrand::publicAsset('vali-master/docs'); @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Owner Dashboard') - {{ config('app.name') }}</title>
+    <title>@yield('title', __('owner.dashboard')) - {{ config('app.name') }}</title>
     <link rel="stylesheet" href="{{ $vali }}/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     @include('partials.brand-styles')
@@ -14,8 +14,9 @@
 <body class="app sidebar-mini">
     <header class="app-header">
         <a class="app-header__logo" href="{{ route('owner.dashboard') }}">{{ config('app.name') }}</a>
-        <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="Hide Sidebar"></a>
+        <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="{{ __('common.hide_sidebar') }}"></a>
         <ul class="app-nav">
+            @include('partials.locale-switcher')
             <li class="dropdown">
                 <a class="app-nav__item" href="#" data-toggle="dropdown">
                     <i class="fa fa-user fa-lg"></i>
@@ -26,7 +27,7 @@
                         <form action="{{ route('owner.logout') }}" method="POST">
                             @csrf
                             <button type="submit" class="dropdown-item">
-                                <i class="fa fa-sign-out fa-lg"></i> Logout
+                                <i class="fa fa-sign-out fa-lg"></i> {{ __('common.logout') }}
                             </button>
                         </form>
                     </li>
@@ -38,59 +39,59 @@
     <div class="app-sidebar__overlay" data-toggle="sidebar"></div>
     <aside class="app-sidebar">
         <div class="app-sidebar__user">
-            <img class="app-sidebar__user-avatar" src="https://s3.amazonaws.com/uifaces/faces/twitter/jsa/48.jpg" alt="User">
+            <img class="app-sidebar__user-avatar" src="https://s3.amazonaws.com/uifaces/faces/twitter/jsa/48.jpg" alt="{{ __('common.user') }}">
             <div>
                 <p class="app-sidebar__user-name">{{ auth()->user()->name }}</p>
-                <p class="app-sidebar__user-designation">Super Admin</p>
+                <p class="app-sidebar__user-designation">{{ __('owner.super_admin') }}</p>
             </div>
         </div>
         <ul class="app-menu">
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.dashboard')) active @endif" href="{{ route('owner.dashboard') }}">
                     <i class="app-menu__icon fa fa-dashboard"></i>
-                    <span class="app-menu__label">Overview</span>
+                    <span class="app-menu__label">{{ __('owner.overview') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.churches.*')) active @endif" href="{{ route('owner.churches.index') }}">
                     <i class="app-menu__icon fa fa-building"></i>
-                    <span class="app-menu__label">Churches</span>
+                    <span class="app-menu__label">{{ __('owner.churches') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.subscriptions.*')) active @endif" href="{{ route('owner.subscriptions.index') }}">
                     <i class="app-menu__icon fa fa-credit-card"></i>
-                    <span class="app-menu__label">Subscriptions</span>
+                    <span class="app-menu__label">{{ __('owner.subscriptions') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.payments.*')) active @endif" href="{{ route('owner.payments.index') }}">
                     <i class="app-menu__icon fa fa-money"></i>
-                    <span class="app-menu__label">Payments</span>
+                    <span class="app-menu__label">{{ __('owner.payments') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.revenue.*')) active @endif" href="{{ route('owner.revenue.index') }}">
                     <i class="app-menu__icon fa fa-bar-chart"></i>
-                    <span class="app-menu__label">Revenue</span>
+                    <span class="app-menu__label">{{ __('owner.revenue') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.users.*')) active @endif" href="{{ route('owner.users.index') }}">
                     <i class="app-menu__icon fa fa-users"></i>
-                    <span class="app-menu__label">Users & Roles</span>
+                    <span class="app-menu__label">{{ __('owner.users_roles') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.support.*')) active @endif" href="{{ route('owner.support.index') }}">
                     <i class="app-menu__icon fa fa-life-ring"></i>
-                    <span class="app-menu__label">Support</span>
+                    <span class="app-menu__label">{{ __('owner.support') }}</span>
                 </a>
             </li>
             <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.settings.*')) active @endif" href="{{ route('owner.settings.index') }}">
                     <i class="app-menu__icon fa fa-cog"></i>
-                    <span class="app-menu__label">Settings</span>
+                    <span class="app-menu__label">{{ __('owner.settings') }}</span>
                 </a>
             </li>
         </ul>

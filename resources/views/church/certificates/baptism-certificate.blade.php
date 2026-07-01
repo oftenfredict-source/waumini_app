@@ -1,16 +1,16 @@
 @extends('church.certificates.layout')
 
 @section('certificate-body')
-    <div class="doc-title">Cheti cha Ubatizo</div>
+    <div class="doc-title">{{ __('certificates.baptism_title') }}</div>
 
     <div class="ref-line">
-        Nambari: <strong>{{ $memberRequest->reference_number }}</strong><br>
-        Tarehe: <strong>{{ $issuedAtFormatted }}</strong>
+        {{ __('certificates.number') }} <strong>{{ $memberRequest->reference_number }}</strong><br>
+        {{ __('certificates.date') }} <strong>{{ $issuedAtFormatted }}</strong>
     </div>
 
     <div class="content">
         <p style="text-align:center; font-size:14px; margin-bottom:18px;">
-            Tunathibitisha kwamba
+            {{ __('certificates.baptism_confirm') }}
         </p>
 
         <p style="text-align:center; font-size:20px; font-weight:bold; color:#940000; margin-bottom:18px;">
@@ -18,23 +18,22 @@
         </p>
 
         <p style="text-align:center;">
-            Nambari ya Mwanachama: {{ $member->member_number }}
+            {{ __('certificates.member_number') }} {{ $member->member_number }}
         </p>
 
         <p>
-            amepokelewa kama mwanachama aliyebatizwa katika <strong>{{ $displayName ?? $church->name }}</strong>, kwa mujibu
-            wa imani na desturi za kanisa letu.
+            {!! __('certificates.baptism_body', ['church' => '<strong>'.e($displayName ?? $church->name).'</strong>']) !!}
         </p>
 
         @if($memberRequest->description)
             <p>
-                <strong>Maelezo:</strong><br>
+                <strong>{{ __('certificates.description') }}</strong><br>
                 {{ $memberRequest->description }}
             </p>
         @endif
 
         <p>
-            Tunaomba aendelee kukua katika imani, tumaini, na upendo katika Bwana wetu Yesu Kristo.
+            {{ __('certificates.baptism_closing') }}
         </p>
     </div>
 

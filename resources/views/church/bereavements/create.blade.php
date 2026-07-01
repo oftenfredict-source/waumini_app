@@ -1,27 +1,26 @@
 @extends('layouts.church')
 
-@section('title', 'Create Bereavement')
+@section('title', __('pages.bereavements.create_title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Create Bereavement</h1>
-        <p>Record a bereavement and open the contribution period</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.bereavements.index') }}">Bereavements</a></li>
-        <li class="breadcrumb-item">Create</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.bereavements.create_title'),
+    'subtitle' => __('pages.bereavements.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.bereavements'), 'route' => 'church.bereavements.index'],
+        ['label' => __('pages.shared.breadcrumb_create')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.bereavements.store') }}">
         @csrf
         @include('church.bereavements._form', ['members' => $members])
         <div class="tile-footer">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Bereavement</button>
-            <a href="{{ route('church.bereavements.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.save_item', ['item' => __('pages.bereavements.item')]) }}</button>
+            <a href="{{ route('church.bereavements.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>

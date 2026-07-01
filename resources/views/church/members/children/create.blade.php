@@ -1,20 +1,19 @@
 @extends('layouts.church')
 
-@section('title', 'Add Child')
+@section('title', __('pages.members_children.add_child'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Add Child</h1>
-        <p>Register a child under a church member parent or a non-member guardian</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.members.index') }}">Members</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.members.children.index') }}">Children</a></li>
-        <li class="breadcrumb-item">Add Child</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.members_children.add_child'),
+    'subtitle' => __('pages.members_children.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.members'), 'route' => 'church.members.index'],
+        ['label' => __('pages.members_children.title'), 'route' => 'church.members.children.index'],
+        ['label' => __('pages.shared.breadcrumb_add')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.members.children.store') }}" id="addChildForm">
@@ -22,10 +21,10 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Is the parent a church member? *</label>
+                    <label>{{ __('pages.members_children.parent_is_member') }}</label>
                     <select name="parent_type" id="parent_type" class="form-control @error('parent_type') is-invalid @enderror" required>
-                        <option value="member" @selected(old('parent_type', 'member') === 'member')>Yes — select church member</option>
-                        <option value="non_member" @selected(old('parent_type') === 'non_member')>No — enter guardian details</option>
+                        <option value="member" @selected(old('parent_type', 'member') === 'member')>{{ __('pages.members_children.parent_yes_member') }}</option>
+                        <option value="non_member" @selected(old('parent_type') === 'non_member')>{{ __('pages.members_children.parent_no_guardian') }}</option>
                     </select>
                     @error('parent_type')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
@@ -35,9 +34,9 @@
         <div id="memberParentSection" class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Parent Church Member *</label>
+                    <label>{{ __('pages.members_children.parent_member') }}</label>
                     <select name="member_id" id="member_id" class="form-control @error('member_id') is-invalid @enderror">
-                        <option value="">Select member</option>
+                        <option value="">{{ __('pages.shared.select_member') }}</option>
                         @foreach($members as $member)
                             <option value="{{ $member->id }}" @selected($selectedMemberId == $member->id)>
                                 {{ $member->full_name }} ({{ $member->member_number }})
@@ -46,8 +45,9 @@
                     </select>
                     @if($members->isEmpty())
                         <small class="text-warning d-block mt-1">
-                            No active members yet. Use "No — enter guardian details" or
-                            <a href="{{ route('church.members.create') }}">register a member</a> first.
+                            {!! __('pages.members_children.no_members_hint', [
+                                'link' => '<a href="'.route('church.members.create').'">'.__('pages.members_children.register_member_link').'</a>',
+                            ]) !!}
                         </small>
                     @endif
                     @error('member_id')<small class="text-danger">{{ $message }}</small>@enderror
@@ -58,7 +58,7 @@
         <div id="guardianSection" class="row" style="display: none;">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>Guardian Full Name *</label>
+                    <label>{{ __('pages.members_children.guardian_full_name') }}</label>
                     <input type="text" name="guardian_full_name" id="guardian_full_name"
                         class="form-control @error('guardian_full_name') is-invalid @enderror"
                         value="{{ old('guardian_full_name') }}">
@@ -67,7 +67,7 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>Guardian Phone</label>
+                    <label>{{ __('pages.members_children.guardian_phone') }}</label>
                     <div class="input-group">
                         <div class="input-group-prepend"><span class="input-group-text">+255</span></div>
                         <input type="text" name="guardian_phone" id="guardian_phone"
@@ -79,9 +79,9 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>Relationship to Child</label>
+                    <label>{{ __('pages.members_children.relationship_to_child') }}</label>
                     <select name="guardian_relationship" id="guardian_relationship" class="form-control">
-                        <option value="">Select relationship</option>
+                        <option value="">{{ __('pages.shared.select_relationship') }}</option>
                         @foreach(['Father', 'Mother', 'Guardian', 'Uncle', 'Aunt', 'Grandparent', 'Other'] as $rel)
                             <option value="{{ $rel }}" @selected(old('guardian_relationship') === $rel)>{{ $rel }}</option>
                         @endforeach
@@ -95,7 +95,7 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Child Full Name *</label>
+                    <label>{{ __('pages.members_children.child_full_name') }}</label>
                     <input type="text" name="full_name" class="form-control @error('full_name') is-invalid @enderror"
                         value="{{ old('full_name') }}" required>
                     @error('full_name')<small class="text-danger">{{ $message }}</small>@enderror
@@ -103,39 +103,39 @@
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Gender *</label>
+                    <label>{{ __('members.fields.gender') }} *</label>
                     <select name="gender" class="form-control @error('gender') is-invalid @enderror" required>
-                        <option value="">Select gender</option>
-                        <option value="male" @selected(old('gender') === 'male')>Male</option>
-                        <option value="female" @selected(old('gender') === 'female')>Female</option>
+                        <option value="">{{ __('pages.shared.select_gender') }}</option>
+                        <option value="male" @selected(old('gender') === 'male')>{{ __('pages.shared.male') }}</option>
+                        <option value="female" @selected(old('gender') === 'female')>{{ __('pages.shared.female') }}</option>
                     </select>
                     @error('gender')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Date of Birth</label>
+                    <label>{{ __('members.fields.date_of_birth') }}</label>
                     <input type="date" name="date_of_birth"
                         class="form-control @error('date_of_birth') is-invalid @enderror"
                         value="{{ old('date_of_birth') }}" max="{{ now()->subDay()->toDateString() }}">
-                    <small class="text-muted">Tracks age for conversion at {{ config('membership.child_independence_age', 21) }}+</small>
+                    <small class="text-muted">{{ __('pages.members_children.conversion_age_hint', ['age' => config('membership.child_independence_age', 21)]) }}</small>
                     @error('date_of_birth')<small class="text-danger d-block">{{ $message }}</small>@enderror
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Additional Note</label>
+                    <label>{{ __('pages.members_children.additional_note') }}</label>
                     <input type="text" name="relationship_note"
                         class="form-control @error('relationship_note') is-invalid @enderror"
-                        value="{{ old('relationship_note') }}" placeholder="e.g. adopted, stepchild">
+                        value="{{ old('relationship_note') }}" placeholder="{{ __('pages.members_children.note_placeholder') }}">
                     @error('relationship_note')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
             </div>
         </div>
 
         <div class="tile-footer">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Add Child</button>
-            <a href="{{ route('church.members.children.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.members_children.add_child') }}</button>
+            <a href="{{ route('church.members.children.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>

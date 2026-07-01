@@ -73,7 +73,10 @@ class MemberService
 
             if (($data['spouse_church_member'] ?? null) !== 'yes') {
                 $data['spouse_member_id'] = null;
-                $data['spouse_envelope_number'] = null;
+
+                if (empty(trim((string) ($data['spouse_full_name'] ?? '')))) {
+                    $data['spouse_envelope_number'] = null;
+                }
             } elseif ($spouseInputMethod !== 'select') {
                 $data['spouse_member_id'] = null;
             }
@@ -86,28 +89,19 @@ class MemberService
             $member = Member::create($data);
             $this->createMemberUserAccount($church, $member);
 
-            $spouseMember = null;
-
-            if ($member->marital_status === MaritalStatus::Married && $member->spouse_church_member === 'yes') {
-                if ($spouseInputMethod === 'select' && $selectedSpouseMemberId) {
-                    $this->linkSpouseMembers($member, (int) $selectedSpouseMemberId);
-                } elseif ($spouseInputMethod === 'manual' && $this->canCreateSpouseMember($member)) {
-                    $existingSpouse = $this->findExistingSpouse($church, $member);
-
-                    if ($existingSpouse) {
-                        $member->update(['spouse_member_id' => $existingSpouse->id]);
-                        $this->linkSpouseMembers($member, $existingSpouse->id);
-                        $spouseMember = $existingSpouse;
-                    } else {
-                        $spouseMember = $this->createSpouseMember($church, $member);
-                        $member->update(['spouse_member_id' => $spouseMember->id]);
-                        $this->spouseMemberCreated = true;
-                    }
-                }
-            }
+            $spouseMember = $this->provisionSpouseMember(
+                $church,
+                $member,
+                $spouseInputMethod,
+                $selectedSpouseMemberId ? (int) $selectedSpouseMemberId : null,
+            );
 
             if ($spouseMember && ! $spouseMember->user) {
                 $this->createMemberUserAccount($church, $spouseMember->fresh());
+            }
+
+            if ($spouseMember) {
+                $this->celebrationService->syncMember($spouseMember->fresh());
             }
 
             foreach ($dependants as $dependant) {
@@ -166,7 +160,10 @@ class MemberService
 
                 if (($data['spouse_church_member'] ?? null) !== 'yes') {
                     $data['spouse_member_id'] = null;
-                    $data['spouse_envelope_number'] = null;
+
+                    if (empty(trim((string) ($data['spouse_full_name'] ?? '')))) {
+                        $data['spouse_envelope_number'] = null;
+                    }
                 } elseif ($spouseInputMethod !== 'select') {
                     $data['spouse_member_id'] = null;
                 }
@@ -194,28 +191,21 @@ class MemberService
 
             $spouseMember = null;
 
-            if (! $hadLinkedSpouse
-                && $member->fresh()->marital_status === MaritalStatus::Married
-                && $member->spouse_church_member === 'yes') {
-                if ($spouseInputMethod === 'select' && $selectedSpouseMemberId) {
-                    $this->linkSpouseMembers($member, (int) $selectedSpouseMemberId);
-                } elseif ($spouseInputMethod === 'manual' && $this->canCreateSpouseMember($member->fresh())) {
-                    $existingSpouse = $this->findExistingSpouse($church, $member->fresh());
-
-                    if ($existingSpouse) {
-                        $member->update(['spouse_member_id' => $existingSpouse->id]);
-                        $this->linkSpouseMembers($member, $existingSpouse->id);
-                        $spouseMember = $existingSpouse;
-                    } else {
-                        $spouseMember = $this->createSpouseMember($church, $member->fresh());
-                        $member->update(['spouse_member_id' => $spouseMember->id]);
-                        $this->spouseMemberCreated = true;
-                    }
-                }
+            if (! $hadLinkedSpouse) {
+                $spouseMember = $this->provisionSpouseMember(
+                    $church,
+                    $member->fresh(),
+                    $spouseInputMethod,
+                    $selectedSpouseMemberId ? (int) $selectedSpouseMemberId : null,
+                );
             }
 
             if ($spouseMember && ! $spouseMember->user) {
                 $this->createMemberUserAccount($church, $spouseMember->fresh());
+            }
+
+            if ($spouseMember) {
+                $this->celebrationService->syncMember($spouseMember->fresh());
             }
 
             $this->celebrationService->syncMember($member->fresh());
@@ -659,6 +649,42 @@ class MemberService
         $this->churchSmsService->sendMemberCredentials($church, $member, $plainPassword);
     }
 
+    private function provisionSpouseMember(
+        Church $church,
+        Member $member,
+        ?string $spouseInputMethod,
+        ?int $selectedSpouseMemberId,
+    ): ?Member {
+        if ($member->marital_status !== MaritalStatus::Married) {
+            return null;
+        }
+
+        if ($spouseInputMethod === 'select' && $selectedSpouseMemberId) {
+            $this->linkSpouseMembers($member, $selectedSpouseMemberId);
+
+            return Member::forChurch($church->id)->find($selectedSpouseMemberId);
+        }
+
+        if ($spouseInputMethod !== 'manual' || ! $this->canCreateSpouseMember($member)) {
+            return null;
+        }
+
+        $existingSpouse = $this->findExistingSpouse($church, $member);
+
+        if ($existingSpouse) {
+            $member->update(['spouse_member_id' => $existingSpouse->id]);
+            $this->linkSpouseMembers($member, $existingSpouse->id);
+
+            return $existingSpouse;
+        }
+
+        $spouseMember = $this->createSpouseMember($church, $member);
+        $member->update(['spouse_member_id' => $spouseMember->id]);
+        $this->spouseMemberCreated = true;
+
+        return $spouseMember;
+    }
+
     private function canCreateSpouseMember(Member $member): bool
     {
         return ! empty($member->spouse_full_name)
@@ -697,10 +723,14 @@ class MemberService
 
         return Member::create([
             'church_id' => $church->id,
+            'branch_id' => $member->branch_id,
             'member_number' => $this->generateMemberId($church),
             'envelope_number' => $member->spouse_envelope_number,
             'member_type' => $spouseMemberType,
             'membership_type' => $member->membership_type,
+            'temporary_duration_value' => $member->temporary_duration_value,
+            'temporary_duration_unit' => $member->temporary_duration_unit,
+            'membership_expires_at' => $member->membership_expires_at,
             'full_name' => $member->spouse_full_name,
             'email' => $member->spouse_email,
             'phone_number' => $member->spouse_phone_number,

@@ -3,7 +3,7 @@
     $notificationItems = $headerNotifications['items'] ?? collect();
 @endphp
 <li class="dropdown app-nav__notification">
-    <a class="app-nav__item" href="#" data-toggle="dropdown" aria-label="Notifications">
+    <a class="app-nav__item" href="#" data-toggle="dropdown" aria-label="{{ __('common.notifications') }}">
         <i class="fa fa-bell-o fa-lg"></i>
         @if($notificationCount > 0)
             <span class="app-nav__notification-badge">{{ $notificationCount > 9 ? '9+' : $notificationCount }}</span>
@@ -12,9 +12,9 @@
     <ul class="app-notification dropdown-menu dropdown-menu-right">
         <li class="app-notification__title">
             @if($notificationCount > 0)
-                You have {{ $notificationCount }} notification{{ $notificationCount === 1 ? '' : 's' }}.
+                {{ trans_choice('common.notifications_count', $notificationCount, ['count' => $notificationCount]) }}
             @else
-                No new notifications.
+                {{ __('common.no_new_notifications') }}
             @endif
         </li>
         <div class="app-notification__content">
@@ -35,7 +35,7 @@
                     </a>
                 </li>
             @empty
-                <li class="px-3 py-2 text-muted text-center">You're all caught up.</li>
+                <li class="px-3 py-2 text-muted text-center">{{ __('common.all_caught_up') }}</li>
             @endforelse
         </div>
     </ul>

@@ -1,10 +1,10 @@
 @php $vali = \App\Support\WauminiBrand::publicAsset('vali-master/docs'); @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Dashboard') - {{ auth()->user()->church?->name ?? config('app.name') }}</title>
+    <title>@yield('title', __('common.dashboard')) - {{ auth()->user()->church?->name ?? config('app.name') }}</title>
     <link rel="stylesheet" href="{{ $vali }}/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     @include('partials.brand-styles')
@@ -21,9 +21,10 @@
                 {{ auth()->user()->church?->name ?? config('app.name') }}
             @endif
         </a>
-        <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="Hide Sidebar"></a>
+        <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="{{ __('common.hide_sidebar') }}"></a>
         <ul class="app-nav">
             @include('church.partials.header-notifications')
+            @include('partials.locale-switcher')
             <li class="dropdown">
                 <a class="app-nav__item" href="#" data-toggle="dropdown">
                     <i class="fa fa-user fa-lg"></i>
@@ -34,7 +35,7 @@
                         <form action="{{ route('church.logout') }}" method="POST">
                             @csrf
                             <button type="submit" class="dropdown-item">
-                                <i class="fa fa-sign-out fa-lg"></i> Logout
+                                <i class="fa fa-sign-out fa-lg"></i> {{ __('common.logout') }}
                             </button>
                         </form>
                     </li>

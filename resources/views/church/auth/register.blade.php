@@ -1,6 +1,6 @@
 @extends('layouts.church-register')
 
-@section('title', 'Register as Member')
+@section('title', __('auth.member_registration'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/member-wizard.css') }}">
@@ -12,20 +12,20 @@
     $isSelfRegistration = true;
     $formAction = route('church.register.submit', ['church' => $church->slug]);
     $cancelUrl = route('church.login');
-    $submitLabel = 'Submit Application';
+    $submitLabel = __('auth.submit_application');
 @endphp
 
 <div class="register-hero">
-    <h1>Member Registration</h1>
-    <p>Fill in your details below. Your church leadership will review your application and send you login credentials after approval.</p>
+    <h1>{{ __('auth.member_registration') }}</h1>
+    <p>{{ __('auth.registration_hero') }}</p>
 </div>
 
 @include('partials.sweetalert-flash')
 
 <div class="register-progress-box">
     <div class="register-progress-meta">
-        <span>Step <strong id="registerProgressLabel">1</strong> of 5</span>
-        <span id="registerProgressStepName">Personal Information</span>
+        <span id="registerProgressLabel">{{ __('register.step_progress', ['current' => 1, 'total' => 5]) }}</span>
+        <span id="registerProgressStepName">{{ __('register.steps.personal') }}</span>
     </div>
     <div class="register-progress-track">
         <div class="register-progress-fill" id="registerProgressFill"></div>
@@ -37,11 +37,12 @@
 </div>
 
 <p class="register-form-footer">
-    Already have an account? <a href="{{ route('church.login') }}">Sign in</a>
+    {{ __('auth.already_have_account') }} <a href="{{ route('church.login') }}">{{ __('auth.sign_in_link') }}</a>
 </p>
 @endsection
 
 @push('scripts')
+@include('partials.member-wizard-i18n')
 <script>
     window.memberWizardConfig = {
         isEdit: false,
@@ -51,13 +52,18 @@
         csrfToken: @json(csrf_token()),
     };
 
-    window.registerStepNames = [
-        'Personal Information',
-        'Contact & Origin',
-        'Residence',
-        'Family Information',
-        'Review & Submit'
-    ];
+    window.registerStepProgress = {
+        template: @json(__('register.step_progress')),
+        total: 5,
+    };
+
+    window.registerStepNames = @json([
+        __('register.steps.personal'),
+        __('register.steps.contact'),
+        __('register.steps.residence'),
+        __('register.steps.family'),
+        __('register.steps.review'),
+    ]);
 </script>
 @include('partials.member-wizard-script')
 @endpush

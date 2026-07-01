@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Analytics')
+@section('title', __('pages.analytics.title'))
 
 @push('styles')
 <style>
@@ -94,30 +94,32 @@
     $events = $analytics['events'];
 @endphp
 
-<div class="analytics-hero">
-    <div class="row align-items-center">
-        <div class="col-lg-8">
-            <h2><i class="fa fa-line-chart"></i> Church Analytics</h2>
-            <p class="lead">Insights across members, finances, attendance, and events for {{ $church->name }}.</p>
-        </div>
-        <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
-            @if($canViewFinance)
-                <a href="{{ route('church.finance.dashboard') }}" class="btn btn-light">
-                    <i class="fa fa-money"></i> Finance Dashboard
-                </a>
-            @endif
-        </div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-line-chart',
+    'title' => __('pages.analytics.heading'),
+    'subtitle' => __('pages.analytics.subtitle', ['church' => $church->name]),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.analytics')],
+    ],
+])
+
+@if($canViewFinance)
+    <div class="mb-3 text-right">
+        <a href="{{ route('church.finance.dashboard') }}" class="btn btn-primary">
+            <i class="fa fa-money"></i> {{ __('pages.analytics.finance_dashboard') }}
+        </a>
     </div>
-</div>
+@endif
 
 <div class="row mb-3">
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card analytics-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-stat-label">Total Members</div>
+                    <div class="analytics-stat-label">{{ __('pages.analytics.total_members') }}</div>
                     <div class="analytics-stat-value text-primary">{{ number_format($overview['total_members']) }}</div>
-                    <small class="text-muted">{{ number_format($overview['active_members']) }} active</small>
+                    <small class="text-muted">{{ __('pages.analytics.active_label', ['count' => number_format($overview['active_members'])]) }}</small>
                 </div>
                 <div class="analytics-stat-icon" style="background:#940000;"><i class="fa fa-users"></i></div>
             </div>
@@ -127,9 +129,9 @@
         <div class="card analytics-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-stat-label">Income (This Month)</div>
+                    <div class="analytics-stat-label">{{ __('pages.analytics.income_this_month') }}</div>
                     <div class="analytics-stat-value text-success">{{ $currency }} {{ number_format($financial['monthly']['income'], 0) }}</div>
-                    <small class="text-muted">Net {{ $currency }} {{ number_format($financial['monthly']['net'], 0) }}</small>
+                    <small class="text-muted">{{ __('pages.analytics.net_label', ['amount' => $currency . ' ' . number_format($financial['monthly']['net'], 0)]) }}</small>
                 </div>
                 <div class="analytics-stat-icon" style="background:#28a745;"><i class="fa fa-money"></i></div>
             </div>
@@ -139,9 +141,9 @@
         <div class="card analytics-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-stat-label">Attendance (This Month)</div>
+                    <div class="analytics-stat-label">{{ __('pages.analytics.attendance_this_month') }}</div>
                     <div class="analytics-stat-value text-info">{{ number_format($overview['monthly_attendance']) }}</div>
-                    <small class="text-muted">Avg {{ $attendance['average_per_service'] }} per service</small>
+                    <small class="text-muted">{{ __('pages.analytics.avg_per_service', ['count' => $attendance['average_per_service']]) }}</small>
                 </div>
                 <div class="analytics-stat-icon" style="background:#17a2b8;"><i class="fa fa-check-square-o"></i></div>
             </div>
@@ -151,9 +153,9 @@
         <div class="card analytics-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-stat-label">Children</div>
+                    <div class="analytics-stat-label">{{ __('pages.analytics.children') }}</div>
                     <div class="analytics-stat-value text-warning">{{ number_format($overview['children']) }}</div>
-                    <small class="text-muted">{{ number_format($overview['services_total'] + $overview['special_events_total']) }} total events</small>
+                    <small class="text-muted">{{ __('pages.analytics.total_events', ['count' => number_format($overview['services_total'] + $overview['special_events_total'])]) }}</small>
                 </div>
                 <div class="analytics-stat-icon" style="background:#ffc107;"><i class="fa fa-child"></i></div>
             </div>
@@ -161,11 +163,11 @@
     </div>
 </div>
 
-<div class="analytics-section-title"><i class="fa fa-money"></i> Financial Analytics</div>
+<div class="analytics-section-title"><i class="fa fa-money"></i> {{ __('pages.analytics.financial_analytics') }}</div>
 <div class="row">
     <div class="col-lg-8 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-area-chart"></i> Income vs Expenses (12 Months)</h3>
+            <h3 class="tile-title"><i class="fa fa-area-chart"></i> {{ __('pages.analytics.income_vs_expenses') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="financialTrendChart"></canvas>
             </div>
@@ -173,7 +175,7 @@
     </div>
     <div class="col-lg-4 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-pie-chart"></i> Income Mix (This Month)</h3>
+            <h3 class="tile-title"><i class="fa fa-pie-chart"></i> {{ __('pages.analytics.income_mix') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="incomeMixChart"></canvas>
             </div>
@@ -182,13 +184,13 @@
                     <div class="col-6 mb-2">
                         <div class="analytics-mini-stat">
                             <h4 class="text-success">{{ $currency }} {{ number_format($financial['totals']['income'], 0) }}</h4>
-                            <p>All-time income</p>
+                            <p>{{ __('pages.analytics.all_time_income') }}</p>
                         </div>
                     </div>
                     <div class="col-6 mb-2">
                         <div class="analytics-mini-stat">
                             <h4 class="text-danger">{{ $currency }} {{ number_format($financial['totals']['expenses'], 0) }}</h4>
-                            <p>All-time expenses</p>
+                            <p>{{ __('pages.analytics.all_time_expenses') }}</p>
                         </div>
                     </div>
                 </div>
@@ -197,11 +199,11 @@
     </div>
 </div>
 
-<div class="analytics-section-title"><i class="fa fa-users"></i> Member Analytics</div>
+<div class="analytics-section-title"><i class="fa fa-users"></i> {{ __('pages.analytics.member_analytics') }}</div>
 <div class="row">
     <div class="col-lg-8 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-line-chart"></i> New Member Registrations (12 Months)</h3>
+            <h3 class="tile-title"><i class="fa fa-line-chart"></i> {{ __('pages.analytics.new_registrations') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="memberRegistrationChart"></canvas>
             </div>
@@ -209,7 +211,7 @@
     </div>
     <div class="col-lg-4 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-pie-chart"></i> Gender Distribution</h3>
+            <h3 class="tile-title"><i class="fa fa-pie-chart"></i> {{ __('pages.analytics.gender_distribution') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="genderChart"></canvas>
             </div>
@@ -221,7 +223,7 @@
                     </div>
                 @endforeach
                 @if(empty($members['member_types']))
-                    <p class="text-muted mb-0">No member type data yet.</p>
+                    <p class="text-muted mb-0">{{ __('pages.analytics.no_member_type_data') }}</p>
                 @endif
             </div>
         </div>
@@ -231,7 +233,7 @@
 <div class="row mb-4">
     <div class="col-lg-6 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-bar-chart"></i> Age Groups</h3>
+            <h3 class="tile-title"><i class="fa fa-bar-chart"></i> {{ __('pages.analytics.age_groups') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="ageGroupChart"></canvas>
             </div>
@@ -239,7 +241,7 @@
     </div>
     <div class="col-lg-6 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-id-card"></i> Membership Types</h3>
+            <h3 class="tile-title"><i class="fa fa-id-card"></i> {{ __('pages.analytics.membership_types') }}</h3>
             <div class="row">
                 @forelse($members['membership_types'] as $label => $count)
                     <div class="col-md-6 mb-3">
@@ -250,7 +252,7 @@
                     </div>
                 @empty
                     <div class="col-12">
-                        <p class="text-muted mb-0">No membership type data yet.</p>
+                        <p class="text-muted mb-0">{{ __('pages.analytics.no_membership_type_data') }}</p>
                     </div>
                 @endforelse
             </div>
@@ -258,11 +260,11 @@
     </div>
 </div>
 
-<div class="analytics-section-title"><i class="fa fa-check-square-o"></i> Attendance Analytics</div>
+<div class="analytics-section-title"><i class="fa fa-check-square-o"></i> {{ __('pages.analytics.attendance_analytics') }}</div>
 <div class="row">
     <div class="col-lg-7 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-line-chart"></i> Monthly Attendance (12 Months)</h3>
+            <h3 class="tile-title"><i class="fa fa-line-chart"></i> {{ __('pages.analytics.monthly_attendance') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="attendanceTrendChart"></canvas>
             </div>
@@ -270,15 +272,15 @@
     </div>
     <div class="col-lg-5 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-trophy"></i> Top Attendees (Last 30 Days)</h3>
+            <h3 class="tile-title"><i class="fa fa-trophy"></i> {{ __('pages.analytics.top_attendees') }}</h3>
             @if($attendance['top_attendees']->isNotEmpty())
                 <div class="table-responsive">
                     <table class="table table-sm table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th class="text-right">Count</th>
+                                <th>{{ __('common.name') }}</th>
+                                <th>{{ __('common.type') }}</th>
+                                <th class="text-right">{{ __('pages.shared.count') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -293,61 +295,64 @@
                     </table>
                 </div>
             @else
-                <p class="text-muted mb-0">No attendance records in the last 30 days.</p>
+                <p class="text-muted mb-0">{{ __('pages.analytics.no_attendance_30d') }}</p>
             @endif
             <p class="text-muted mt-3 mb-0">
                 <i class="fa fa-info-circle"></i>
-                {{ number_format($attendance['total']) }} total attendance records.
-                Average of {{ $attendance['average_per_service'] }} attendees across {{ $attendance['recent_services_count'] }} recent services.
+                {{ __('pages.analytics.attendance_summary', [
+                    'total' => number_format($attendance['total']),
+                    'avg' => $attendance['average_per_service'],
+                    'services' => $attendance['recent_services_count'],
+                ]) }}
             </p>
         </div>
     </div>
 </div>
 
-<div class="analytics-section-title"><i class="fa fa-calendar"></i> Events & Services</div>
+<div class="analytics-section-title"><i class="fa fa-calendar"></i> {{ __('pages.analytics.events_services') }}</div>
 <div class="row">
     <div class="col-lg-4 mb-4">
         <div class="tile">
-            <h3 class="tile-title">Services Overview</h3>
+            <h3 class="tile-title">{{ __('pages.analytics.services_overview') }}</h3>
             <div class="row text-center">
                 <div class="col-4">
                     <div class="analytics-mini-stat">
                         <h4>{{ $events['services']['total'] }}</h4>
-                        <p>Total</p>
+                        <p>{{ __('common.total') }}</p>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="analytics-mini-stat">
                         <h4 class="text-success">{{ $events['services']['upcoming'] }}</h4>
-                        <p>Upcoming</p>
+                        <p>{{ __('common.upcoming') }}</p>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="analytics-mini-stat">
                         <h4 class="text-muted">{{ $events['services']['past'] }}</h4>
-                        <p>Past</p>
+                        <p>{{ __('common.past') }}</p>
                     </div>
                 </div>
             </div>
             <hr>
-            <h3 class="tile-title">Special Events Overview</h3>
+            <h3 class="tile-title">{{ __('pages.analytics.special_events_overview') }}</h3>
             <div class="row text-center">
                 <div class="col-4">
                     <div class="analytics-mini-stat">
                         <h4>{{ $events['special_events']['total'] }}</h4>
-                        <p>Total</p>
+                        <p>{{ __('common.total') }}</p>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="analytics-mini-stat">
                         <h4 class="text-success">{{ $events['special_events']['upcoming'] }}</h4>
-                        <p>Upcoming</p>
+                        <p>{{ __('common.upcoming') }}</p>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="analytics-mini-stat">
                         <h4 class="text-muted">{{ $events['special_events']['past'] }}</h4>
-                        <p>Past</p>
+                        <p>{{ __('common.past') }}</p>
                     </div>
                 </div>
             </div>
@@ -355,7 +360,7 @@
     </div>
     <div class="col-lg-8 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-bar-chart"></i> Services & Events (12 Months)</h3>
+            <h3 class="tile-title"><i class="fa fa-bar-chart"></i> {{ __('pages.analytics.services_events_chart') }}</h3>
             <div class="analytics-chart-wrap">
                 <canvas id="eventsTrendChart"></canvas>
             </div>
@@ -365,6 +370,20 @@
 @endsection
 
 @push('scripts')
+@php
+    $analyticsJs = [
+        'income' => __('pages.analytics.income'),
+        'expenses' => __('pages.analytics.expenses'),
+        'new_members' => __('pages.analytics.new_members'),
+        'male' => __('pages.analytics.male'),
+        'female' => __('pages.analytics.female'),
+        'members' => __('pages.shared.members'),
+        'attendance_records' => __('pages.analytics.attendance_records'),
+        'services' => __('pages.analytics.services'),
+        'special_events' => __('pages.analytics.special_events'),
+        'no_income_month' => __('pages.analytics.no_income_month'),
+    ];
+@endphp
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -376,6 +395,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const ageGroups = @json($members['age_groups']);
     const attendanceTrends = @json($attendance['monthly_trends']);
     const eventTrends = @json($events['monthly_trends']);
+    const i18n = @json($analyticsJs);
 
     const moneyLabel = (value) => currency + ' ' + Number(value).toLocaleString();
 
@@ -387,13 +407,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: financialTrends.map(item => item.short_month),
                 datasets: [
                     {
-                        label: 'Income',
+                        label: i18n.income,
                         data: financialTrends.map(item => item.income),
                         backgroundColor: 'rgba(148, 0, 0, 0.75)',
                         borderRadius: 6,
                     },
                     {
-                        label: 'Expenses',
+                        label: i18n.expenses,
                         data: financialTrends.map(item => item.expenses),
                         backgroundColor: 'rgba(220, 53, 69, 0.65)',
                         borderRadius: 6,
@@ -447,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         callbacks: {
                             label: (ctx) => hasData
                                 ? ctx.label + ': ' + moneyLabel(ctx.raw)
-                                : 'No income recorded this month'
+                                : i18n.no_income_month
                         }
                     }
                 }
@@ -462,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: memberRegistrations.map(item => item.short_month),
                 datasets: [{
-                    label: 'New Members',
+                    label: i18n.new_members,
                     data: memberRegistrations.map(item => item.count),
                     borderColor: '#940000',
                     backgroundColor: 'rgba(148, 0, 0, 0.12)',
@@ -481,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const genderCtx = document.getElementById('genderChart');
     if (genderCtx) {
-        const labels = ['Male', 'Female'];
+        const labels = [i18n.male, i18n.female];
         const values = [genderData.male || 0, genderData.female || 0];
         const hasData = values.some(value => value > 0);
 
@@ -513,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Members',
+                    label: i18n.members,
                     data: values,
                     backgroundColor: 'rgba(148, 0, 0, 0.75)',
                     borderRadius: 6,
@@ -535,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: attendanceTrends.map(item => item.short_month),
                 datasets: [{
-                    label: 'Attendance Records',
+                    label: i18n.attendance_records,
                     data: attendanceTrends.map(item => item.count),
                     borderColor: '#17a2b8',
                     backgroundColor: 'rgba(23, 162, 184, 0.12)',
@@ -560,13 +580,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: eventTrends.map(item => item.short_month),
                 datasets: [
                     {
-                        label: 'Services',
+                        label: i18n.services,
                         data: eventTrends.map(item => item.services),
                         backgroundColor: 'rgba(148, 0, 0, 0.75)',
                         borderRadius: 6,
                     },
                     {
-                        label: 'Special Events',
+                        label: i18n.special_events,
                         data: eventTrends.map(item => item.special_events),
                         backgroundColor: 'rgba(255, 193, 7, 0.85)',
                         borderRadius: 6,

@@ -1,28 +1,27 @@
 @extends('layouts.church')
 
-@section('title', 'User Sessions')
+@section('title', __('pages.system_sessions.title'))
 
 @section('content')
 @include('church.system.partials.nav')
 
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-user-circle"></i> User Sessions</h1>
-        <p>Active sessions in the last 24 hours</p>
-    </div>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-user-circle',
+    'title' => __('pages.system_sessions.title'),
+    'subtitle' => __('pages.system_sessions.subtitle'),
+])
 
 <div class="tile">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Last Activity</th>
+                    <th>{{ __('common.name') }}</th>
+                    <th>{{ __('common.email') }}</th>
+                    <th>{{ __('common.role') }}</th>
+                    <th>{{ __('pages.shared.last_activity') }}</th>
                     <th>IP</th>
-                    <th class="text-right">Action</th>
+                    <th class="text-right">{{ __('pages.shared.action') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,7 +30,7 @@
                         <td>
                             {{ $session->name }}
                             @if($session->is_current)
-                                <span class="badge badge-info">You</span>
+                                <span class="badge badge-info">{{ __('pages.shared.you') }}</span>
                             @endif
                         </td>
                         <td>{{ $session->email }}</td>
@@ -44,15 +43,15 @@
                                     data-swal-confirm="Revoke this session?"
                                     data-swal-delete>
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Revoke</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">{{ __('common.revoke') }}</button>
                                 </form>
                             @else
-                                <span class="text-muted">Current</span>
+                                <span class="text-muted">{{ __('common.current') }}</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">No active sessions.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4">{{ __('pages.system_sessions.empty') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

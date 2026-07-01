@@ -57,7 +57,7 @@ class ChurchSmsService
             return ['ok' => false, 'reason' => 'limit_reached'];
         }
 
-        $result = $this->gateway->send($phone, $message);
+        $result = $this->gateway->send($phone, $message, senderId: $this->churchSettings->resolveSenderId($church));
 
         $this->log(
             $church,
@@ -86,7 +86,7 @@ class ChurchSmsService
             return ['ok' => false, 'reason' => 'limit_reached'];
         }
 
-        $result = $this->gateway->send($phone, $message);
+        $result = $this->gateway->send($phone, $message, senderId: $this->churchSettings->resolveSenderId($church));
 
         $this->log(
             $church,

@@ -1,19 +1,18 @@
 @extends('layouts.church')
 
-@section('title', 'Edit Tithe')
+@section('title', __('pages.shared.edit_item', ['item' => __('pages.tithes.item')]))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-pencil"></i> Edit Tithe</h1>
-        <p>{{ $tithe->member?->full_name ?? 'Tithe record' }}</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.tithes.index') }}">Tithes</a></li>
-        <li class="breadcrumb-item">Edit</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-pencil',
+    'title' => __('pages.shared.edit_item', ['item' => __('pages.tithes.item')]),
+    'subtitle' => $tithe->member?->full_name ?? __('pages.tithes.record_fallback'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.tithes'), 'route' => 'church.tithes.index'],
+        ['label' => __('pages.shared.breadcrumb_edit')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.tithes.update', $tithe) }}">
@@ -25,8 +24,8 @@
             'paymentMethods' => $paymentMethods,
         ])
         <div class="tile-footer mt-3">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Update Tithe</button>
-            <a href="{{ route('church.tithes.show', $tithe) }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.update_item', ['item' => __('pages.tithes.item')]) }}</button>
+            <a href="{{ route('church.tithes.show', $tithe) }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>

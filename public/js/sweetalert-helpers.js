@@ -85,6 +85,7 @@
 
             const options = {
                 title: item.title || undefined,
+                confirmButtonText: item.confirmText || undefined,
             };
 
             if (item.html) {

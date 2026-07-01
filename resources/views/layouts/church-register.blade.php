@@ -5,7 +5,7 @@
     $churchName = $church?->name ?? ($churchName ?? null);
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +32,10 @@
             @if($churchName)
                 <span class="register-topbar-church"><i class="fa fa-building-o"></i> {{ $churchName }}</span>
             @endif
-            <a href="{{ route('church.login') }}" class="register-topbar-login">Sign in</a>
+            <div class="register-topbar-actions">
+                @include('partials.locale-switcher', ['variant' => 'links', 'class' => 'register-locale-switcher'])
+                <a href="{{ route('church.login') }}" class="register-topbar-login">{{ __('common.sign_in') }}</a>
+            </div>
         </div>
     </header>
 

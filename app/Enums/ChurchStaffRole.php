@@ -2,24 +2,17 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum ChurchStaffRole: string
 {
+    use HasTranslatableLabel;
+
     case Administrator = 'administrator';
     case Pastor = 'pastor';
     case Secretary = 'secretary';
     case Treasurer = 'treasurer';
     case Accountant = 'accountant';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Administrator => 'Administrator',
-            self::Pastor => 'Pastor',
-            self::Secretary => 'Secretary',
-            self::Treasurer => 'Treasurer',
-            self::Accountant => 'Accountant',
-        };
-    }
 
     public function userType(): UserType
     {

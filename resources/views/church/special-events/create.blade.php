@@ -1,19 +1,18 @@
 @extends('layouts.church')
 
-@section('title', 'Create Special Event')
+@section('title', __('pages.special_events.create_title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Create Special Event</h1>
-        <p>Schedule a conference, wedding, crusade, or other church event</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.special-events.index') }}">Special Events</a></li>
-        <li class="breadcrumb-item">Create</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.special_events.create_title'),
+    'subtitle' => __('pages.special_events.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.special_events'), 'route' => 'church.special-events.index'],
+        ['label' => __('pages.shared.breadcrumb_create')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.special-events.store') }}">
@@ -23,8 +22,8 @@
             'statuses' => $statuses,
         ])
         <div class="tile-footer">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Event</button>
-            <a href="{{ route('church.special-events.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.save_item', ['item' => __('pages.special_events.item')]) }}</button>
+            <a href="{{ route('church.special-events.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>

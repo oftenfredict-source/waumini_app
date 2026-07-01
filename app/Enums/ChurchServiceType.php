@@ -2,24 +2,17 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum ChurchServiceType: string
 {
+    use HasTranslatableLabel;
+
     case Sunday = 'sunday';
     case SundaySchool = 'sunday_school';
     case MidWeek = 'mid_week';
     case Prayer = 'prayer';
     case Extra = 'extra';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Sunday => 'Sunday Service',
-            self::SundaySchool => 'Sunday School',
-            self::MidWeek => 'Mid-week Service',
-            self::Prayer => 'Prayer Service',
-            self::Extra => 'Extra Service',
-        };
-    }
 
     public function badgeClass(): string
     {

@@ -58,7 +58,7 @@
 
         @php $section = $item['section'] ?? null; @endphp
         @if($section && $section !== $currentSection)
-            <li class="app-menu__section">{{ strtoupper($section) }}</li>
+            <li class="app-menu__section">{{ __($section) }}</li>
             @php $currentSection = $section; @endphp
         @endif
 
@@ -70,7 +70,7 @@
             <li class="treeview {{ $isMenuActive($item) ? 'is-expanded' : '' }}">
                 <a class="app-menu__item" href="#" data-toggle="treeview">
                     <i class="app-menu__icon fa {{ $item['icon'] }}"></i>
-                    <span class="app-menu__label">{{ $item['label'] }}</span>
+                    <span class="app-menu__label">{{ __($item['label']) }}</span>
                     <i class="treeview-indicator fa fa-angle-right"></i>
                 </a>
                 <ul class="treeview-menu">
@@ -78,7 +78,7 @@
                         <li>
                             <a class="treeview-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
                                href="{{ route($child['route']) }}">
-                                <i class="icon fa fa-circle-o"></i> {{ $child['label'] }}
+                                <i class="icon fa fa-circle-o"></i> {{ __($child['label']) }}
                             </a>
                         </li>
                     @endforeach
@@ -89,7 +89,7 @@
                 <a class="app-menu__item {{ $isMenuActive($item) ? 'active' : '' }}"
                    href="{{ route($item['route']) }}">
                     <i class="app-menu__icon fa {{ $item['icon'] }}"></i>
-                    <span class="app-menu__label">{{ $item['label'] }}</span>
+                    <span class="app-menu__label">{{ __($item['label']) }}</span>
                 </a>
             </li>
         @endif

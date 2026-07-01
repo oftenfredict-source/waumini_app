@@ -1,42 +1,41 @@
 @extends('layouts.church')
 
-@section('title', 'Leaders')
+@section('title', __('pages.leadership.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-star"></i> Leadership</h1>
-        <p>View church leaders and their positions</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item">Leadership</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-star',
+    'title' => __('pages.leadership.title'),
+    'subtitle' => __('pages.leadership.subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.leadership')],
+    ],
+])
 
 <div class="row mb-3">
     <div class="col-md-8">
         <form method="GET" class="form-inline">
-            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="Search member name or number..."
+            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="{{ __('pages.leadership.search_placeholder') }}"
                 value="{{ $filters['search'] ?? '' }}">
             <select name="position" class="form-control mr-2 mb-2">
-                <option value="">All positions</option>
+                <option value="">{{ __('pages.shared.all_positions') }}</option>
                 @foreach($positions as $value => $label)
                     <option value="{{ $value }}" @selected(($filters['position'] ?? '') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
             <select name="status" class="form-control mr-2 mb-2">
-                <option value="">All statuses</option>
-                <option value="active" @selected(($filters['status'] ?? '') === 'active')>Active</option>
-                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>Inactive</option>
+                <option value="">{{ __('pages.shared.all_statuses') }}</option>
+                <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('common.active') }}</option>
+                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('common.inactive') }}</option>
             </select>
-            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> Filter</button>
+            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
         </form>
     </div>
     <div class="col-md-4 text-md-right">
         @can('create', \App\Models\Leader::class)
             <a href="{{ route('church.leadership.create') }}" class="btn btn-primary mb-2">
-                <i class="fa fa-plus"></i> Assign Leadership
+                <i class="fa fa-plus"></i> {{ __('pages.leadership.assign_leadership') }}
             </a>
         @endcan
     </div>
@@ -48,12 +47,12 @@
             <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>Member</th>
-                        <th>Member #</th>
-                        <th>Position</th>
-                        <th>Appointed</th>
-                        <th>End Date</th>
-                        <th>Status</th>
+                        <th>{{ __('common.member') }}</th>
+                        <th>{{ __('pages.shared.member_id') }}</th>
+                        <th>{{ __('pages.shared.position') }}</th>
+                        <th>{{ __('pages.shared.appointed') }}</th>
+                        <th>{{ __('pages.shared.end_date') }}</th>
+                        <th>{{ __('common.status') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -67,11 +66,11 @@
                             <td>{{ $leader->end_date?->format('M d, Y') ?? '—' }}</td>
                             <td>
                                 <span class="badge badge-{{ $leader->isCurrentlyActive() ? 'success' : 'secondary' }}">
-                                    {{ $leader->isCurrentlyActive() ? 'Active' : 'Inactive' }}
+                                    {{ $leader->isCurrentlyActive() ? __('common.active') : __('common.inactive') }}
                                 </span>
                             </td>
                             <td>
-                                <a href="{{ route('church.leadership.show', $leader) }}" class="btn btn-sm btn-info">
+                                <a href="{{ route('church.leadership.show', $leader) }}" class="btn btn-sm btn-info" title="{{ __('common.view') }}">
                                     <i class="fa fa-eye"></i>
                                 </a>
                             </td>
@@ -79,9 +78,9 @@
                     @empty
                         <tr>
                             <td colspan="7" class="text-center text-muted py-4">
-                                No leadership assignments found.
+                                {{ __('pages.leadership.empty') }}
                                 @can('create', \App\Models\Leader::class)
-                                    <a href="{{ route('church.leadership.create') }}">Assign leadership</a>.
+                                    <a href="{{ route('church.leadership.create') }}">{{ __('pages.leadership.assign_link') }}</a>.
                                 @endcan
                             </td>
                         </tr>

@@ -1,17 +1,15 @@
 @extends('layouts.church')
 
-@section('title', 'System Settings')
+@section('title', __('pages.system_settings.title'))
 
 @section('content')
 @include('church.system.partials.nav')
 
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-cog"></i> System Settings</h1>
-        <p>Configure {{ $church->name }} preferences and workflows</p>
-    </div>
-</div>
-
+@include('partials.page-header', [
+    'icon' => 'fa fa-cog',
+    'title' => __('pages.system_settings.title'),
+    'subtitle' => __('pages.system_settings.subtitle', ['church' => $church->name]),
+])
 
 <div class="tile">
     <ul class="nav nav-tabs" role="tablist">

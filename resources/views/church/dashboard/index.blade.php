@@ -1,6 +1,17 @@
 @extends('layouts.church')
 
-@section('title', $dashboard['is_pastor'] ? 'Pastor Dashboard' : ($dashboard['is_secretary'] ? 'Secretary Dashboard' : ($dashboard['is_treasurer'] ? 'Treasurer Dashboard' : ($dashboard['is_accountant'] ? 'Accountant Dashboard' : ($dashboard['is_administrator'] ? 'Administrator Dashboard' : 'Dashboard')))))
+@php
+    $dashboardTitle = match (true) {
+        $dashboard['is_pastor'] => __('pages.dashboard.title_pastor'),
+        $dashboard['is_secretary'] => __('pages.dashboard.title_secretary'),
+        $dashboard['is_treasurer'] => __('pages.dashboard.title_treasurer'),
+        $dashboard['is_accountant'] => __('pages.dashboard.title_accountant'),
+        $dashboard['is_administrator'] => __('pages.dashboard.title_administrator'),
+        default => __('pages.dashboard.title'),
+    };
+@endphp
+
+@section('title', $dashboardTitle)
 
 @push('styles')
 <style>
@@ -98,17 +109,15 @@
         <h1>
             <i class="fa fa-dashboard"></i>
             @if($dashboard['is_pastor'])
-                Welcome, Pastor {{ $user->name }}
+                {{ __('pages.dashboard.welcome_pastor', ['name' => $user->name]) }}
             @elseif($dashboard['is_secretary'])
-                Welcome, Secretary {{ $user->name }}
+                {{ __('pages.dashboard.welcome_secretary', ['name' => $user->name]) }}
             @elseif($dashboard['is_treasurer'])
-                Welcome, Treasurer {{ $user->name }}
+                {{ __('pages.dashboard.welcome_treasurer', ['name' => $user->name]) }}
             @elseif($dashboard['is_accountant'])
-                Welcome, Accountant {{ $user->name }}
-            @elseif($dashboard['is_administrator'])
-                Welcome, {{ $user->name }}
+                {{ __('pages.dashboard.welcome_accountant', ['name' => $user->name]) }}
             @else
-                Welcome, {{ $user->name }}
+                {{ __('pages.dashboard.welcome', ['name' => $user->name]) }}
             @endif
         </h1>
         <p>{{ $church->name }} — {{ now()->format('l, F j, Y') }}</p>
@@ -124,9 +133,11 @@
     @can('finance.approve')
         <div class="alert alert-warning dash-pending-alert mb-3">
             <i class="fa fa-clock-o"></i>
-            <strong>{{ $stats['pending_approvals'] }}</strong> finance record(s) awaiting approval
-            ({{ $currency }} {{ number_format($stats['pending_approvals_amount'], 0) }}).
-            <a href="{{ route('church.finance.approvals') }}" class="alert-link ml-2">Review now</a>
+            {{ __('pages.dashboard.pending_approvals', [
+                'count' => $stats['pending_approvals'],
+                'amount' => $currency . ' ' . number_format($stats['pending_approvals_amount'], 0),
+            ]) }}
+            <a href="{{ route('church.finance.approvals') }}" class="alert-link ml-2">{{ __('pages.dashboard.review_now') }}</a>
         </div>
     @endcan
 @endif
@@ -139,7 +150,7 @@
                     <div class="dash-stat-icon" style="background:#940000;"><i class="fa fa-users"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ number_format($stats['total_members']) }}</div>
-                        <div class="dash-stat-label">Total Members</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.total_members') }}</div>
                     </div>
                 </div>
             </div>
@@ -150,7 +161,7 @@
                     <div class="dash-stat-icon" style="background:#17a2b8;"><i class="fa fa-user"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ number_format($stats['active_members']) }}</div>
-                        <div class="dash-stat-label">Active Members</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.active_members') }}</div>
                     </div>
                 </div>
             </div>
@@ -164,7 +175,7 @@
                     <div class="dash-stat-icon" style="background:#28a745;"><i class="fa fa-check-square-o"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ number_format($stats['monthly_attendance']) }}</div>
-                        <div class="dash-stat-label">Attendance This Month</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.attendance_this_month') }}</div>
                     </div>
                 </div>
             </div>
@@ -178,7 +189,7 @@
                     <div class="dash-stat-icon" style="background:#6f42c1;"><i class="fa fa-line-chart"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ $currency }} {{ number_format($stats['monthly_income'] ?? 0, 0) }}</div>
-                        <div class="dash-stat-label">Income This Month</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.income_this_month') }}</div>
                     </div>
                 </div>
             </div>
@@ -192,7 +203,7 @@
                     <div class="dash-stat-icon" style="background:#fd7e14;"><i class="fa fa-star"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ number_format($stats['leaders']) }}</div>
-                        <div class="dash-stat-label">Active Leaders</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.active_leaders') }}</div>
                     </div>
                 </div>
             </div>
@@ -206,7 +217,7 @@
                     <div class="dash-stat-icon" style="background:#20c997;"><i class="fa fa-sitemap"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ number_format($stats['departments']) }}</div>
-                        <div class="dash-stat-label">Departments</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.departments') }}</div>
                     </div>
                 </div>
             </div>
@@ -220,7 +231,7 @@
                     <div class="dash-stat-icon" style="background:#dc3545;"><i class="fa fa-money"></i></div>
                     <div>
                         <div class="dash-stat-value">{{ $currency }} {{ number_format($stats['net_income'] ?? 0, 0) }}</div>
-                        <div class="dash-stat-label">Net This Month</div>
+                        <div class="dash-stat-label">{{ __('pages.dashboard.net_this_month') }}</div>
                     </div>
                 </div>
             </div>
@@ -229,77 +240,77 @@
 </div>
 
 <div class="tile mb-3">
-    <h3 class="dash-section-title"><i class="fa fa-bolt"></i> Quick Actions</h3>
+    <h3 class="dash-section-title"><i class="fa fa-bolt"></i> {{ __('pages.dashboard.quick_actions') }}</h3>
     <div class="dash-quick-actions">
         @can('finance.manage')
             <a href="{{ route('church.tithes.create') }}" class="btn btn-primary">
-                <i class="fa fa-plus"></i> Record Tithe
+                <i class="fa fa-plus"></i> {{ __('pages.dashboard.record_tithe') }}
             </a>
             <a href="{{ route('church.offerings.create') }}" class="btn btn-outline-success">
-                <i class="fa fa-gift"></i> Record Offering
+                <i class="fa fa-gift"></i> {{ __('pages.dashboard.record_offering') }}
             </a>
             <a href="{{ route('church.budget.index') }}" class="btn btn-outline-secondary">
-                <i class="fa fa-briefcase"></i> Budget & Expenses
+                <i class="fa fa-briefcase"></i> {{ __('menu.budget_expenses') }}
             </a>
         @endcan
         @can('bereavements.view')
             <a href="{{ route('church.bereavements.index') }}" class="btn btn-outline-dark">
-                <i class="fa fa-heart"></i> Bereavements
+                <i class="fa fa-heart"></i> {{ __('menu.bereavements') }}
             </a>
         @endcan
         @can('members.create')
             <a href="{{ route('church.members.create') }}" class="btn btn-primary">
-                <i class="fa fa-user-plus"></i> Register Member
+                <i class="fa fa-user-plus"></i> {{ __('menu.register_member') }}
             </a>
         @endcan
         @can('members.view')
             <a href="{{ route('church.members.index') }}" class="btn btn-outline-primary">
-                <i class="fa fa-users"></i> Members
+                <i class="fa fa-users"></i> {{ __('menu.members') }}
             </a>
         @endcan
         @can('finance.view')
             <a href="{{ route('church.finance.dashboard') }}" class="btn btn-outline-success">
-                <i class="fa fa-money"></i> Finance
+                <i class="fa fa-money"></i> {{ __('pages.dashboard.finance') }}
             </a>
         @endcan
         @can('finance.approve')
             <a href="{{ route('church.finance.approvals') }}" class="btn btn-outline-warning">
-                <i class="fa fa-check-circle"></i> Approvals
+                <i class="fa fa-check-circle"></i> {{ __('pages.shared.approvals') }}
             </a>
         @endcan
         @can('attendance.view')
             <a href="{{ route('church.attendance.index') }}" class="btn btn-outline-secondary">
-                <i class="fa fa-check-square-o"></i> Attendance
+                <i class="fa fa-check-square-o"></i> {{ __('menu.attendance') }}
             </a>
         @endcan
         @can('special_events.view')
             <a href="{{ route('church.special-events.index') }}" class="btn btn-outline-dark">
-                <i class="fa fa-calendar"></i> Events
+                <i class="fa fa-calendar"></i> {{ __('pages.dashboard.events') }}
             </a>
         @endcan
         @can('announcements.manage')
             <a href="{{ route('church.announcements.create') }}" class="btn btn-outline-info">
-                <i class="fa fa-bullhorn"></i> Announce
+                <i class="fa fa-bullhorn"></i> {{ __('pages.dashboard.announce') }}
             </a>
         @endcan
         @can('reports.view')
             <a href="{{ route('church.reports.index') }}" class="btn btn-outline-primary">
-                <i class="fa fa-file-text"></i> Reports
+                <i class="fa fa-file-text"></i> {{ __('pages.dashboard.reports') }}
             </a>
         @endcan
         @can('analytics.view')
             <a href="{{ route('church.analytics.index') }}" class="btn btn-outline-primary">
-                <i class="fa fa-line-chart"></i> Analytics
+                <i class="fa fa-line-chart"></i> {{ __('menu.analytics') }}
             </a>
         @endcan
         @can('leadership.manage')
             <a href="{{ route('church.leadership.create') }}" class="btn btn-outline-warning">
-                <i class="fa fa-star"></i> Assign Leader
+                <i class="fa fa-star"></i> {{ __('pages.dashboard.assign_leader') }}
             </a>
         @endcan
         @can('departments.manage')
             <a href="{{ route('church.departments.create') }}" class="btn btn-outline-success">
-                <i class="fa fa-sitemap"></i> Add Department
+                <i class="fa fa-sitemap"></i> {{ __('menu.add_department') }}
             </a>
         @endcan
     </div>
@@ -309,12 +320,12 @@
     @if($dashboard['upcoming_services']->isNotEmpty() || $dashboard['upcoming_events']->isNotEmpty())
         <div class="col-lg-6 mb-3">
             <div class="tile h-100">
-                <h3 class="dash-section-title"><i class="fa fa-calendar"></i> Upcoming</h3>
+                <h3 class="dash-section-title"><i class="fa fa-calendar"></i> {{ __('pages.dashboard.upcoming') }}</h3>
                 @foreach($dashboard['upcoming_services'] as $service)
                     <div class="dash-list-item d-flex justify-content-between align-items-start">
                         <div>
                             <strong>{{ $service->title }}</strong>
-                            <div class="text-muted small">Service — {{ $service->service_type?->label() ?? 'Service' }}</div>
+                            <div class="text-muted small">{{ __('pages.dashboard.service_type', ['type' => $service->service_type?->label() ?? __('pages.shared.service')]) }}</div>
                         </div>
                         <span class="badge badge-primary">{{ $service->service_date?->format('M d') }}</span>
                     </div>
@@ -323,7 +334,7 @@
                     <div class="dash-list-item d-flex justify-content-between align-items-start">
                         <div>
                             <strong>{{ $event->title }}</strong>
-                            <div class="text-muted small">{{ $event->category?->label() ?? 'Event' }}@if($event->venue) — {{ $event->venue }}@endif</div>
+                            <div class="text-muted small">{{ $event->category?->label() ?? __('pages.shared.event') }}@if($event->venue) — {{ $event->venue }}@endif</div>
                         </div>
                         <span class="badge badge-info">{{ $event->event_date?->format('M d') }}</span>
                     </div>
@@ -335,7 +346,7 @@
     @if($dashboard['announcements']->isNotEmpty())
         <div class="col-lg-6 mb-3">
             <div class="tile h-100">
-                <h3 class="dash-section-title"><i class="fa fa-bullhorn"></i> Active Announcements</h3>
+                <h3 class="dash-section-title"><i class="fa fa-bullhorn"></i> {{ __('pages.dashboard.active_announcements') }}</h3>
                 @foreach($dashboard['announcements'] as $announcement)
                     <div class="dash-list-item">
                         <div class="d-flex justify-content-between align-items-start">
@@ -349,7 +360,7 @@
                     </div>
                 @endforeach
                 @can('announcements.view')
-                    <a href="{{ route('church.announcements.index') }}" class="btn btn-sm btn-link px-0 mt-2">View all announcements</a>
+                    <a href="{{ route('church.announcements.index') }}" class="btn btn-sm btn-link px-0 mt-2">{{ __('pages.dashboard.view_all_announcements') }}</a>
                 @endcan
             </div>
         </div>
@@ -358,33 +369,33 @@
 
 @if($dashboard['is_administrator'])
     <div class="tile">
-        <h3 class="tile-title">Church Information</h3>
+        <h3 class="tile-title">{{ __('pages.dashboard.church_information') }}</h3>
         <table class="table table-borderless mb-0">
-            <tr><th width="180">Pastor</th><td>{{ $church->pastor_name ?? '—' }}</td></tr>
-            <tr><th>Email</th><td>{{ $church->email }}</td></tr>
-            <tr><th>Phone</th><td>{{ $church->phone ?? '—' }}</td></tr>
-            <tr><th>Location</th><td>{{ collect([$church->city, $church->country])->filter()->implode(', ') ?: '—' }}</td></tr>
-            <tr><th>Status</th><td>{{ ucfirst($church->status->value) }}</td></tr>
+            <tr><th width="180">{{ __('pages.shared.pastor') }}</th><td>{{ $church->pastor_name ?? '—' }}</td></tr>
+            <tr><th>{{ __('common.email') }}</th><td>{{ $church->email }}</td></tr>
+            <tr><th>{{ __('common.phone') }}</th><td>{{ $church->phone ?? '—' }}</td></tr>
+            <tr><th>{{ __('common.location') }}</th><td>{{ collect([$church->city, $church->country])->filter()->implode(', ') ?: '—' }}</td></tr>
+            <tr><th>{{ __('common.status') }}</th><td>{{ ucfirst($church->status->value) }}</td></tr>
             @if($church->activeSubscription)
-                <tr><th>Package</th><td>{{ $church->activeSubscription?->package?->name ?? '—' }}</td></tr>
-                <tr><th>Subscription</th><td>{{ ucfirst($church->activeSubscription->status->value) }} — {{ ucfirst($church->activeSubscription->billing_cycle->value) }}</td></tr>
+                <tr><th>{{ __('pages.dashboard.package') }}</th><td>{{ $church->activeSubscription?->package?->name ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.dashboard.subscription') }}</th><td>{{ ucfirst($church->activeSubscription->status->value) }} — {{ ucfirst($church->activeSubscription->billing_cycle->value) }}</td></tr>
             @endif
         </table>
     </div>
 @elseif($dashboard['is_pastor'])
     <div class="tile">
-        <h3 class="tile-title">Ministry Overview</h3>
+        <h3 class="tile-title">{{ __('pages.dashboard.ministry_overview') }}</h3>
         <div class="row">
             <div class="col-md-4">
-                <p class="mb-1 text-muted small">New members this month</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.new_members_this_month') }}</p>
                 <h4>{{ number_format($stats['new_members_month']) }}</h4>
             </div>
             <div class="col-md-4">
-                <p class="mb-1 text-muted small">Children registered</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.children_registered') }}</p>
                 <h4>{{ number_format($stats['children']) }}</h4>
             </div>
             <div class="col-md-4">
-                <p class="mb-1 text-muted small">Church contact</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.church_contact') }}</p>
                 <h6 class="mb-0">{{ $church->email }}</h6>
                 <small class="text-muted">{{ $church->phone ?? '—' }}</small>
             </div>
@@ -392,44 +403,44 @@
     </div>
 @elseif($dashboard['is_secretary'])
     <div class="tile">
-        <h3 class="tile-title">Administrative Overview</h3>
+        <h3 class="tile-title">{{ __('pages.dashboard.administrative_overview') }}</h3>
         <div class="row">
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">New members this month</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.new_members_this_month') }}</p>
                 <h4>{{ number_format($stats['new_members_month']) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Departments</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.departments') }}</p>
                 <h4>{{ number_format($stats['departments']) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Upcoming services</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.upcoming_services') }}</p>
                 <h4>{{ number_format($stats['upcoming_services_count']) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Upcoming events</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.upcoming_events') }}</p>
                 <h4>{{ number_format($stats['upcoming_events_count']) }}</h4>
             </div>
         </div>
     </div>
 @elseif($dashboard['is_treasurer'])
     <div class="tile mb-3">
-        <h3 class="tile-title">Financial Overview — {{ $dashboard['finance']['period']['label'] ?? now()->format('F Y') }}</h3>
+        <h3 class="tile-title">{{ __('pages.dashboard.financial_overview', ['period' => $dashboard['finance']['period']['label'] ?? now()->format('F Y')]) }}</h3>
         <div class="row">
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Monthly income</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.monthly_income') }}</p>
                 <h4 class="text-success">{{ $currency }} {{ number_format($stats['monthly_income'] ?? 0, 0) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Monthly expenses</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.monthly_expenses') }}</p>
                 <h4 class="text-danger">{{ $currency }} {{ number_format($stats['monthly_expenses'] ?? 0, 0) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Net balance</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.net_balance') }}</p>
                 <h4>{{ $currency }} {{ number_format($stats['net_income'] ?? 0, 0) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Active pledges</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.active_pledges_label') }}</p>
                 <h4>{{ number_format($stats['active_pledges'] ?? 0) }}</h4>
             </div>
         </div>
@@ -450,15 +461,15 @@
 
     @if(!empty($dashboard['finance']['recent_transactions']) && count($dashboard['finance']['recent_transactions']) > 0)
         <div class="tile">
-            <h3 class="tile-title">Recent Transactions</h3>
+            <h3 class="tile-title">{{ __('pages.dashboard.recent_transactions') }}</h3>
             <div class="table-responsive">
                 <table class="table table-hover table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th class="text-right">Amount</th>
+                            <th>{{ __('common.type') }}</th>
+                            <th>{{ __('common.description') }}</th>
+                            <th>{{ __('common.date') }}</th>
+                            <th class="text-right">{{ __('common.amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -477,22 +488,22 @@
     @endif
 @elseif($dashboard['is_accountant'])
     <div class="tile mb-3">
-        <h3 class="tile-title">Accounting Overview — {{ $dashboard['finance']['period']['label'] ?? now()->format('F Y') }}</h3>
+        <h3 class="tile-title">{{ __('pages.dashboard.accounting_overview', ['period' => $dashboard['finance']['period']['label'] ?? now()->format('F Y')]) }}</h3>
         <div class="row">
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Income recorded</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.income_recorded') }}</p>
                 <h4 class="text-success">{{ $currency }} {{ number_format($stats['monthly_income'] ?? 0, 0) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Expenses recorded</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.expenses_recorded') }}</p>
                 <h4 class="text-danger">{{ $currency }} {{ number_format($stats['monthly_expenses'] ?? 0, 0) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Year-to-date expenses</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.ytd_expenses') }}</p>
                 <h4>{{ $currency }} {{ number_format($stats['expenses_year'] ?? 0, 0) }}</h4>
             </div>
             <div class="col-md-3">
-                <p class="mb-1 text-muted small">Net this month</p>
+                <p class="mb-1 text-muted small">{{ __('pages.dashboard.net_this_month_label') }}</p>
                 <h4>{{ $currency }} {{ number_format($stats['net_income'] ?? 0, 0) }}</h4>
             </div>
         </div>
@@ -513,15 +524,15 @@
 
     @if(!empty($dashboard['finance']['recent_transactions']) && count($dashboard['finance']['recent_transactions']) > 0)
         <div class="tile">
-            <h3 class="tile-title">Recent Entries</h3>
+            <h3 class="tile-title">{{ __('pages.dashboard.recent_entries') }}</h3>
             <div class="table-responsive">
                 <table class="table table-hover table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th class="text-right">Amount</th>
+                            <th>{{ __('common.type') }}</th>
+                            <th>{{ __('common.description') }}</th>
+                            <th>{{ __('common.date') }}</th>
+                            <th class="text-right">{{ __('common.amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>

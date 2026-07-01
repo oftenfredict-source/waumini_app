@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Offering Breakdown')
+@section('title', __('reports.offering_breakdown'))
 
 @include('church.reports.partials.styles')
 
@@ -10,7 +10,7 @@
 @include('church.reports.partials.nav')
 
 <div class="report-hero">
-    <h2><i class="fa fa-gift"></i> Offering Breakdown</h2>
+    <h2><i class="fa fa-gift"></i> {{ __('reports.offering_breakdown') }}</h2>
     <p class="lead">{{ $start->format('M d, Y') }} – {{ $end->format('M d, Y') }}</p>
 </div>
 
@@ -19,13 +19,13 @@
 <div class="row mb-3">
     <div class="col-md-6 mb-3">
         <div class="card report-stat-card"><div class="card-body">
-            <div class="report-stat-label">Total Offerings</div>
+            <div class="report-stat-label">{{ __('reports.total_offerings') }}</div>
             <div class="report-stat-value text-success">{{ $currency }} {{ number_format($report['total'], 2) }}</div>
         </div></div>
     </div>
     <div class="col-md-6 mb-3">
         <div class="card report-stat-card"><div class="card-body">
-            <div class="report-stat-label">Transactions</div>
+            <div class="report-stat-label">{{ __('common.total') }}</div>
             <div class="report-stat-value">{{ number_format($report['transaction_count']) }}</div>
         </div></div>
     </div>
@@ -34,10 +34,10 @@
 <div class="row">
     <div class="col-lg-5 mb-4">
         <div class="tile">
-            <h3 class="tile-title">By Offering Type</h3>
+            <h3 class="tile-title">{{ __('reports.by_offering_type') }}</h3>
             @if($report['by_type']->isNotEmpty())
                 <table class="table table-sm table-hover mb-0">
-                    <thead><tr><th>Type</th><th>Count</th><th class="text-right">Amount</th></tr></thead>
+                    <thead><tr><th>{{ __('common.type') }}</th><th>{{ __('reports.count') }}</th><th class="text-right">{{ __('reports.amount') }}</th></tr></thead>
                     <tbody>
                         @foreach($report['by_type'] as $row)
                             <tr>
@@ -49,13 +49,13 @@
                     </tbody>
                 </table>
             @else
-                <p class="text-muted mb-0">No offerings in this period.</p>
+                <p class="text-muted mb-0">{{ __('reports.no_offerings') }}</p>
             @endif
         </div>
     </div>
     <div class="col-lg-7 mb-4">
         <div class="tile">
-            <h3 class="tile-title">Distribution Chart</h3>
+            <h3 class="tile-title">{{ __('reports.distribution_chart') }}</h3>
             <div class="report-chart-wrap"><canvas id="offeringChart"></canvas></div>
         </div>
     </div>

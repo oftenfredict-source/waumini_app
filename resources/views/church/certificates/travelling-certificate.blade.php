@@ -1,62 +1,59 @@
 @extends('church.certificates.layout')
 
 @section('certificate-body')
-    <div class="doc-title">Barua ya Kusafiri</div>
+    <div class="doc-title">{{ __('certificates.travelling_title') }}</div>
 
     <div class="ref-line">
-        Nambari: <strong>{{ $memberRequest->reference_number }}</strong><br>
-        Tarehe: <strong>{{ $issuedAtFormatted }}</strong>
+        {{ __('certificates.number') }} <strong>{{ $memberRequest->reference_number }}</strong><br>
+        {{ __('certificates.date') }} <strong>{{ $issuedAtFormatted }}</strong>
     </div>
 
     <div class="content">
-        <p>Kwa Wote Wanaohusika,</p>
+        <p>{{ __('certificates.to_whom') }}</p>
 
         <p>
-            Tunathibitisha kwamba mtu aliyeandikwa hapa chini ni <strong>mwanachama halali</strong> wa
-            <strong>{{ $displayName ?? $church->name }}</strong> na anajulikana kwetu kama mtu wa tabia njema ya Kikristo
-            na mshiriki mwaminifu katika jumuiya yetu ya waumini.
+            {!! __('certificates.travelling_intro', ['church' => e($displayName ?? $church->name)]) !!}
         </p>
 
         <div class="member-box">
             <table>
                 <tr>
-                    <th>Jina Kamili</th>
+                    <th>{{ __('certificates.full_name') }}</th>
                     <td>{{ $member->full_name }}</td>
                 </tr>
                 <tr>
-                    <th>Nambari ya Mwanachama</th>
+                    <th>{{ __('certificates.member_number') }}</th>
                     <td>{{ $member->member_number }}</td>
                 </tr>
                 @if($member->phone_number)
                     <tr>
-                        <th>Nambari ya Simu</th>
+                        <th>{{ __('certificates.phone_number') }}</th>
                         <td>{{ $member->phone_number }}</td>
                     </tr>
                 @endif
                 @if($membershipDateFormatted)
                     <tr>
-                        <th>Mwanachama Tangu</th>
+                        <th>{{ __('certificates.member_since') }}</th>
                         <td>{{ $membershipDateFormatted }}</td>
                     </tr>
                 @endif
                 <tr>
-                    <th>Hali ya Uanachama</th>
+                    <th>{{ __('certificates.membership_status') }}</th>
                     <td>{{ $membershipStatus }}</td>
                 </tr>
             </table>
         </div>
 
         <p>
-            <strong>Sababu ya safari:</strong><br>
+            <strong>{{ __('certificates.travel_reason') }}</strong><br>
             {{ $memberRequest->subject }} — {{ $memberRequest->description }}
         </p>
 
         <p>
-            Tunampendekeza {{ $member->full_name }} kwa ushirika wa waumini na viongozi wa makanisa
-            popote atakaposafiri, na tunaomba apokelewe kwa upendo na msaada wa Kikristo.
+            {{ __('certificates.travelling_recommend', ['name' => $member->full_name]) }}
         </p>
 
-        <p>Mungu awabariki safari yake.</p>
+        <p>{{ __('certificates.god_bless') }}</p>
     </div>
 
     <div class="signature">

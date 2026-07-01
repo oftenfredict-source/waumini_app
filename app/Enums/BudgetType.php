@@ -2,16 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum BudgetType: string
 {
+    use HasTranslatableLabel;
+
     case Annual = 'annual';
     case Other = 'other';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::Annual => 'Annual',
-            self::Other => 'Other',
-        };
-    }
 }

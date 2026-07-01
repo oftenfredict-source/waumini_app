@@ -4,11 +4,11 @@
     $logoUrl = \App\Support\WauminiBrand::logoUrl();
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Error') — {{ $appName }}</title>
+    <title>@yield('title', __('errors.default_title')) — {{ $appName }}</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
@@ -27,7 +27,10 @@
                     <span>{{ $appName }}</span>
                 @endif
             </a>
-            <a href="{{ route('landing') }}" class="error-topbar-link">Back to home</a>
+            <div class="error-topbar-actions">
+                @include('partials.locale-switcher', ['variant' => 'links', 'class' => 'error-locale-switcher'])
+                <a href="{{ route('landing') }}" class="error-topbar-link">{{ __('errors.back_to_home') }}</a>
+            </div>
         </div>
     </header>
 

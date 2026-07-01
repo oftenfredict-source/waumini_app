@@ -2,16 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum PromiseGuestType: string
 {
+    use HasTranslatableLabel;
+
     case Promised = 'promised';
     case Temporary = 'temporary';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::Promised => 'Promised Guest',
-            self::Temporary => 'Temporary Guest',
-        };
-    }
 }

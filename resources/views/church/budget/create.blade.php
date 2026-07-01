@@ -1,19 +1,18 @@
 @extends('layouts.church')
 
-@section('title', 'Create Budget')
+@section('title', __('pages.budget.create_title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Create Budget</h1>
-        <p>Submit a church budget for approval.</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.budget.index') }}">Budget & Expenses</a></li>
-        <li class="breadcrumb-item">Create</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.budget.create_title'),
+    'subtitle' => __('pages.budget.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.budget_expenses'), 'route' => 'church.budget.index'],
+        ['label' => __('pages.shared.breadcrumb_create')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.budget.store') }}">
@@ -25,10 +24,9 @@
             'statuses' => $statuses,
         ])
         <div class="tile-footer mt-3">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Budget</button>
-            <a href="{{ route('church.budget.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.save_item', ['item' => __('pages.budget.item')]) }}</button>
+            <a href="{{ route('church.budget.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>
 @endsection
-

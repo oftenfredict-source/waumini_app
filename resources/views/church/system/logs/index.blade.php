@@ -1,38 +1,37 @@
 @extends('layouts.church')
 
-@section('title', 'System Logs')
+@section('title', __('pages.system_logs.title'))
 
 @section('content')
 @include('church.system.partials.nav')
 
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-list-alt"></i> Logs</h1>
-        <p>Audit trail for {{ $church->name }}</p>
-    </div>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-list-alt',
+    'title' => __('pages.system_logs.title'),
+    'subtitle' => __('pages.system_logs.subtitle', ['church' => $church->name]),
+])
 
 <div class="tile mb-3">
     <form method="GET" class="form-row">
         <div class="form-group col-md-3">
-            <label>Action</label>
+            <label>{{ __('pages.shared.action') }}</label>
             <select name="action" class="form-control">
-                <option value="">All actions</option>
+                <option value="">{{ __('pages.shared.all_actions') }}</option>
                 @foreach($actions as $action)
                     <option value="{{ $action }}" @selected(request('action') === $action)>{{ $action }}</option>
                 @endforeach
             </select>
         </div>
         <div class="form-group col-md-3">
-            <label>From</label>
+            <label>{{ __('common.from') }}</label>
             <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
         </div>
         <div class="form-group col-md-3">
-            <label>To</label>
+            <label>{{ __('common.to') }}</label>
             <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
         </div>
         <div class="form-group col-md-3 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-filter"></i> Filter</button>
+            <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-filter"></i> {{ __('common.filter') }}</button>
         </div>
     </form>
 </div>
@@ -42,18 +41,18 @@
         <table class="table table-hover table-sm mb-0">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>User</th>
-                    <th>Action</th>
+                    <th>{{ __('common.date') }}</th>
+                    <th>{{ __('common.name') }}</th>
+                    <th>{{ __('pages.shared.action') }}</th>
                     <th>IP</th>
-                    <th>Details</th>
+                    <th>{{ __('common.details') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($logs as $log)
                     <tr>
                         <td>{{ $log->created_at?->format('M d, Y H:i') }}</td>
-                        <td>{{ $log->user?->name ?? 'System' }}</td>
+                        <td>{{ $log->user?->name ?? __('pages.shared.system') }}</td>
                         <td><code>{{ $log->action }}</code></td>
                         <td>{{ $log->ip_address ?? '—' }}</td>
                         <td>
@@ -65,7 +64,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-muted py-4">No logs found.</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-4">{{ __('pages.system_logs.empty') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

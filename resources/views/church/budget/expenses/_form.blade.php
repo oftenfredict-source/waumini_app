@@ -1,12 +1,13 @@
 @php
     $expense = $expense ?? null;
     $selectedBudgetId = old('budget_id', $expense?->budget_id ?? request('budget_id'));
+    $maxAmountHintTemplate = __('pages.expenses.max_amount_hint', ['amount' => ':amount']);
 @endphp
 
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            <label>Budget *</label>
+            <label>{{ __('pages.shared.budget') }} *</label>
             <select name="budget_id" id="budget_id" class="form-control @error('budget_id') is-invalid @enderror" required>
                 @foreach($budgets as $budget)
                     @php
@@ -36,15 +37,15 @@
                 <div>
                     <strong id="budgetOverviewName">—</strong>
                     <div class="small text-muted">
-                        Period: <span id="budgetOverviewPeriod">—</span> |
-                        Primary Offering: <span id="budgetOverviewPrimary">—</span>
+                        {{ __('pages.expenses.budget_overview_period') }} <span id="budgetOverviewPeriod">—</span> |
+                        {{ __('pages.expenses.budget_overview_primary') }} <span id="budgetOverviewPrimary">—</span>
                     </div>
                 </div>
                 <div class="text-md-right mt-2 mt-md-0">
-                    <div><strong>Total:</strong> TZS <span id="budgetOverviewTotal">0.00</span></div>
-                    <div><strong>Allocated:</strong> TZS <span id="budgetOverviewAllocated">0.00</span></div>
-                    <div><strong>Spent:</strong> TZS <span id="budgetOverviewSpent">0.00</span></div>
-                    <div><strong>Remaining:</strong> TZS <span id="budgetOverviewRemaining">0.00</span></div>
+                    <div><strong>{{ __('common.total') }}:</strong> TZS <span id="budgetOverviewTotal">0.00</span></div>
+                    <div><strong>{{ __('pages.budget.show_allocated') }}:</strong> TZS <span id="budgetOverviewAllocated">0.00</span></div>
+                    <div><strong>{{ __('pages.shared.spent') }}:</strong> TZS <span id="budgetOverviewSpent">0.00</span></div>
+                    <div><strong>{{ __('pages.shared.remaining') }}:</strong> TZS <span id="budgetOverviewRemaining">0.00</span></div>
                 </div>
             </div>
         </div>
@@ -52,7 +53,7 @@
 
     <div class="col-md-6">
         <div class="form-group">
-            <label>Category *</label>
+            <label>{{ __('common.category') }} *</label>
             <select name="expense_category" class="form-control @error('expense_category') is-invalid @enderror" required>
                 @foreach($expenseCategories as $cat)
                     <option value="{{ $cat->value }}" @selected(old('expense_category', $expense?->expense_category?->value) === $cat->value)>
@@ -66,17 +67,17 @@
 
     <div class="col-md-8">
         <div class="form-group">
-            <label>Expense Name *</label>
+            <label>{{ __('pages.expenses.form_expense_name') }} *</label>
             <input type="text" name="expense_name" id="expense_name" class="form-control @error('expense_name') is-invalid @enderror"
                 value="{{ old('expense_name', $expense?->expense_name) }}" readonly required>
-            <small class="text-muted">Automatically filled from the selected budget.</small>
+            <small class="text-muted">{{ __('pages.expenses.form_expense_name_hint') }}</small>
             @error('expense_name')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
     </div>
 
     <div class="col-md-4">
         <div class="form-group">
-            <label>Amount (TZS) *</label>
+            <label>{{ __('pages.shared.amount_tzs') }} *</label>
             <input type="number" step="0.01" min="0.01" name="amount" id="amount" class="form-control @error('amount') is-invalid @enderror"
                 value="{{ old('amount', $expense?->amount) }}" required>
             <small class="text-muted" id="amountLimitHint"></small>
@@ -86,7 +87,7 @@
 
     <div class="col-md-4">
         <div class="form-group">
-            <label>Expense Date *</label>
+            <label>{{ __('pages.expenses.form_expense_date') }} *</label>
             <input type="date" name="expense_date" class="form-control @error('expense_date') is-invalid @enderror"
                 value="{{ old('expense_date', $expense?->expense_date?->toDateString() ?? now()->toDateString()) }}" required>
             @error('expense_date')<small class="text-danger">{{ $message }}</small>@enderror
@@ -95,7 +96,7 @@
 
     <div class="col-md-4">
         <div class="form-group">
-            <label>Payment Method *</label>
+            <label>{{ __('pages.shared.payment_method') }} *</label>
             <select name="payment_method" id="payment_method" class="form-control @error('payment_method') is-invalid @enderror" required>
                 @foreach($paymentMethods as $method)
                     <option value="{{ $method->value }}" @selected(old('payment_method', $expense?->payment_method?->value) === $method->value)>
@@ -109,7 +110,7 @@
 
     <div class="col-md-4" id="referenceGroup">
         <div class="form-group">
-            <label>Reference Number</label>
+            <label>{{ __('pages.shared.reference_number') }}</label>
             <input type="text" name="reference_number" class="form-control @error('reference_number') is-invalid @enderror"
                 value="{{ old('reference_number', $expense?->reference_number) }}">
             @error('reference_number')<small class="text-danger">{{ $message }}</small>@enderror
@@ -118,7 +119,7 @@
 
     <div class="col-md-6">
         <div class="form-group">
-            <label>Vendor</label>
+            <label>{{ __('pages.shared.vendor') }}</label>
             <input type="text" name="vendor" class="form-control @error('vendor') is-invalid @enderror"
                 value="{{ old('vendor', $expense?->vendor) }}">
             @error('vendor')<small class="text-danger">{{ $message }}</small>@enderror
@@ -127,7 +128,7 @@
 
     <div class="col-md-6">
         <div class="form-group">
-            <label>Receipt Number</label>
+            <label>{{ __('pages.shared.receipt_number') }}</label>
             <input type="text" name="receipt_number" class="form-control @error('receipt_number') is-invalid @enderror"
                 value="{{ old('receipt_number', $expense?->receipt_number) }}">
             @error('receipt_number')<small class="text-danger">{{ $message }}</small>@enderror
@@ -136,7 +137,7 @@
 
     <div class="col-md-12">
         <div class="form-group">
-            <label>Description</label>
+            <label>{{ __('common.description') }}</label>
             <textarea name="description" rows="3" class="form-control @error('description') is-invalid @enderror">{{ old('description', $expense?->description) }}</textarea>
             @error('description')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
@@ -144,7 +145,7 @@
 
     <div class="col-md-12">
         <div class="form-group">
-            <label>Notes</label>
+            <label>{{ __('pages.shared.notes') }}</label>
             <textarea name="notes" rows="2" class="form-control @error('notes') is-invalid @enderror">{{ old('notes', $expense?->notes) }}</textarea>
             @error('notes')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
@@ -162,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const amountLimitHint = document.getElementById('amountLimitHint');
     const budgetOverview = document.getElementById('budgetOverview');
     const isEditing = @json((bool) $expense);
+    const maxAmountHintTemplate = @json($maxAmountHintTemplate);
 
     function toggleReference() {
         if (!paymentSelect || !referenceGroup) return;
@@ -198,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (amountLimitHint) {
-            amountLimitHint.textContent = `Maximum allowed for this budget: TZS ${formatMoney(remaining)}`;
+            amountLimitHint.textContent = maxAmountHintTemplate.replace(':amount', formatMoney(remaining));
         }
 
         if (expenseName && (forceExpenseName || (!isEditing && !expenseName.value))) {
@@ -214,4 +216,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-

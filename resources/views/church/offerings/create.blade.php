@@ -1,19 +1,18 @@
 @extends('layouts.church')
 
-@section('title', 'Record Offering')
+@section('title', __('pages.offerings.record_offering'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Record Offering</h1>
-        <p>Submit an offering for approval</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.offerings.index') }}">Offerings</a></li>
-        <li class="breadcrumb-item">Record</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.offerings.record_offering'),
+    'subtitle' => __('pages.offerings.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.offerings'), 'route' => 'church.offerings.index'],
+        ['label' => __('pages.shared.breadcrumb_record')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.offerings.store') }}">
@@ -26,8 +25,8 @@
             'contributionTypes' => $contributionTypes,
         ])
         <div class="tile-footer mt-3">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Offering</button>
-            <a href="{{ route('church.offerings.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.save_item', ['item' => __('pages.offerings.item')]) }}</button>
+            <a href="{{ route('church.offerings.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>

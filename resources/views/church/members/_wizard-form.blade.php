@@ -48,10 +48,18 @@
     $spouseTribe = $resolveTribeSelection($d('spouse_tribe'), $d('spouse_other_tribe'));
     $baptizedChecked = filter_var($d('is_baptized'), FILTER_VALIDATE_BOOLEAN);
     $hasLinkedSpouse = $isEdit && isset($member) && $member->spouseMember;
+    $wizardSteps = [
+        __('register.steps.personal'),
+        __('register.steps.contact'),
+        __('register.steps.residence'),
+        __('register.steps.family'),
+        __('members.wizard.summary'),
+    ];
+    $stepHeading = fn (int $step, string $name) => __('members.wizard.step_heading', ['step' => $step, 'name' => $name]);
 @endphp
 
 <div class="tile">    <div class="member-wizard-steps" id="wizardSteps">
-        @foreach(['Personal Info', 'Contact & Origin', 'Residence', 'Family Information', 'Summary'] as $i => $label)
+        @foreach($wizardSteps as $i => $label)
             <div class="member-wizard-step {{ $i === 0 ? 'active' : '' }}" data-step="{{ $i + 1 }}">
                 <div class="step-circle">{{ $i + 1 }}</div>
                 <div class="step-label">{{ $label }}</div>
@@ -73,12 +81,12 @@
 
         {{-- STEP 1 --}}
         <div class="wizard-panel active" data-step="1">
-            <h3 class="tile-title">Step 1: Personal Information</h3>
+            <h3 class="tile-title">{{ $stepHeading(1, $wizardSteps[0]) }}</h3>
             <div class="row">
                 @if($isEdit)
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Member ID</label>
+                            <label>{{ __('members.fields.member_id') }}</label>
                             <input type="text" class="form-control" value="{{ $member->member_number }}" disabled>
                         </div>
                     </div>
@@ -86,7 +94,7 @@
                 @if($branches->isNotEmpty())
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Branch *</label>
+                            <label>{{ __('members.fields.branch') }} *</label>
                             <select name="branch_id" class="form-control" required>
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}" @selected((string) $d('branch_id', $defaultBranchId ?? null) === (string) $branch->id)>{{ $branch->displayLabel() }}</option>
@@ -97,7 +105,7 @@
                 @endif
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Membership Type *</label>
+                        <label>{{ __('members.fields.membership_type') }} *</label>
                         <select name="membership_type" id="membership_type" class="form-control" required>
                             @foreach($membershipTypes as $type)
                                 <option value="{{ $type->value }}" @selected($d('membership_type', 'permanent') === $type->value)>{{ ucfirst($type->value) }}</option>
@@ -107,9 +115,9 @@
                 </div>
                 <div class="col-md-4" id="memberTypeWrap">
                     <div class="form-group">
-                        <label>Member Type *</label>
+                        <label>{{ __('members.fields.member_type') }} *</label>
                         <select name="member_type" id="member_type" class="form-control">
-                            <option value="">Select</option>
+                            <option value="">{{ __('members.options.select') }}</option>
                             @foreach($memberTypes as $type)
                                 <option value="{{ $type->value }}" @selected($d('member_type') === $type->value)>{{ $type->label() }}</option>
                             @endforeach
@@ -118,7 +126,7 @@
                 </div>
                 <div class="col-md-4" id="temporaryDurationWrap" style="display:none;">
                     <div class="form-group">
-                        <label>Stay Duration *</label>
+                        <label>{{ __('members.fields.stay_duration') }} *</label>
                         <div class="input-group">
                             <input type="number" name="temporary_duration_value" id="temporary_duration_value"
                                 class="form-control" min="1" max="99" value="{{ $d('temporary_duration_value', 6) }}">
@@ -128,49 +136,49 @@
                                 @endforeach
                             </select>
                         </div>
-                        <small class="text-muted">How long this temporary member will stay (months or years).</small>
+                        <small class="text-muted">{{ __('members.fields.stay_duration_hint') }}</small>
                     </div>
                 </div>
                 <div class="col-md-4" id="envelopeFieldWrap" @if($isSelfRegistration ?? false) style="display:none;" @endif>
                     <div class="form-group">
-                        <label>Envelope Number *</label>
+                        <label>{{ __('members.fields.envelope_number') }} *</label>
                         <input type="text" name="envelope_number" id="envelope_number" class="form-control"
                             maxlength="3" pattern="\d{3}" value="{{ $d('envelope_number') }}"
                             @unless($isSelfRegistration ?? false) required @endunless>
                         <div id="envelope_status" class="envelope-status"></div>
                         @if($isSelfRegistration ?? false)
-                            <small class="text-muted">Your envelope number will be assigned after church approval.</small>
+                            <small class="text-muted">{{ __('members.fields.envelope_assigned_later') }}</small>
                         @endif
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Full Name *</label>
+                        <label>{{ __('members.fields.full_name') }} *</label>
                         <input type="text" name="full_name" class="form-control" value="{{ $d('full_name') }}" required>
                     </div>
                 </div>
                 <div class="col-md-3" id="genderFieldWrap">
                     <div class="form-group">
-                        <label>Gender *</label>
+                        <label>{{ __('members.fields.gender') }} *</label>
                         <select name="gender" id="gender" class="form-control" required>
-                            <option value="">Select</option>
-                            <option value="male" @selected($d('gender') === 'male')>Male</option>
-                            <option value="female" @selected($d('gender') === 'female')>Female</option>
+                            <option value="">{{ __('members.options.select') }}</option>
+                            <option value="male" @selected($d('gender') === 'male')>{{ __('members.options.male') }}</option>
+                            <option value="female" @selected($d('gender') === 'female')>{{ __('members.options.female') }}</option>
                         </select>
-                        <small class="text-muted">Required for independent members</small>
+                        <small class="text-muted">{{ __('members.fields.gender_hint') }}</small>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Date of Birth *</label>
+                        <label>{{ __('members.fields.date_of_birth') }} *</label>
                         <input type="date" name="date_of_birth" class="form-control" value="{{ $d('date_of_birth') }}" required>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Education Level</label>
+                        <label>{{ __('members.fields.education_level') }}</label>
                         <select name="education_level" class="form-control">
-                            <option value="">Select</option>
+                            <option value="">{{ __('members.options.select') }}</option>
                             @foreach($educationLevels as $level)
                                 <option value="{{ $level->value }}" @selected($d('education_level') === $level->value)>{{ $level->label() }}</option>
                             @endforeach
@@ -179,34 +187,34 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Profession</label>
+                        <label>{{ __('members.fields.profession') }}</label>
                         <input type="text" name="profession" class="form-control" value="{{ $d('profession') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>NIDA Number</label>
+                        <label>{{ __('members.fields.nida_number') }}</label>
                         <input type="text" name="nida_number" class="form-control" value="{{ $d('nida_number') }}">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Passport Picture</label>
+                        <label>{{ __('members.fields.passport_picture') }}</label>
                         <input type="file" name="profile_picture" id="profile_picture" class="form-control-file" accept="image/*">
                         <img id="profile_preview" class="profile-preview mt-2"
                             src="{{ $isEdit && $member->profilePictureUrl() ? $member->profilePictureUrl() : '' }}"
-                            style="{{ $isEdit && $member->profilePictureUrl() ? '' : 'display:none;' }}" alt="Preview">
+                            style="{{ $isEdit && $member->profilePictureUrl() ? '' : 'display:none;' }}" alt="{{ __('members.fields.preview') }}">
                     </div>
                 </div>
             </div>
 
-            <h4 class="mt-3 mb-3">Baptism Information</h4>
+            <h4 class="mt-3 mb-3">{{ __('members.fields.baptism_info') }}</h4>
             <div class="row">
                 <div class="col-md-12">
                     <div class="animated-checkbox mb-3">
                         <label>
                             <input type="checkbox" name="is_baptized" id="is_baptized" value="1" @checked($baptizedChecked)>
-                            <span class="label-text">This member has been baptized</span>
+                            <span class="label-text">{{ __('members.fields.is_baptized') }}</span>
                         </label>
                     </div>
                 </div>
@@ -214,22 +222,22 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Baptism Date</label>
+                                <label>{{ __('members.fields.baptism_date') }}</label>
                                 <input type="date" name="baptism_date" class="form-control" value="{{ $d('baptism_date') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Place of Baptism</label>
+                                <label>{{ __('members.fields.baptism_place') }}</label>
                                 <input type="text" name="baptism_place" class="form-control" value="{{ $d('baptism_place') }}"
-                                       placeholder="Church or location">
+                                       placeholder="{{ __('members.fields.baptism_place_placeholder') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Baptized By (Minister)</label>
+                                <label>{{ __('members.fields.baptized_by') }}</label>
                                 <input type="text" name="baptized_by" class="form-control" value="{{ $d('baptized_by') }}"
-                                       placeholder="Pastor / minister name">
+                                       placeholder="{{ __('members.fields.baptized_by_placeholder') }}">
                             </div>
                         </div>
                     </div>
@@ -239,11 +247,11 @@
 
         {{-- STEP 2 --}}
         <div class="wizard-panel" data-step="2">
-            <h3 class="tile-title">Step 2: Contact & Origin</h3>
+            <h3 class="tile-title">{{ $stepHeading(2, $wizardSteps[1]) }}</h3>
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Phone Number *</label>
+                        <label>{{ __('members.fields.phone_number') }} *</label>
                         <div class="input-group phone-input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">+255</span>
@@ -252,54 +260,54 @@
                                 value="{{ $phoneLocal }}" placeholder="712345678" inputmode="numeric"
                                 pattern="[0-9]{9}" maxlength="9" required>
                         </div>
-                        <small class="text-muted">Enter number without +255 (e.g. 712345678)</small>
+                        <small class="text-muted">{{ __('members.fields.phone_hint') }}</small>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Email</label>
+                        <label>{{ __('members.fields.email') }}</label>
                         <input type="email" name="email" class="form-control" value="{{ $d('email') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Origin Region</label>
+                        <label>{{ __('members.fields.origin_region') }}</label>
                         <select name="region" id="region" class="form-control" data-selected="{{ $d('region') }}">
-                            <option value="">Loading regions...</option>
+                            <option value="">{{ __('members.locations.loading_regions') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>District</label>
+                        <label>{{ __('members.fields.district') }}</label>
                         <select name="district" id="district" class="form-control" data-selected="{{ $d('district') }}" disabled>
-                            <option value="">Select region first</option>
+                            <option value="">{{ __('members.locations.select_region_first') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Ward</label>
+                        <label>{{ __('members.fields.ward') }}</label>
                         <input type="text" name="ward" class="form-control" value="{{ $d('ward') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Street</label>
+                        <label>{{ __('members.fields.street') }}</label>
                         <input type="text" name="street" class="form-control" value="{{ $d('street') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>P.O. Box</label>
+                        <label>{{ __('members.fields.po_box') }}</label>
                         <input type="text" name="po_box" class="form-control" value="{{ $d('po_box') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Tribe</label>
+                        <label>{{ __('members.fields.tribe') }}</label>
                         <select name="tribe" id="tribe" class="form-control">
-                            <option value="">Select tribe</option>
+                            <option value="">{{ __('members.options.select_tribe') }}</option>
                             @foreach($tribes as $tribe)
                                 <option value="{{ $tribe }}" @selected($memberTribe['select'] === $tribe)>{{ $tribe }}</option>
                             @endforeach
@@ -308,9 +316,9 @@
                 </div>
                 <div class="col-md-4" id="otherTribeWrap" style="display:{{ $memberTribe['select'] === 'Other' ? 'block' : 'none' }};">
                     <div class="form-group">
-                        <label>Specify Tribe *</label>
+                        <label>{{ __('members.fields.specify_tribe') }} *</label>
                         <input type="text" name="other_tribe" id="other_tribe" class="form-control"
-                            value="{{ $memberTribe['other'] }}" placeholder="Enter tribe name">
+                            value="{{ $memberTribe['other'] }}" placeholder="{{ __('members.fields.tribe_placeholder') }}">
                     </div>
                 </div>
             </div>
@@ -318,45 +326,45 @@
 
         {{-- STEP 3 --}}
         <div class="wizard-panel" data-step="3">
-            <h3 class="tile-title">Step 3: Residence</h3>
+            <h3 class="tile-title">{{ $stepHeading(3, $wizardSteps[2]) }}</h3>
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Region</label>
+                        <label>{{ __('members.fields.region') }}</label>
                         <select name="residence_region" id="residence_region" class="form-control" data-selected="{{ $d('residence_region') }}">
-                            <option value="">Loading regions...</option>
+                            <option value="">{{ __('members.locations.loading_regions') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>District</label>
+                        <label>{{ __('members.fields.district') }}</label>
                         <select name="residence_district" id="residence_district" class="form-control" data-selected="{{ $d('residence_district') }}" disabled>
-                            <option value="">Select region first</option>
+                            <option value="">{{ __('members.locations.select_region_first') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Ward</label>
+                        <label>{{ __('members.fields.ward') }}</label>
                         <input type="text" name="residence_ward" class="form-control" value="{{ $d('residence_ward') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Street</label>
+                        <label>{{ __('members.fields.street') }}</label>
                         <input type="text" name="residence_street" class="form-control" value="{{ $d('residence_street') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Road Name</label>
+                        <label>{{ __('members.fields.road_name') }}</label>
                         <input type="text" name="residence_road" class="form-control" value="{{ $d('residence_road') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>House Number</label>
+                        <label>{{ __('members.fields.house_number') }}</label>
                         <input type="text" name="residence_house_number" class="form-control" value="{{ $d('residence_house_number') }}">
                     </div>
                 </div>
@@ -365,11 +373,11 @@
 
         {{-- STEP 4 --}}
         <div class="wizard-panel" data-step="4">
-            <h3 class="tile-title">Step 4: Family Information</h3>
+            <h3 class="tile-title">{{ $stepHeading(4, $wizardSteps[3]) }}</h3>
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Marital Status *</label>
+                        <label>{{ __('members.fields.marital_status') }} *</label>
                         <select name="marital_status" id="marital_status" class="form-control" required>
                             @foreach($maritalStatuses as $status)
                                 <option value="{{ $status->value }}" @selected($d('marital_status') === $status->value)>{{ $status->label() }}</option>
@@ -380,13 +388,13 @@
             </div>
 
             <div id="weddingSection" style="display:none;">
-                <h4 class="mt-3 mb-3">Wedding Information</h4>
+                <h4 class="mt-3 mb-3">{{ __('members.fields.wedding_info') }}</h4>
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Type of Wedding *</label>
+                            <label>{{ __('members.fields.wedding_type') }} *</label>
                             <select name="wedding_type" id="wedding_type" class="form-control">
-                                <option value="">Select wedding type</option>
+                                <option value="">{{ __('members.options.select_wedding_type') }}</option>
                                 @foreach($weddingTypes as $wType)
                                     <option value="{{ $wType->value }}" @selected($d('wedding_type') === $wType->value)>{{ $wType->label() }}</option>
                                 @endforeach
@@ -395,7 +403,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Date of Wedding <small class="text-muted">(optional)</small></label>
+                            <label>{{ __('members.fields.wedding_date') }} <small class="text-muted">({{ __('members.fields.optional') }})</small></label>
                             <input type="date" name="wedding_date" id="wedding_date" class="form-control"
                                 value="{{ $d('wedding_date') }}" max="{{ now()->toDateString() }}">
                         </div>
@@ -405,40 +413,40 @@
 
             @if($hasLinkedSpouse)
                 <div id="editSpouseInfo" style="display:none;">
-                    <h4 class="mt-3 mb-3">Spouse</h4>
+                    <h4 class="mt-3 mb-3">{{ __('members.fields.spouse') }}</h4>
                     <p class="text-muted">
                         <i class="fa fa-info-circle"></i>
-                        Linked member:
+                        {{ __('members.fields.linked_spouse_info') }}
                         <a href="{{ route('church.members.show', $member->spouseMember) }}">{{ $member->spouseMember->full_name }}</a>
                         (<code>{{ $member->spouseMember->member_number }}</code>).
-                        Update spouse details from their profile.
+                        {{ __('members.fields.linked_spouse_hint') }}
                     </p>
                 </div>
             @else
             <div id="spouseSection" style="display:none;">
-                <h4 class="mt-3 mb-3">Spouse Information</h4>
+                <h4 class="mt-3 mb-3">{{ __('members.fields.spouse_info') }}</h4>
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Is your spouse a church member? *</label>
+                            <label>{{ __('members.fields.spouse_church_member') }} *</label>
                             <select name="spouse_church_member" id="spouse_church_member" class="form-control">
-                                <option value="no" @selected($d('spouse_church_member', 'no') === 'no')>No</option>
-                                <option value="yes" @selected($d('spouse_church_member') === 'yes')>Yes</option>
+                                <option value="no" @selected($d('spouse_church_member', 'no') === 'no')>{{ __('members.options.no') }}</option>
+                                <option value="yes" @selected($d('spouse_church_member') === 'yes')>{{ __('members.options.yes') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-8" id="spouseInputMethodWrap" style="display:none;">
                         @unless($isSelfRegistration ?? false)
                         <div class="form-group">
-                            <label>How do you want to add spouse details? *</label>
+                            <label>{{ __('members.fields.spouse_input_method') }} *</label>
                             <select name="spouse_input_method" id="spouse_input_method" class="form-control">
-                                <option value="select" @selected($d('spouse_input_method', 'select') === 'select')>Select existing church member</option>
-                                <option value="manual" @selected($d('spouse_input_method') === 'manual')>Fill spouse information manually</option>
+                                <option value="select" @selected($d('spouse_input_method', 'select') === 'select')>{{ __('members.fields.spouse_select_member') }}</option>
+                                <option value="manual" @selected($d('spouse_input_method') === 'manual')>{{ __('members.fields.spouse_manual') }}</option>
                             </select>
-                            <small class="text-muted">Choose one option — select from the list or enter details yourself.</small>
+                            <small class="text-muted">{{ __('members.fields.spouse_method_hint') }}</small>
                         </div>
                         @else
-                            <p class="text-muted mb-0">Enter your spouse details below. If your spouse is already a registered member, the church office will link your records during approval.</p>
+                            <p class="text-muted mb-0">{{ __('members.fields.spouse_self_reg_hint') }}</p>
                         @endunless
                     </div>
                 </div>
@@ -448,9 +456,9 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Select Spouse (Member) *</label>
+                                <label>{{ __('members.fields.select_spouse_member') }} *</label>
                                 <select name="spouse_member_id" id="spouse_member_id" class="form-control">
-                                    <option value="">Select member</option>
+                                    <option value="">{{ __('members.options.select_member') }}</option>
                                     @foreach($churchMembers ?? [] as $cm)
                                         <option value="{{ $cm->id }}"
                                             data-envelope="{{ $cm->envelope_number }}"
@@ -468,7 +476,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Spouse Envelope Number *</label>
+                                <label>{{ __('members.fields.spouse_envelope_number') }} *</label>
                                 <input type="text" name="spouse_envelope_number" id="spouse_envelope_number_select"
                                     class="form-control spouse-envelope-field" maxlength="3" pattern="\d{3}"
                                     value="{{ $d('spouse_envelope_number') }}" readonly>
@@ -482,31 +490,31 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Full Name <span class="spouse-required-mark">*</span></label>
+                                <label>{{ __('members.fields.spouse_full_name') }} <span class="spouse-required-mark">*</span></label>
                                 <input type="text" name="spouse_full_name" class="form-control" value="{{ $d('spouse_full_name') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Gender <span class="spouse-required-mark">*</span></label>
+                                <label>{{ __('members.fields.spouse_gender') }} <span class="spouse-required-mark">*</span></label>
                                 <select name="spouse_gender" id="spouse_gender" class="form-control">
-                                    <option value="">Select</option>
-                                    <option value="male" @selected($d('spouse_gender') === 'male')>Male</option>
-                                    <option value="female" @selected($d('spouse_gender') === 'female')>Female</option>
+                                    <option value="">{{ __('members.options.select') }}</option>
+                                    <option value="male" @selected($d('spouse_gender') === 'male')>{{ __('members.options.male') }}</option>
+                                    <option value="female" @selected($d('spouse_gender') === 'female')>{{ __('members.options.female') }}</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Date of Birth <span class="spouse-required-mark">*</span></label>
+                                <label>{{ __('members.fields.spouse_dob') }} <span class="spouse-required-mark">*</span></label>
                                 <input type="date" name="spouse_date_of_birth" class="form-control" value="{{ $d('spouse_date_of_birth') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Education Level</label>
+                                <label>{{ __('members.fields.spouse_education') }}</label>
                                 <select name="spouse_education_level" class="form-control">
-                                    <option value="">Select</option>
+                                    <option value="">{{ __('members.options.select') }}</option>
                                     @foreach($educationLevels as $level)
                                         <option value="{{ $level->value }}" @selected($d('spouse_education_level') === $level->value)>{{ $level->label() }}</option>
                                     @endforeach
@@ -515,19 +523,19 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Profession</label>
+                                <label>{{ __('members.fields.spouse_profession') }}</label>
                                 <input type="text" name="spouse_profession" class="form-control" value="{{ $d('spouse_profession') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse NIDA Number</label>
+                                <label>{{ __('members.fields.spouse_nida') }}</label>
                                 <input type="text" name="spouse_nida_number" class="form-control" value="{{ $d('spouse_nida_number') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Phone</label>
+                                <label>{{ __('members.fields.spouse_phone') }}</label>
                                 <div class="input-group phone-input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">+255</span>
@@ -540,15 +548,15 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Email</label>
+                                <label>{{ __('members.fields.spouse_email') }}</label>
                                 <input type="email" name="spouse_email" class="form-control" value="{{ $d('spouse_email') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Spouse Tribe</label>
+                                <label>{{ __('members.fields.spouse_tribe') }}</label>
                                 <select name="spouse_tribe" id="spouse_tribe" class="form-control">
-                                    <option value="">Select tribe</option>
+                                    <option value="">{{ __('members.options.select_tribe') }}</option>
                                     @foreach($tribes as $tribe)
                                         <option value="{{ $tribe }}" @selected($spouseTribe['select'] === $tribe)>{{ $tribe }}</option>
                                     @endforeach
@@ -557,19 +565,21 @@
                         </div>
                         <div class="col-md-4" id="spouseOtherTribeWrap" style="display:{{ $spouseTribe['select'] === 'Other' ? 'block' : 'none' }};">
                             <div class="form-group">
-                                <label>Specify Spouse Tribe *</label>
+                                <label>{{ __('members.fields.specify_spouse_tribe') }} *</label>
                                 <input type="text" name="spouse_other_tribe" id="spouse_other_tribe" class="form-control"
-                                    value="{{ $spouseTribe['other'] }}" placeholder="Enter tribe name">
+                                    value="{{ $spouseTribe['other'] }}" placeholder="{{ __('members.fields.tribe_placeholder') }}">
                             </div>
                         </div>
-                        <div class="col-md-4" id="spouseEnvelopeManualWrap" style="display:none;" @if($isSelfRegistration ?? false) data-self-registration="1" @endif>
+                        @unless($isSelfRegistration ?? false)
+                        <div class="col-md-4" id="spouseEnvelopeManualWrap" style="display:none;">
                             <div class="form-group">
-                                <label>Spouse Envelope Number *</label>
+                                <label>{{ __('members.fields.spouse_envelope_number') }} *</label>
                                 <input type="text" id="spouse_envelope_number_manual"
                                     class="form-control spouse-envelope-field" maxlength="3" pattern="\d{3}"
                                     value="{{ $d('spouse_envelope_number') }}">
                             </div>
                         </div>
+                        @endunless
                     </div>
                 </div>
             </div>
@@ -577,31 +587,31 @@
 
             @if($isEdit)
                 <div class="form-group mt-4">
-                    <label>Notes</label>
+                    <label>{{ __('members.fields.notes') }}</label>
                     <textarea name="notes" id="notes" rows="3" class="form-control">{{ $d('notes') }}</textarea>
                 </div>
             @endif
 
             @if(! $isEdit)
-            <h4 class="mt-4 mb-3">Dependants / Family Members Living Together</h4>
-            <p class="text-muted">Add children or other relatives who live with this member.</p>
+            <h4 class="mt-4 mb-3">{{ __('members.fields.dependants_title') }}</h4>
+            <p class="text-muted">{{ __('members.fields.dependants_hint') }}</p>
             <div id="dependantsContainer"></div>
             <button type="button" class="btn btn-outline-primary btn-sm" id="addDependantBtn">
-                <i class="fa fa-plus"></i> Add Family Member
+                <i class="fa fa-plus"></i> {{ __('members.fields.add_family_member') }}
             </button>
             @endif
         </div>
 
         {{-- STEP 5 --}}
         <div class="wizard-panel" data-step="5">
-            <h3 class="tile-title">Step 5: Summary</h3>
+            <h3 class="tile-title">{{ $stepHeading(5, $wizardSteps[4]) }}</h3>
             <p class="text-muted mb-3">
                 @if($isSelfRegistration ?? false)
-                    Review all information before submitting your registration for church approval.
+                    {{ __('members.wizard.summary_review_self') }}
                 @elseif($isEdit)
-                    Review all information before saving changes.
+                    {{ __('members.wizard.summary_review_edit') }}
                 @else
-                    Review all information before saving the member.
+                    {{ __('members.wizard.summary_review_create') }}
                 @endif
             </p>
             <div id="summaryContent"></div>
@@ -609,12 +619,12 @@
 
         <div class="tile-footer d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" id="prevStepBtn" style="display:none;">
-                <i class="fa fa-arrow-left"></i> Previous
+                <i class="fa fa-arrow-left"></i> {{ __('members.buttons.previous') }}
             </button>
             <div class="ml-auto">
-                <a href="{{ $cancelUrl }}" class="btn btn-light mr-2">Cancel</a>
+                <a href="{{ $cancelUrl }}" class="btn btn-light mr-2">{{ __('members.buttons.cancel') }}</a>
                 <button type="button" class="btn btn-primary" id="nextStepBtn">
-                    Next <i class="fa fa-arrow-right"></i>
+                    {{ __('members.buttons.next') }} <i class="fa fa-arrow-right"></i>
                 </button>
                 <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none;">
                     <i class="fa fa-save"></i> {{ $submitLabel }}
@@ -628,23 +638,23 @@
 <template id="dependantTemplate">
     <div class="dependant-row">
         <div class="d-flex justify-content-between mb-2">
-            <strong>Family Member</strong>
+            <strong>{{ __('members.fields.family_member') }}</strong>
             <button type="button" class="btn btn-sm btn-danger remove-dependant"><i class="fa fa-times"></i></button>
         </div>
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>Full Name *</label>
+                    <label>{{ __('members.fields.full_name') }} *</label>
                     <input type="text" class="form-control dependant-name" data-name="full_name" required>
                 </div>
             </div>
             <div class="col-md-2">
                 <div class="form-group">
-                    <label>Gender *</label>
+                    <label>{{ __('members.fields.gender') }} *</label>
                     <select class="form-control dependant-gender" data-name="gender" required>
-                        <option value="">Select</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
+                        <option value="">{{ __('members.options.select') }}</option>
+                        <option value="male">{{ __('members.options.male') }}</option>
+                        <option value="female">{{ __('members.options.female') }}</option>
                     </select>
                 </div>
             </div>
@@ -656,7 +666,7 @@
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Relationship *</label>
+                    <label>{{ __('members.fields.relationship') }} *</label>
                     <select class="form-control dependant-relationship" data-name="relationship" required>
                         @foreach($dependantRelationships as $rel)
                             <option value="{{ $rel->value }}">{{ $rel->label() }}</option>
@@ -666,15 +676,15 @@
             </div>
             <div class="col-md-12">
                 <div class="form-group">
-                    <label>Notes (optional)</label>
-                    <input type="text" class="form-control dependant-note" data-name="relationship_note" placeholder="e.g. nephew, niece">
+                    <label>{{ __('members.fields.relationship_note') }}</label>
+                    <input type="text" class="form-control dependant-note" data-name="relationship_note" placeholder="{{ __('members.fields.relationship_note_placeholder') }}">
                 </div>
             </div>
             <div class="col-md-12">
                 <div class="animated-checkbox mb-2">
                     <label>
                         <input type="checkbox" class="dependant-baptized" data-name="is_baptized" value="1">
-                        <span class="label-text">Baptized</span>
+                        <span class="label-text">{{ __('members.fields.baptized') }}</span>
                     </label>
                 </div>
             </div>
@@ -682,19 +692,19 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Baptism Date</label>
+                            <label>{{ __('members.fields.baptism_date') }}</label>
                             <input type="date" class="form-control dependant-baptism-date" data-name="baptism_date">
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Place of Baptism</label>
+                            <label>{{ __('members.fields.baptism_place') }}</label>
                             <input type="text" class="form-control dependant-baptism-place" data-name="baptism_place">
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Baptized By</label>
+                            <label>{{ __('members.fields.baptized_by_short') }}</label>
                             <input type="text" class="form-control dependant-baptized-by" data-name="baptized_by">
                         </div>
                     </div>

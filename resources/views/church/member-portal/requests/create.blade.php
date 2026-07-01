@@ -1,23 +1,22 @@
 @extends('layouts.church')
 
-@section('title', 'New Request')
+@section('title', __('pages.member_portal_requests.create_title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Submit a Request</h1>
-        <p>Choose the type of request and the leader who should handle it</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.member.requests.index') }}">My Requests</a></li>
-        <li class="breadcrumb-item">New</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.member_portal_requests.create_title'),
+    'subtitle' => __('pages.member_portal_requests.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('pages.member_portal_requests.title'), 'route' => 'church.member.requests.index'],
+        ['label' => __('pages.shared.breadcrumb_new')],
+    ],
+])
 
 <div class="tile">
     @if($leaders->isEmpty())
         <div class="alert alert-warning">
-            No leaders are currently available to receive requests. Please contact your church office.
+            {{ __('pages.member_portal_requests.no_leaders_alert') }}
         </div>
     @else
         <form method="POST" action="{{ route('church.member.requests.store') }}" id="memberRequestForm">
@@ -25,9 +24,9 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Request Type <span class="text-danger">*</span></label>
+                        <label>{{ __('pages.member_portal_requests.request_type') }} <span class="text-danger">*</span></label>
                         <select name="type" id="request_type" class="form-control @error('type') is-invalid @enderror" required>
-                            <option value="">Select type</option>
+                            <option value="">{{ __('pages.shared.select_type') }}</option>
                             @foreach($types as $type)
                                 <option value="{{ $type->value }}" @selected(old('type') === $type->value)>{{ $type->label() }}</option>
                             @endforeach
@@ -37,9 +36,9 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Assign To (Responsible Leader) <span class="text-danger">*</span></label>
+                        <label>{{ __('pages.member_portal_requests.assign_to_leader') }} <span class="text-danger">*</span></label>
                         <select name="assigned_leader_id" class="form-control @error('assigned_leader_id') is-invalid @enderror" required>
-                            <option value="">Select leader</option>
+                            <option value="">{{ __('pages.member_portal_requests.select_leader') }}</option>
                             @foreach($leaders as $leader)
                                 <option value="{{ $leader->id }}" @selected((string) old('assigned_leader_id') === (string) $leader->id)>
                                     {{ $leader->positionLabel() }} — {{ $leader->member?->full_name }}
@@ -47,37 +46,37 @@
                             @endforeach
                         </select>
                         @error('assigned_leader_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        <small class="text-muted">For baptism requests, assign to the Pastor when possible.</small>
+                        <small class="text-muted">{{ __('pages.member_portal_requests.baptism_assign_hint') }}</small>
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Subject <span class="text-danger">*</span></label>
+                <label>{{ __('common.subject') }} <span class="text-danger">*</span></label>
                 <input type="text" name="subject" id="request_subject" class="form-control @error('subject') is-invalid @enderror"
-                       value="{{ old('subject') }}" maxlength="200" required placeholder="Brief summary of your request">
+                       value="{{ old('subject') }}" maxlength="200" required placeholder="{{ __('pages.member_portal_requests.subject_placeholder') }}">
                 @error('subject')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div id="baptismRequestFields" style="display:none;">
                 <div class="alert alert-info py-2">
-                    <i class="fa fa-tint"></i> Select who should be baptized. If your children need baptism, choose them below.
+                    <i class="fa fa-tint"></i> {{ __('pages.member_portal_requests.baptism_info_alert') }}
                 </div>
                 <div class="form-group">
-                    <label>Who is requesting baptism? <span class="text-danger">*</span></label>
+                    <label>{{ __('pages.member_portal_requests.baptism_scope') }} <span class="text-danger">*</span></label>
                     <select name="baptism_scope" id="baptism_scope" class="form-control @error('baptism_scope') is-invalid @enderror">
-                        <option value="">Select</option>
-                        <option value="self" @selected(old('baptism_scope') === 'self')>Myself only</option>
-                        <option value="children" @selected(old('baptism_scope') === 'children')>My child(ren) only</option>
-                        <option value="both" @selected(old('baptism_scope') === 'both')>Myself and my child(ren)</option>
+                        <option value="">{{ __('pages.shared.select') }}</option>
+                        <option value="self" @selected(old('baptism_scope') === 'self')>{{ __('pages.member_portal_requests.baptism_scope_self') }}</option>
+                        <option value="children" @selected(old('baptism_scope') === 'children')>{{ __('pages.member_portal_requests.baptism_scope_children') }}</option>
+                        <option value="both" @selected(old('baptism_scope') === 'both')>{{ __('pages.member_portal_requests.baptism_scope_both') }}</option>
                     </select>
                     @error('baptism_scope')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="form-group" id="baptismChildrenWrap" style="display:none;">
-                    <label>Select child(ren) to be baptized <span class="text-danger">*</span></label>
+                    <label>{{ __('pages.member_portal_requests.select_children_baptism') }} <span class="text-danger">*</span></label>
                     @if($children->isEmpty())
-                        <p class="text-muted mb-0">No children are registered on your family profile. Contact the church office to register your children first.</p>
+                        <p class="text-muted mb-0">{{ __('pages.member_portal_requests.no_children_profile') }}</p>
                     @else
                         @foreach($children as $child)
                             <div class="animated-checkbox">
@@ -87,7 +86,7 @@
                                     <span class="label-text">
                                         {{ $child->full_name }}
                                         @if($child->date_of_birth)
-                                            <small class="text-muted">(DOB: {{ $child->date_of_birth->format('M d, Y') }})</small>
+                                            <small class="text-muted">({{ __('pages.members.dob_col') }}: {{ $child->date_of_birth->format('M d, Y') }})</small>
                                         @endif
                                     </span>
                                 </label>
@@ -99,7 +98,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Preferred Baptism Date</label>
+                    <label>{{ __('pages.member_portal_requests.preferred_baptism_date') }}</label>
                     <input type="date" name="preferred_baptism_date" class="form-control @error('preferred_baptism_date') is-invalid @enderror"
                            value="{{ old('preferred_baptism_date') }}">
                     @error('preferred_baptism_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -107,17 +106,17 @@
             </div>
 
             <div class="form-group" id="requestDetailsWrap">
-                <label>Details <span class="text-danger" id="detailsRequiredMark">*</span></label>
+                <label>{{ __('common.details') }} <span class="text-danger" id="detailsRequiredMark">*</span></label>
                 <textarea name="description" id="request_description" rows="6" class="form-control @error('description') is-invalid @enderror"
-                          placeholder="Provide all details needed to process your request (dates, destination, issue description, etc.)">{{ old('description') }}</textarea>
+                          placeholder="{{ __('pages.member_portal_requests.details_placeholder') }}">{{ old('description') }}</textarea>
                 @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <small class="text-muted" id="baptismDetailsHint" style="display:none;">Optional notes for the baptism request (e.g. special arrangements).</small>
+                <small class="text-muted" id="baptismDetailsHint" style="display:none;">{{ __('pages.member_portal_requests.details_optional_hint') }}</small>
             </div>
 
             <button type="submit" class="btn btn-primary">
-                <i class="fa fa-paper-plane"></i> Submit Request
+                <i class="fa fa-paper-plane"></i> {{ __('pages.member_portal_requests.submit_request') }}
             </button>
-            <a href="{{ route('church.member.requests.index') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ route('church.member.requests.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </form>
     @endif
 </div>
@@ -134,6 +133,7 @@
     var detailsRequired = document.getElementById('detailsRequiredMark');
     var baptismHint = document.getElementById('baptismDetailsHint');
     var subject = document.getElementById('request_subject');
+    var baptismSubjectDefault = @json(__('pages.member_portal_requests.baptism_subject_default'));
 
     function toggleBaptismRequest() {
         var isBaptism = typeSelect && typeSelect.value === 'baptism_request';
@@ -142,7 +142,7 @@
         if (detailsRequired) detailsRequired.style.display = isBaptism ? 'none' : 'inline';
         if (baptismHint) baptismHint.style.display = isBaptism ? 'block' : 'none';
         if (isBaptism && subject && !subject.value) {
-            subject.value = 'Baptism Request';
+            subject.value = baptismSubjectDefault;
         }
         toggleChildrenSelection();
     }

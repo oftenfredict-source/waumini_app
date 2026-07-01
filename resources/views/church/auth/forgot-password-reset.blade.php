@@ -1,22 +1,22 @@
 @extends('layouts.auth')
 
-@section('title', 'Set New Password')
+@section('title', __('auth.set_new_password_title'))
 
 @section('topbar_action')
-    <a href="{{ route('church.login') }}" class="auth-topbar-link">Back to sign in</a>
+    <a href="{{ route('church.login') }}" class="auth-topbar-link">{{ __('auth.back_to_sign_in') }}</a>
 @endsection
 
 @section('panel_icon', 'fa-lock')
-@section('panel_eyebrow', 'Password reset')
+@section('panel_eyebrow', __('auth.password_reset'))
 @section('panel_title')
-    Choose a new <span>password</span>
+    {!! __('auth.choose_new_password') !!}
 @endsection
 @section('panel_lead')
-    Your identity has been verified. Enter a strong new password for <strong>{{ $loginIdentifier }}</strong>.
+    {!! __('auth.set_password_lead', ['identifier' => e($loginIdentifier)]) !!}
 @endsection
 
-@section('form_title', 'Set new password')
-@section('form_subtitle', 'Use at least 8 characters')
+@section('form_title', __('auth.set_new_password_form'))
+@section('form_subtitle', __('auth.use_at_least_8'))
 
 @section('content')
     <form method="POST" action="{{ route('church.password.forgot.reset.submit') }}" novalidate>
@@ -25,13 +25,13 @@
         @include('partials.sweetalert-flash')
 
         <div class="auth-field">
-            <label for="new_password">New password</label>
+            <label for="new_password">{{ __('auth.new_password') }}</label>
             <div class="auth-input-wrap">
                 <i class="fa fa-lock auth-input-icon"></i>
                 @include('partials.password-input', [
                     'id' => 'new_password',
                     'name' => 'password',
-                    'placeholder' => 'At least 8 characters',
+                    'placeholder' => __('auth.at_least_8_placeholder'),
                     'invalid' => $errors->has('password'),
                     'class' => 'auth-input',
                 ])
@@ -40,13 +40,13 @@
         </div>
 
         <div class="auth-field">
-            <label for="password_confirmation">Confirm password</label>
+            <label for="password_confirmation">{{ __('auth.confirm_password') }}</label>
             <div class="auth-input-wrap">
                 <i class="fa fa-lock auth-input-icon"></i>
                 @include('partials.password-input', [
                     'id' => 'password_confirmation',
                     'name' => 'password_confirmation',
-                    'placeholder' => 'Repeat new password',
+                    'placeholder' => __('auth.repeat_password_placeholder'),
                     'invalid' => $errors->has('password_confirmation'),
                     'class' => 'auth-input',
                 ])
@@ -55,7 +55,7 @@
         </div>
 
         <button class="auth-submit" type="submit">
-            <i class="fa fa-save"></i> Save new password
+            <i class="fa fa-save"></i> {{ __('auth.save_new_password') }}
         </button>
     </form>
 @endsection

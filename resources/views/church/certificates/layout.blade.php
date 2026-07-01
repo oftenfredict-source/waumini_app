@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <title>{{ $title ?? 'Cheti' }}</title>
+    <title>{{ $title ?? __('certificates.default_title') }}</title>
     <style>
         @page { margin: 36px 42px; }
         body {
@@ -107,7 +107,7 @@
         <div class="church-meta">
             @if($church->denomination){{ $church->denomination }} &bull; @endif
             @if(!empty($displayAddress) || !empty($displayCity)){{ $displayAddress ?? '' }}@if(!empty($displayCity)), {{ $displayCity }}@endif &bull; @endif
-            @if(!empty($displayPhone))Simu: {{ $displayPhone }}@endif
+            @if(!empty($displayPhone)){{ __('certificates.phone') }} {{ $displayPhone }}@endif
             @if(!empty($displayEmail)) &bull; {{ $displayEmail }}@endif
         </div>
     </div>
@@ -115,8 +115,8 @@
     @yield('certificate-body')
 
     <div class="footer">
-        Imetolewa kupitia Waumini Link &bull; {{ $memberRequest->reference_number }}
-        <div class="stamp">Huu ni waraka rasmi wa kanisa.</div>
+        {{ __('certificates.issued_via') }} &bull; {{ $memberRequest->reference_number }}
+        <div class="stamp">{{ __('certificates.official_document') }}</div>
     </div>
 </body>
 </html>

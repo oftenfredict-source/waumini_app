@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            <label>Full Name *</label>
+            <label>{{ __('pages.shared.full_name') }} *</label>
             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                 value="{{ old('name', $user?->name) }}" required>
             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -14,7 +14,7 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label>Email (Login) *</label>
+            <label>{{ __('pages.system_users.email_login') }} *</label>
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                 value="{{ old('email', $user?->email) }}" required>
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -22,13 +22,13 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label>Phone</label>
+            <label>{{ __('common.phone') }}</label>
             <input type="text" name="phone" class="form-control" value="{{ old('phone', $user?->phone) }}">
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label>Role *</label>
+            <label>{{ __('common.role') }} *</label>
             <select name="role" class="form-control @error('role') is-invalid @enderror" required>
                 @foreach($roles as $role)
                     <option value="{{ $role->value }}" @selected($selectedRole === $role->value)>{{ $role->label() }}</option>
@@ -40,7 +40,7 @@
     @if($user)
         <div class="col-md-6">
             <div class="form-group">
-                <label>Status</label>
+                <label>{{ __('common.status') }}</label>
                 <select name="status" class="form-control">
                     @foreach(\App\Enums\UserStatus::cases() as $status)
                         <option value="{{ $status->value }}" @selected(old('status', $user->status->value) === $status->value)>
@@ -54,19 +54,19 @@
     <div class="col-md-6">
         @if(($church->branches_enabled ?? false) && ($branches ?? collect())->isNotEmpty())
             <div class="form-group">
-                <label>Branch</label>
+                <label>{{ __('common.branch') }}</label>
                 <select name="branch_id" class="form-control">
-                    <option value="">Headquarters / All Branches</option>
+                    <option value="">{{ __('pages.system_users.headquarters_all_branches') }}</option>
                     @foreach($branches as $branch)
                         <option value="{{ $branch->id }}" @selected((string) old('branch_id', $user?->branch_id) === (string) $branch->id)>{{ $branch->displayLabel() }}</option>
                     @endforeach
                 </select>
-                <small class="text-muted">Leave blank for headquarters staff (all branches). Select a branch for branch-level staff.</small>
+                <small class="text-muted">{{ __('pages.system_users.branch_hint') }}</small>
             </div>
         @endif
     </div>
 </div>
 
 @if(! $user)
-    <p class="text-muted"><i class="fa fa-info-circle"></i> A secure password will be generated automatically after creation.</p>
+    <p class="text-muted"><i class="fa fa-info-circle"></i> {{ __('pages.system_users.password_auto_generated') }}</p>
 @endif

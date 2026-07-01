@@ -1,42 +1,41 @@
 @extends('layouts.church')
 
-@section('title', 'Announcements')
+@section('title', __('pages.announcements.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-bullhorn"></i> Announcements</h1>
-        <p>Church announcements and notices</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item">Announcements</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-bullhorn',
+    'title' => __('pages.announcements.title'),
+    'subtitle' => __('pages.announcements.subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.announcements')],
+    ],
+])
 
 <div class="row mb-3">
     <div class="col-md-8">
         <form method="GET" class="form-inline">
-            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="Search title or content..."
+            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="{{ __('pages.announcements.search_placeholder') }}"
                 value="{{ $filters['search'] ?? '' }}">
             <select name="type" class="form-control mr-2 mb-2">
-                <option value="">All types</option>
+                <option value="">{{ __('pages.shared.all_types') }}</option>
                 @foreach($types as $type)
                     <option value="{{ $type->value }}" @selected(($filters['type'] ?? '') === $type->value)>{{ $type->label() }}</option>
                 @endforeach
             </select>
             <select name="status" class="form-control mr-2 mb-2">
-                <option value="">All statuses</option>
-                <option value="active" @selected(($filters['status'] ?? '') === 'active')>Active</option>
-                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>Inactive</option>
+                <option value="">{{ __('pages.shared.all_statuses') }}</option>
+                <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('common.active') }}</option>
+                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('common.inactive') }}</option>
             </select>
-            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> Filter</button>
+            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
         </form>
     </div>
     <div class="col-md-4 text-md-right">
         @can('create', \App\Models\Announcement::class)
             <a href="{{ route('church.announcements.create') }}" class="btn btn-primary mb-2">
-                <i class="fa fa-plus"></i> Create Announcement
+                <i class="fa fa-plus"></i> {{ __('pages.announcements.create_announcement') }}
             </a>
         @endcan
     </div>
@@ -48,12 +47,12 @@
             <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Audience</th>
-                        <th>Period</th>
-                        <th>Status</th>
-                        <th>Created</th>
+                        <th>{{ __('common.title') }}</th>
+                        <th>{{ __('common.type') }}</th>
+                        <th>{{ __('pages.shared.audience') }}</th>
+                        <th>{{ __('pages.shared.period') }}</th>
+                        <th>{{ __('common.status') }}</th>
+                        <th>{{ __('common.created') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -62,7 +61,7 @@
                         <tr>
                             <td>
                                 @if($announcement->is_pinned)
-                                    <i class="fa fa-thumb-tack text-warning" title="Pinned"></i>
+                                    <i class="fa fa-thumb-tack text-warning" title="{{ __('pages.shared.pinned') }}"></i>
                                 @endif
                                 {{ $announcement->title }}
                             </td>
@@ -73,13 +72,13 @@
                             </td>
                             <td>{{ $announcement->target_type->label() }}</td>
                             <td>
-                                {{ $announcement->start_date?->format('M d, Y') ?? 'Now' }}
+                                {{ $announcement->start_date?->format('M d, Y') ?? __('pages.shared.now') }}
                                 —
-                                {{ $announcement->end_date?->format('M d, Y') ?? 'Open' }}
+                                {{ $announcement->end_date?->format('M d, Y') ?? __('pages.shared.open') }}
                             </td>
                             <td>
                                 <span class="badge badge-{{ $announcement->isCurrentlyActive() ? 'success' : 'secondary' }}">
-                                    {{ $announcement->isCurrentlyActive() ? 'Active' : 'Inactive' }}
+                                    {{ $announcement->isCurrentlyActive() ? __('common.active') : __('common.inactive') }}
                                 </span>
                             </td>
                             <td>{{ $announcement->created_at->format('M d, Y') }}</td>
@@ -92,9 +91,9 @@
                     @empty
                         <tr>
                             <td colspan="7" class="text-center text-muted py-4">
-                                No announcements found.
+                                {{ __('pages.announcements.empty') }}
                                 @can('create', \App\Models\Announcement::class)
-                                    <a href="{{ route('church.announcements.create') }}">Create one</a>.
+                                    <a href="{{ route('church.announcements.create') }}">{{ __('pages.shared.create_one') }}</a>.
                                 @endcan
                             </td>
                         </tr>

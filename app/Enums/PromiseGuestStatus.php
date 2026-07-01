@@ -2,22 +2,16 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum PromiseGuestStatus: string
 {
+    use HasTranslatableLabel;
+
     case Pending = 'pending';
     case Notified = 'notified';
     case Attended = 'attended';
     case Cancelled = 'cancelled';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Pending => 'Pending',
-            self::Notified => 'Notified',
-            self::Attended => 'Attended',
-            self::Cancelled => 'Cancelled',
-        };
-    }
 
     public function badgeClass(): string
     {

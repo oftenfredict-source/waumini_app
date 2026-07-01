@@ -5,15 +5,15 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            <label>Department Name *</label>
+            <label>{{ __('pages.shared.department_name') }} *</label>
             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                value="{{ old('name', $departmentModel?->name) }}" placeholder="e.g. Youth Ministry" required>
+                value="{{ old('name', $departmentModel?->name) }}" placeholder="{{ __('pages.departments.name_placeholder') }}" required>
             @error('name')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label>Status *</label>
+            <label>{{ __('common.status') }} *</label>
             <select name="status" class="form-control @error('status') is-invalid @enderror" required>
                 @foreach($statuses as $status)
                     <option value="{{ $status->value }}" @selected(old('status', $departmentModel?->status?->value ?? 'active') === $status->value)>
@@ -26,9 +26,9 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            <label>Department Leader</label>
+            <label>{{ __('pages.departments.department_leader') }}</label>
             <select name="head_id" class="form-control @error('head_id') is-invalid @enderror">
-                <option value="">Select member (optional)</option>
+                <option value="">{{ __('pages.shared.select_member_optional') }}</option>
                 @foreach($members as $member)
                     <option value="{{ $member->id }}" @selected(old('head_id', $departmentModel?->head_id) == $member->id)>
                         {{ $member->full_name }} ({{ $member->member_number }})
@@ -40,9 +40,9 @@
     </div>
     <div class="col-md-12">
         <div class="form-group">
-            <label>Description</label>
+            <label>{{ __('common.description') }}</label>
             <textarea name="description" class="form-control @error('description') is-invalid @enderror"
-                rows="3" placeholder="Brief description of the department's role">{{ old('description', $departmentModel?->description) }}</textarea>
+                rows="3" placeholder="{{ __('pages.departments.description_placeholder') }}">{{ old('description', $departmentModel?->description) }}</textarea>
             @error('description')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
     </div>

@@ -1,16 +1,16 @@
 @extends('layouts.owner')
 
-@section('title', 'Users & Roles')
+@section('title', __('owner.usr.title'))
 
 @section('content')
 <div class="app-title">
     <div>
-        <h1><i class="fa fa-users"></i> Users & Roles</h1>
-        <p>User and member counts across churches</p>
+        <h1><i class="fa fa-users"></i> {{ __('owner.usr.title') }}</h1>
+        <p>{{ __('owner.usr.subtitle') }}</p>
     </div>
     <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">Overview</a></li>
-        <li class="breadcrumb-item">Users</li>
+        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">{{ __('owner.overview') }}</a></li>
+        <li class="breadcrumb-item">{{ __('owner.users_roles') }}</li>
     </ul>
 </div>
 
@@ -19,7 +19,7 @@
         <div class="widget-small primary coloured-icon">
             <i class="icon fa fa-building fa-3x"></i>
             <div class="info">
-                <h4>Churches</h4>
+                <h4>{{ __('owner.churches') }}</h4>
                 <p><b>{{ number_format($overview['churches']) }}</b></p>
             </div>
         </div>
@@ -28,7 +28,7 @@
         <div class="widget-small info coloured-icon">
             <i class="icon fa fa-user-secret fa-3x"></i>
             <div class="info">
-                <h4>Church Staff Users</h4>
+                <h4>{{ __('owner.usr.church_staff') }}</h4>
                 <p><b>{{ number_format($overview['staff_users']) }}</b></p>
             </div>
         </div>
@@ -37,7 +37,7 @@
         <div class="widget-small warning coloured-icon">
             <i class="icon fa fa-id-card fa-3x"></i>
             <div class="info">
-                <h4>Registered Members</h4>
+                <h4>{{ __('owner.usr.registered_members') }}</h4>
                 <p><b>{{ number_format($overview['active_members']) }}</b></p>
             </div>
         </div>
@@ -46,7 +46,7 @@
         <div class="widget-small danger coloured-icon">
             <i class="icon fa fa-shield fa-3x"></i>
             <div class="info">
-                <h4>Platform Staff</h4>
+                <h4>{{ __('owner.usr.platform_staff') }}</h4>
                 <p><b>{{ number_format($overview['platform_staff']) }}</b></p>
             </div>
         </div>
@@ -54,30 +54,30 @@
 </div>
 
 <div class="tile">
-    <h3 class="tile-title">Users & Members by Church</h3>
+    <h3 class="tile-title">{{ __('owner.usr.by_church') }}</h3>
     <form method="GET" class="form-inline mb-3">
-        <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="Search church..."
+        <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="{{ __('owner.usr.search_church') }}"
             value="{{ $filters['search'] ?? '' }}">
         <select name="status" class="form-control mr-2 mb-2">
-            <option value="">All statuses</option>
+            <option value="">{{ __('pages.shared.all_statuses') }}</option>
             @foreach($statuses as $status)
                 <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>
                     {{ $status->label() }}
                 </option>
             @endforeach
         </select>
-        <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> Filter</button>
+        <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
     </form>
 
     <div class="table-responsive">
         <table class="table table-hover table-bordered">
             <thead>
                 <tr>
-                    <th>Church</th>
-                    <th>Status</th>
-                    <th class="text-center">Staff Users</th>
-                    <th class="text-center">Registered Members</th>
-                    <th class="text-right">Actions</th>
+                    <th>{{ __('owner.church_label') }}</th>
+                    <th>{{ __('owner.status') }}</th>
+                    <th class="text-center">{{ __('owner.usr.staff_users') }}</th>
+                    <th class="text-center">{{ __('owner.usr.registered_members') }}</th>
+                    <th class="text-right">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -96,18 +96,18 @@
                         <td class="text-center">
                             <span class="badge badge-success">{{ number_format($church->active_members_count) }}</span>
                             @if($church->members_count > $church->active_members_count)
-                                <br><small class="text-muted">{{ number_format($church->members_count) }} total</small>
+                                <br><small class="text-muted">{{ number_format($church->members_count) }} {{ __('owner.usr.total_suffix') }}</small>
                             @endif
                         </td>
                         <td class="text-right">
-                            <a href="{{ route('owner.churches.show', $church) }}" class="btn btn-sm btn-info" title="View church">
+                            <a href="{{ route('owner.churches.show', $church) }}" class="btn btn-sm btn-info" title="{{ __('owner.usr.view_church') }}">
                                 <i class="fa fa-eye"></i>
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted">No churches found.</td>
+                        <td colspan="5" class="text-center text-muted">{{ __('owner.church.no_found') }}</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -118,18 +118,18 @@
 
 @if($platformStaff->isNotEmpty())
     <div class="tile">
-        <h3 class="tile-title">Platform Staff</h3>
-        <p class="text-muted mb-3">Owner and platform staff accounts (not linked to a church).</p>
+        <h3 class="tile-title">{{ __('owner.usr.platform_staff_heading') }}</h3>
+        <p class="text-muted mb-3">{{ __('owner.usr.platform_staff_desc') }}</p>
         <div class="table-responsive">
             <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Type</th>
-                        <th>Roles</th>
-                        <th>Status</th>
-                        <th>Last Login</th>
+                        <th>{{ __('owner.name') }}</th>
+                        <th>{{ __('owner.email') }}</th>
+                        <th>{{ __('owner.type') }}</th>
+                        <th>{{ __('owner.usr.roles') }}</th>
+                        <th>{{ __('owner.status') }}</th>
+                        <th>{{ __('owner.usr.last_login') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -150,7 +150,7 @@
                                     {{ ucfirst($user->status->value) }}
                                 </span>
                             </td>
-                            <td>{{ $user->last_login_at?->format('M d, Y H:i') ?? 'Never' }}</td>
+                            <td>{{ $user->last_login_at?->format('M d, Y H:i') ?? __('common.never') }}</td>
                         </tr>
                     @endforeach
                 </tbody>

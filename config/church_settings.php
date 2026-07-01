@@ -39,6 +39,8 @@ return [
         'finance_approval_required' => true,
         'fiscal_year_start_month' => 1,
         'sms_enabled' => false,
+        'use_custom_sender_id' => false,
+        'sms_sender_id' => '',
         'email_notifications' => true,
         'announcement_sms' => false,
         'member_credentials_sms' => false,

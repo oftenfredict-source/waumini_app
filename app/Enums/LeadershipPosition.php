@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum LeadershipPosition: string
 {
+    use HasTranslatableLabel;
+
     case Pastor = 'pastor';
     case AssistantPastor = 'assistant_pastor';
     case Secretary = 'secretary';
@@ -22,30 +26,6 @@ enum LeadershipPosition: string
     case EvangelismLeader = 'evangelism_leader';
     case PrayerLeader = 'prayer_leader';
     case Other = 'other';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Pastor => 'Pastor',
-            self::AssistantPastor => 'Assistant Pastor',
-            self::Secretary => 'Secretary',
-            self::AssistantSecretary => 'Assistant Secretary',
-            self::Treasurer => 'Treasurer',
-            self::AssistantTreasurer => 'Assistant Treasurer',
-            self::Accountant => 'Accountant',
-            self::Elder => 'Church Elder',
-            self::Deacon => 'Deacon',
-            self::Deaconess => 'Deaconess',
-            self::YouthLeader => 'Youth Leader',
-            self::ChildrenLeader => 'Children Leader',
-            self::WorshipLeader => 'Worship Leader',
-            self::ChoirLeader => 'Choir Leader',
-            self::UsherLeader => 'Usher Leader',
-            self::EvangelismLeader => 'Evangelism Leader',
-            self::PrayerLeader => 'Prayer Leader',
-            self::Other => 'Other (Custom)',
-        };
-    }
 
     public static function options(): array
     {

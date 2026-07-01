@@ -1,20 +1,19 @@
 @extends('layouts.church')
 
-@section('title', 'Record Expense')
+@section('title', __('pages.expenses.record_expense'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-plus"></i> Record Expense</h1>
-        <p>Submit an expense for approval.</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.budget.index') }}">Budget & Expenses</a></li>
-        <li class="breadcrumb-item">Expenses</li>
-        <li class="breadcrumb-item">Record</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-plus',
+    'title' => __('pages.expenses.record_expense'),
+    'subtitle' => __('pages.expenses.create_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.budget_expenses'), 'route' => 'church.budget.index'],
+        ['label' => __('pages.budget.expenses'), 'route' => 'church.expenses.index'],
+        ['label' => __('pages.shared.breadcrumb_record')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.expenses.store') }}">
@@ -26,10 +25,9 @@
             'paymentMethods' => $paymentMethods,
         ])
         <div class="tile-footer mt-3">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Expense</button>
-            <a href="{{ route('church.expenses.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.save_item', ['item' => __('pages.expenses.item')]) }}</button>
+            <a href="{{ route('church.expenses.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>
 @endsection
-

@@ -2,20 +2,15 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum CelebrationStatus: string
 {
+    use HasTranslatableLabel;
+
     case Upcoming = 'upcoming';
     case Celebrated = 'celebrated';
     case Cancelled = 'cancelled';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Upcoming => 'Upcoming',
-            self::Celebrated => 'Celebrated',
-            self::Cancelled => 'Cancelled',
-        };
-    }
 
     public function badgeClass(): string
     {

@@ -2,24 +2,17 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum MemberRequestStatus: string
 {
+    use HasTranslatableLabel;
+
     case Pending = 'pending';
     case InReview = 'in_review';
     case Approved = 'approved';
     case Rejected = 'rejected';
     case Completed = 'completed';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Pending => 'Pending',
-            self::InReview => 'In Review',
-            self::Approved => 'Approved',
-            self::Rejected => 'Rejected',
-            self::Completed => 'Completed',
-        };
-    }
 
     public function badgeClass(): string
     {

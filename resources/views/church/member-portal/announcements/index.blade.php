@@ -1,18 +1,17 @@
 @extends('layouts.church')
 
-@section('title', 'Announcements')
+@section('title', __('pages.member_portal_announcements.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-bullhorn"></i> Announcements</h1>
-        <p>Messages shared with you by {{ $church->name }}</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.member.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item">Announcements</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-bullhorn',
+    'title' => __('pages.member_portal_announcements.title'),
+    'subtitle' => __('pages.member_portal_announcements.subtitle', ['church' => $church->name]),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.member.dashboard'],
+        ['label' => __('menu.announcements')],
+    ],
+])
 
 <div class="tile">
     @forelse($announcements as $announcement)
@@ -25,12 +24,12 @@
                 <small class="text-muted">{{ $announcement->created_at?->format('M d, Y') }}</small>
             </div>
             <div class="mb-2">
-                <span class="badge badge-light">{{ $announcement->type?->label() ?? 'General' }}</span>
+                <span class="badge badge-light">{{ $announcement->type?->label() ?? __('common.general') }}</span>
             </div>
             <p class="text-muted mb-0">{{ Str::limit(strip_tags($announcement->content), 180) }}</p>
         </div>
     @empty
-        <p class="p-4 text-muted mb-0">No announcements are available for you at this time.</p>
+        <p class="p-4 text-muted mb-0">{{ __('pages.member_portal_announcements.empty') }}</p>
     @endforelse
 </div>
 @endsection

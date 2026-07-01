@@ -8,13 +8,13 @@
                             <input type="checkbox" class="select-all-pending" data-type="{{ $type }}">
                         </th>
                     @endif
-                    <th>Member</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    <th>Payment</th>
-                    <th>Reference</th>
-                    <th>Recorded By</th>
-                    <th width="140">Actions</th>
+                    <th>{{ __('common.member') }}</th>
+                    <th>{{ __('common.amount') }}</th>
+                    <th>{{ __('common.date') }}</th>
+                    <th>{{ __('finance.payment') }}</th>
+                    <th>{{ __('common.reference') }}</th>
+                    <th>{{ __('pages.shared.recorded_by') }}</th>
+                    <th width="140">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,12 +35,12 @@
                                     $member = $type === 'pledge_payment' ? $record->pledge?->member : $record->member;
                                 @endphp
                                 @if($type === 'offering' && ! $member)
-                                    <strong>General — {{ $record->churchService?->displayTitle() ?? 'Offering' }}</strong>
+                                    <strong>{{ __('finance.general_offering') }} — {{ $record->churchService?->displayTitle() ?? __('finance.offerings') }}</strong>
                                     @if($record->churchService)
                                         <br><small class="text-muted">{{ $record->churchService->service_date?->format('M d, Y') }}</small>
                                     @endif
                                 @else
-                                    <strong>{{ $member?->full_name ?? 'General / Anonymous' }}</strong>
+                                    <strong>{{ $member?->full_name ?? __('finance.general_anonymous') }}</strong>
                                     @if($member?->envelope_number)
                                         <br><small class="text-muted">{{ $member->envelope_number }}</small>
                                     @endif
@@ -60,16 +60,16 @@
                             <div class="btn-group btn-group-sm">
                                 @if($canApprove)
                                     <button type="button" class="btn btn-success btn-approve-record"
-                                        data-type="{{ $type }}" data-id="{{ $record->id }}" title="Approve">
+                                        data-type="{{ $type }}" data-id="{{ $record->id }}" title="{{ __('finance.approve') }}">
                                         <i class="fa fa-check"></i>
                                     </button>
                                     <button type="button" class="btn btn-danger btn-reject-record"
-                                        data-type="{{ $type }}" data-id="{{ $record->id }}" title="Reject">
+                                        data-type="{{ $type }}" data-id="{{ $record->id }}" title="{{ __('finance.reject') }}">
                                         <i class="fa fa-times"></i>
                                     </button>
                                 @endif
                                 <button type="button" class="btn btn-info btn-view-record"
-                                    data-type="{{ $type }}" data-id="{{ $record->id }}" title="View">
+                                    data-type="{{ $type }}" data-id="{{ $record->id }}" title="{{ __('common.view') }}">
                                     <i class="fa fa-eye"></i>
                                 </button>
                             </div>
@@ -82,7 +82,7 @@
 @else
     <div class="text-center text-muted py-5">
         <i class="fa fa-check-circle fa-3x mb-3 text-success"></i>
-        <h5>No Pending {{ $label }}</h5>
-        <p class="mb-0">All {{ strtolower($label) }} have been processed.</p>
+        <h5>{{ __('finance.no_pending', ['label' => $label]) }}</h5>
+        <p class="mb-0">{{ __('finance.all_processed', ['label' => strtolower($label)]) }}</p>
     </div>
 @endif

@@ -2,16 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum CelebrationSource: string
 {
+    use HasTranslatableLabel;
+
     case Auto = 'auto';
     case Manual = 'manual';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::Auto => 'From Member Profile',
-            self::Manual => 'Manual Entry',
-        };
-    }
 }

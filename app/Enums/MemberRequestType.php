@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum MemberRequestType: string
 {
+    use HasTranslatableLabel;
+
     case TravellingCertificate = 'travelling_certificate';
     case RecommendationLetter = 'recommendation_letter';
     case BaptismCertificate = 'baptism_certificate';
@@ -11,19 +15,6 @@ enum MemberRequestType: string
     case GeneralIssue = 'general_issue';
     case PrayerRequest = 'prayer_request';
     case Other = 'other';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::TravellingCertificate => 'Travelling Certificate',
-            self::RecommendationLetter => 'Recommendation Letter',
-            self::BaptismCertificate => 'Baptism Certificate',
-            self::BaptismRequest => 'Baptism Request',
-            self::GeneralIssue => 'General Issue / Complaint',
-            self::PrayerRequest => 'Prayer Request',
-            self::Other => 'Other Request',
-        };
-    }
 
     public function generatesCertificate(): bool
     {

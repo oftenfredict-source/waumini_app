@@ -3,6 +3,7 @@
 namespace App\Services\Church;
 
 use App\Models\Church;
+use App\Models\SystemSetting;
 use App\Services\Church\MemberIdPrefixService;
 use App\Services\Owner\AuditLogService;
 use Illuminate\Http\Request;
@@ -43,6 +44,19 @@ class ChurchSettingsService
     public function get(Church $church, string $key, mixed $default = null): mixed
     {
         return Arr::get($this->all($church), $key, $default);
+    }
+
+    public function resolveSenderId(Church $church): string
+    {
+        if ((bool) $this->get($church, 'use_custom_sender_id', false)) {
+            $custom = trim((string) $this->get($church, 'sms_sender_id', ''));
+
+            if ($custom !== '') {
+                return $custom;
+            }
+        }
+
+        return (string) SystemSetting::smsGatewayConfig()['sender_id'];
     }
 
     /**
@@ -89,14 +103,25 @@ class ChurchSettingsService
                     'finance_approval_required' => filter_var($input['finance_approval_required'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 ],
             ),
-            'notifications' => [
-                'sms_enabled' => filter_var($input['sms_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'email_notifications' => filter_var($input['email_notifications'] ?? true, FILTER_VALIDATE_BOOLEAN),
-                'announcement_sms' => filter_var($input['announcement_sms'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'member_credentials_sms' => filter_var($input['member_credentials_sms'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'password_reset_sms' => filter_var($input['password_reset_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
-                'finance_approval_sms' => filter_var($input['finance_approval_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
-            ],
+            'notifications' => array_merge(
+                validator($input, [
+                    'sms_sender_id' => [
+                        filter_var($input['use_custom_sender_id'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'required' : 'nullable',
+                        'string',
+                        'max:20',
+                    ],
+                ])->validate(),
+                [
+                    'sms_enabled' => filter_var($input['sms_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'use_custom_sender_id' => filter_var($input['use_custom_sender_id'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'sms_sender_id' => trim((string) ($input['sms_sender_id'] ?? '')),
+                    'email_notifications' => filter_var($input['email_notifications'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'announcement_sms' => filter_var($input['announcement_sms'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'member_credentials_sms' => filter_var($input['member_credentials_sms'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'password_reset_sms' => filter_var($input['password_reset_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'finance_approval_sms' => filter_var($input['finance_approval_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                ],
+            ),
             'security' => array_merge(
                 validator($input, [
                     'session_timeout_minutes' => ['required', 'integer', 'min:15', 'max:480'],

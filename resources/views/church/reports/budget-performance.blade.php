@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Budget Performance')
+@section('title', __('reports.budget_performance'))
 
 @include('church.reports.partials.styles')
 
@@ -10,8 +10,8 @@
 @include('church.reports.partials.nav')
 
 <div class="report-hero">
-    <h2><i class="fa fa-pie-chart"></i> Budget Performance</h2>
-    <p class="lead">Budget utilization for {{ $church->name }}</p>
+    <h2><i class="fa fa-pie-chart"></i> {{ __('reports.budget_performance') }}</h2>
+    <p class="lead">{{ __('reports.budget_utilization_for', ['church' => $church->name]) }}</p>
 </div>
 
 <div class="tile">
@@ -19,13 +19,13 @@
         <table class="table table-sm table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Budget</th>
-                    <th>Year</th>
-                    <th>Status</th>
-                    <th class="text-right">Budget</th>
-                    <th class="text-right">Spent</th>
-                    <th class="text-right">Remaining</th>
-                    <th class="text-right">Utilization</th>
+                    <th>{{ __('reports.budget_label') }}</th>
+                    <th>{{ __('reports.year') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th class="text-right">{{ __('reports.budget_label') }}</th>
+                    <th class="text-right">{{ __('reports.spent') }}</th>
+                    <th class="text-right">{{ __('reports.remaining') }}</th>
+                    <th class="text-right">{{ __('reports.utilization') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,7 +47,7 @@
             </tbody>
         </table>
     @else
-        <p class="text-muted mb-0">No budgets have been created yet.</p>
+        <p class="text-muted mb-0">{{ __('reports.no_budgets') }}</p>
     @endif
 </div>
 @endsection

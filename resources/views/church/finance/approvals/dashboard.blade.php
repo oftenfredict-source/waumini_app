@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Approval Dashboard')
+@section('title', __('finance.approvals_title'))
 
 @push('styles')
 <style>
@@ -61,12 +61,12 @@
 <div class="approval-hero">
     <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
-            <h2><i class="fa fa-check-circle"></i> Financial Approval Dashboard</h2>
-            <p class="mb-0" style="color:rgba(255,255,255,0.85);">Review and approve pending tithes, offerings, and other financial records.</p>
+            <h2><i class="fa fa-check-circle"></i> {{ __('finance.approvals_heading') }}</h2>
+            <p class="mb-0" style="color:rgba(255,255,255,0.85);">{{ __('finance.approvals_subtitle') }}</p>
         </div>
         <div class="mt-3 mt-md-0">
             <a href="{{ route('church.finance.dashboard') }}" class="btn btn-light btn-sm">
-                <i class="fa fa-line-chart"></i> Finance Dashboard
+                <i class="fa fa-line-chart"></i> {{ __('finance.finance_dashboard') }}
             </a>
         </div>
     </div>
@@ -76,7 +76,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card approval-stat">
             <div class="card-body">
-                <div class="stat-label">Pending Records</div>
+                <div class="stat-label">{{ __('finance.pending_records') }}</div>
                 <div class="stat-value text-warning">{{ $summary['total_pending'] }}</div>
             </div>
         </div>
@@ -84,7 +84,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card approval-stat">
             <div class="card-body">
-                <div class="stat-label">Pending Amount</div>
+                <div class="stat-label">{{ __('finance.pending_amount') }}</div>
                 <div class="stat-value text-primary">TZS {{ number_format($summary['total_pending_amount'], 0) }}</div>
             </div>
         </div>
@@ -92,7 +92,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card approval-stat">
             <div class="card-body">
-                <div class="stat-label">Today's Date</div>
+                <div class="stat-label">{{ __('finance.todays_date') }}</div>
                 <div class="stat-value">{{ now()->format('M d, Y') }}</div>
             </div>
         </div>
@@ -100,7 +100,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card approval-stat">
             <div class="card-body">
-                <div class="stat-label">Approver</div>
+                <div class="stat-label">{{ __('finance.approver') }}</div>
                 <div class="stat-value" style="font-size:1.1rem;">{{ auth()->user()->name }}</div>
             </div>
         </div>
@@ -113,10 +113,10 @@
         <div class="tile">
             <div class="d-flex flex-wrap align-items-center">
                 <button type="button" class="btn btn-success mr-2 mb-2" id="bulkApproveBtn">
-                    <i class="fa fa-check-double"></i> Bulk Approve Selected
+                    <i class="fa fa-check-double"></i> {{ __('finance.bulk_approve') }}
                 </button>
                 <button type="button" class="btn btn-primary mr-2 mb-2" onclick="window.location.reload()">
-                    <i class="fa fa-refresh"></i> Refresh
+                    <i class="fa fa-refresh"></i> {{ __('finance.refresh') }}
                 </button>
             </div>
         </div>
@@ -125,7 +125,7 @@
 @endif
 
 <div class="tile">
-    <h3 class="tile-title"><i class="fa fa-list"></i> Pending Financial Records</h3>
+    <h3 class="tile-title"><i class="fa fa-list"></i> {{ __('finance.pending_financial_records') }}</h3>
 
     <ul class="nav nav-pills approval-tabs mb-3" role="tablist">
         @foreach($types as $key => $meta)
@@ -162,8 +162,8 @@
             <div class="tab-pane fade" id="tab-{{ $tab['key'] }}" role="tabpanel">
                 <div class="text-center text-muted py-5">
                     <i class="fa {{ $tab['icon'] }} fa-3x mb-3"></i>
-                    <h5>{{ $tab['label'] }} approvals</h5>
-                    <p class="mb-0">This section will activate when the {{ strtolower($tab['label']) }} module is implemented.</p>
+                    <h5>{{ __('finance.tab_approvals', ['label' => $tab['label']]) }}</h5>
+                    <p class="mb-0">{{ __('finance.tab_placeholder', ['module' => strtolower($tab['label'])]) }}</p>
                 </div>
             </div>
         @endforeach
@@ -172,17 +172,17 @@
 
 @if($summary['recent_approvals']->isNotEmpty())
 <div class="tile mt-3">
-    <h3 class="tile-title"><i class="fa fa-history"></i> Recent Approvals (Last 7 Days)</h3>
+    <h3 class="tile-title"><i class="fa fa-history"></i> {{ __('finance.recent_approvals') }}</h3>
     <div class="table-responsive">
         <table class="table table-hover table-bordered table-sm">
             <thead>
                 <tr>
-                    <th>Type</th>
-                    <th>Member</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    <th>Approved By</th>
-                    <th>Approved At</th>
+                    <th>{{ __('common.type') }}</th>
+                    <th>{{ __('common.member') }}</th>
+                    <th>{{ __('common.amount') }}</th>
+                    <th>{{ __('common.date') }}</th>
+                    <th>{{ __('finance.approved_by') }}</th>
+                    <th>{{ __('finance.approved_at') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -210,18 +210,18 @@
                 <input type="hidden" name="type" id="approvalType">
                 <input type="hidden" name="id" id="approvalId">
                 <div class="modal-header">
-                    <h5 class="modal-title">Approve Record</h5>
+                    <h5 class="modal-title">{{ __('finance.approve_record') }}</h5>
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Approval Notes (optional)</label>
-                        <textarea name="approval_notes" class="form-control" rows="3" placeholder="Add any notes about this approval..."></textarea>
+                        <label>{{ __('finance.approval_notes') }}</label>
+                        <textarea name="approval_notes" class="form-control" rows="3" placeholder="{{ __('finance.approval_notes_placeholder') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Approve</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('common.cancel') }}</button>
+                    <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> {{ __('finance.approve') }}</button>
                 </div>
             </form>
         </div>
@@ -236,18 +236,18 @@
                 <input type="hidden" name="type" id="rejectionType">
                 <input type="hidden" name="id" id="rejectionId">
                 <div class="modal-header">
-                    <h5 class="modal-title">Reject Record</h5>
+                    <h5 class="modal-title">{{ __('finance.reject_record') }}</h5>
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Rejection Reason *</label>
-                        <textarea name="rejection_reason" class="form-control" rows="3" required placeholder="Please provide a reason for rejection..."></textarea>
+                        <label>{{ __('finance.rejection_reason') }}</label>
+                        <textarea name="rejection_reason" class="form-control" rows="3" required placeholder="{{ __('finance.rejection_reason_placeholder') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger"><i class="fa fa-times"></i> Reject</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('common.cancel') }}</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa fa-times"></i> {{ __('finance.reject') }}</button>
                 </div>
             </form>
         </div>
@@ -258,14 +258,14 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Record Details</h5>
+                <h5 class="modal-title">{{ __('finance.record_details') }}</h5>
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
             </div>
             <div class="modal-body" id="detailsModalBody">
-                <div class="text-center text-muted py-4"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+                <div class="text-center text-muted py-4"><i class="fa fa-spinner fa-spin"></i> {{ __('common.loading') }}</div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('common.close') }}</button>
             </div>
         </div>
     </div>
@@ -278,8 +278,43 @@
 @endsection
 
 @push('scripts')
+@php
+    $financeJs = [
+        'loading' => __('common.loading'),
+        'failed' => __('pages.system_sms.failed'),
+        'failed_load' => __('finance.failed_load'),
+        'type' => __('common.type'),
+        'amount' => __('common.amount'),
+        'date' => __('common.date'),
+        'status' => __('common.status'),
+        'member' => __('common.member'),
+        'payment' => __('finance.payment'),
+        'reference' => __('common.reference'),
+        'recorded_by' => __('pages.shared.recorded_by'),
+        'offering_type' => __('finance.offering_type'),
+        'pledge_type' => __('finance.pledge_type'),
+        'pledged_amount' => __('finance.pledged_amount'),
+        'paid_amount' => __('finance.paid_amount'),
+        'budget_type' => __('finance.budget_type'),
+        'budget_status' => __('finance.budget_status'),
+        'purpose' => __('finance.purpose'),
+        'primary_offering' => __('finance.primary_offering'),
+        'expense_category' => __('finance.expense_category'),
+        'vendor' => __('finance.vendor'),
+        'receipt' => __('finance.receipt'),
+        'notes' => __('finance.notes'),
+        'no_records_selected' => __('finance.no_records_selected'),
+        'select_at_least_one' => __('finance.select_at_least_one'),
+        'approve_selected' => __('finance.approve_selected'),
+        'approve_count' => __('finance.approve_count', ['count' => ':count']),
+        'yes_approve' => __('finance.yes_approve'),
+        'cancel' => __('common.cancel'),
+        'bulk_approved_by' => __('finance.bulk_approved_by', ['name' => auth()->user()->name]),
+    ];
+@endphp
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const i18n = @json($financeJs);
     const hash = window.location.hash;
     if (hash && hash.startsWith('#tab-')) {
         const tabLink = document.querySelector(`a[href="${hash}"]`);
@@ -309,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const type = btn.dataset.type;
             const id = btn.dataset.id;
             const body = document.getElementById('detailsModalBody');
-            body.innerHTML = '<div class="text-center text-muted py-4"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+            body.innerHTML = '<div class="text-center text-muted py-4"><i class="fa fa-spinner fa-spin"></i> ' + i18n.loading + '</div>';
             $('#detailsModal').modal('show');
 
             fetch(`{{ url('finance/approvals/details') }}/${type}/${id}`, {
@@ -317,39 +352,39 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(r => r.json())
                 .then(res => {
-                    if (!res.success) throw new Error(res.message || 'Failed');
+                    if (!res.success) throw new Error(res.message || i18n.failed);
                     const d = res.data;
                     body.innerHTML = `
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong>Type:</strong> ${d.type}</p>
-                                <p><strong>Amount:</strong> TZS ${Number(d.amount).toLocaleString()}</p>
-                                <p><strong>Date:</strong> ${d.date || '—'}</p>
-                                <p><strong>Status:</strong> <span class="badge badge-warning">${d.approval_status}</span></p>
+                                <p><strong>${i18n.type}:</strong> ${d.type}</p>
+                                <p><strong>${i18n.amount}:</strong> TZS ${Number(d.amount).toLocaleString()}</p>
+                                <p><strong>${i18n.date}:</strong> ${d.date || '—'}</p>
+                                <p><strong>${i18n.status}:</strong> <span class="badge badge-warning">${d.approval_status}</span></p>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Member:</strong> ${d.member_name || '—'}</p>
-                                <p><strong>Payment:</strong> ${d.payment_method || '—'}</p>
-                                <p><strong>Reference:</strong> ${d.reference_number || '—'}</p>
-                                <p><strong>Recorded By:</strong> ${d.recorded_by || '—'}</p>
+                                <p><strong>${i18n.member}:</strong> ${d.member_name || '—'}</p>
+                                <p><strong>${i18n.payment}:</strong> ${d.payment_method || '—'}</p>
+                                <p><strong>${i18n.reference}:</strong> ${d.reference_number || '—'}</p>
+                                <p><strong>${i18n.recorded_by}:</strong> ${d.recorded_by || '—'}</p>
                             </div>
                         </div>
-                        ${d.offering_type ? `<p><strong>Offering Type:</strong> ${d.offering_type}</p>` : ''}
-                        ${d.pledge_type ? `<p><strong>Pledge Type:</strong> ${d.pledge_type}</p>` : ''}
-                        ${d.pledge_amount != null ? `<p><strong>Pledged Amount:</strong> TZS ${Number(d.pledge_amount).toLocaleString()}</p>` : ''}
-                        ${d.pledge_paid != null ? `<p><strong>Paid Amount:</strong> TZS ${Number(d.pledge_paid).toLocaleString()}</p>` : ''}
-                        ${d.budget_type ? `<p><strong>Budget Type:</strong> ${d.budget_type}</p>` : ''}
-                        ${d.budget_status ? `<p><strong>Budget Status:</strong> ${d.budget_status}</p>` : ''}
-                        ${d.purpose ? `<p><strong>Purpose:</strong> ${d.purpose}</p>` : ''}
-                        ${d.primary_offering_type ? `<p><strong>Primary Offering:</strong> ${d.primary_offering_type}</p>` : ''}
-                        ${d.expense_category ? `<p><strong>Expense Category:</strong> ${d.expense_category}</p>` : ''}
-                        ${d.vendor ? `<p><strong>Vendor:</strong> ${d.vendor}</p>` : ''}
-                        ${d.receipt_number ? `<p><strong>Receipt:</strong> ${d.receipt_number}</p>` : ''}
-                        ${d.notes ? `<hr><p><strong>Notes:</strong><br>${d.notes}</p>` : ''}
+                        ${d.offering_type ? `<p><strong>${i18n.offering_type}:</strong> ${d.offering_type}</p>` : ''}
+                        ${d.pledge_type ? `<p><strong>${i18n.pledge_type}:</strong> ${d.pledge_type}</p>` : ''}
+                        ${d.pledge_amount != null ? `<p><strong>${i18n.pledged_amount}:</strong> TZS ${Number(d.pledge_amount).toLocaleString()}</p>` : ''}
+                        ${d.pledge_paid != null ? `<p><strong>${i18n.paid_amount}:</strong> TZS ${Number(d.pledge_paid).toLocaleString()}</p>` : ''}
+                        ${d.budget_type ? `<p><strong>${i18n.budget_type}:</strong> ${d.budget_type}</p>` : ''}
+                        ${d.budget_status ? `<p><strong>${i18n.budget_status}:</strong> ${d.budget_status}</p>` : ''}
+                        ${d.purpose ? `<p><strong>${i18n.purpose}:</strong> ${d.purpose}</p>` : ''}
+                        ${d.primary_offering_type ? `<p><strong>${i18n.primary_offering}:</strong> ${d.primary_offering_type}</p>` : ''}
+                        ${d.expense_category ? `<p><strong>${i18n.expense_category}:</strong> ${d.expense_category}</p>` : ''}
+                        ${d.vendor ? `<p><strong>${i18n.vendor}:</strong> ${d.vendor}</p>` : ''}
+                        ${d.receipt_number ? `<p><strong>${i18n.receipt}:</strong> ${d.receipt_number}</p>` : ''}
+                        ${d.notes ? `<hr><p><strong>${i18n.notes}:</strong><br>${d.notes}</p>` : ''}
                     `;
                 })
                 .catch(() => {
-                    body.innerHTML = '<div class="alert alert-danger mb-0">Failed to load record details.</div>';
+                    body.innerHTML = '<div class="alert alert-danger mb-0">' + i18n.failed_load + '</div>';
                 });
         });
     });
@@ -370,22 +405,22 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selected.length === 0) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'No records selected',
-                    text: 'Select at least one pending record to approve.',
+                    title: i18n.no_records_selected,
+                    text: i18n.select_at_least_one,
                     confirmButtonColor: document.querySelector('meta[name="brand-color"]')?.content || '#940000',
                 });
                 return;
             }
 
             Swal.fire({
-                title: 'Approve selected records?',
-                text: 'Approve ' + selected.length + ' selected record(s)?',
+                title: i18n.approve_selected,
+                text: i18n.approve_count.replace(':count', selected.length),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: document.querySelector('meta[name="brand-color"]')?.content || '#940000',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, approve',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: i18n.yes_approve,
+                cancelButtonText: i18n.cancel,
                 reverseButtons: true,
             }).then(function (result) {
                 if (!result.isConfirmed) {
@@ -409,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     form.appendChild(idInput);
                 });
 
-                document.getElementById('bulkApprovalNotes').value = 'Bulk approved by {{ auth()->user()->name }}';
+                document.getElementById('bulkApprovalNotes').value = i18n.bulk_approved_by;
                 form.submit();
             });
         });

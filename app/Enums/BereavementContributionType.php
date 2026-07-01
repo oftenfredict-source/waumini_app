@@ -2,16 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum BereavementContributionType: string
 {
+    use HasTranslatableLabel;
+
     case Individual = 'individual';
     case FamilyWide = 'family_wide';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::Individual => 'Individual',
-            self::FamilyWide => 'Family-wide',
-        };
-    }
 }

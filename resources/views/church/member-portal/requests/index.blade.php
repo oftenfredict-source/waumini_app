@@ -1,18 +1,22 @@
 @extends('layouts.church')
 
-@section('title', 'My Requests')
+@section('title', __('pages.member_portal_requests.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-envelope"></i> My Requests</h1>
-        <p>Submit and track certificates, issues, and other requests</p>
-    </div>
-    <div class="text-right">
-        <a href="{{ route('church.member.requests.create') }}" class="btn btn-primary">
-            <i class="fa fa-plus"></i> New Request
-        </a>
-    </div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-envelope',
+    'title' => __('pages.member_portal_requests.title'),
+    'subtitle' => __('pages.member_portal_requests.subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.member.dashboard'],
+        ['label' => __('menu.my_requests')],
+    ],
+])
+
+<div class="mb-3 text-md-right">
+    <a href="{{ route('church.member.requests.create') }}" class="btn btn-primary">
+        <i class="fa fa-plus"></i> {{ __('pages.member_portal_requests.new_request') }}
+    </a>
 </div>
 
 <div class="tile">
@@ -20,12 +24,12 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Reference</th>
-                    <th>Type</th>
-                    <th>Subject</th>
-                    <th>Assigned To</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
+                    <th>{{ __('common.reference') }}</th>
+                    <th>{{ __('common.type') }}</th>
+                    <th>{{ __('common.subject') }}</th>
+                    <th>{{ __('pages.shared.assigned_to') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('pages.shared.submitted') }}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -39,16 +43,16 @@
                         <td><span class="badge badge-{{ $item->status->badgeClass() }}">{{ $item->status->label() }}</span></td>
                         <td>{{ $item->created_at?->format('M d, Y') }}</td>
                         <td class="text-right text-nowrap">
-                            <a href="{{ route('church.member.requests.show', $item) }}" class="btn btn-sm btn-info">View</a>
+                            <a href="{{ route('church.member.requests.show', $item) }}" class="btn btn-sm btn-info">{{ __('common.view') }}</a>
                             @if($item->hasDownloadableCertificate())
-                                <a href="{{ route('church.member.requests.certificate', $item) }}" class="btn btn-sm btn-success" title="Download certificate">
+                                <a href="{{ route('church.member.requests.certificate', $item) }}" class="btn btn-sm btn-success" title="{{ __('pages.member_portal_requests.download_certificate') }}">
                                     <i class="fa fa-download"></i>
                                 </a>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-muted">You have not submitted any requests yet.</td></tr>
+                    <tr><td colspan="7" class="text-muted">{{ __('pages.member_portal_requests.empty') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

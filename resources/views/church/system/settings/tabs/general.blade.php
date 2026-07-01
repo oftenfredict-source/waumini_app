@@ -131,9 +131,10 @@
             <div class="form-group">
                 <label>Language / Locale</label>
                 <select name="locale" class="form-control">
-                    <option value="en" @selected(old('locale', $settings['locale']) === 'en')>English</option>
-                    <option value="sw" @selected(old('locale', $settings['locale']) === 'sw')>Swahili</option>
+                    <option value="en" @selected(old('locale', $settings['locale']) === 'en')>{{ __('common.language') }}: English</option>
+                    <option value="sw" @selected(old('locale', $settings['locale']) === 'sw')>{{ __('common.language') }}: Kiswahili</option>
                 </select>
+                <small class="text-muted">Default language for church users. Individuals can still switch language from the header.</small>
             </div>
         </div>
     </div>

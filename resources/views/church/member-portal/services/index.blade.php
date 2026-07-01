@@ -1,30 +1,29 @@
 @extends('layouts.church')
 
-@section('title', 'Church Services')
+@section('title', __('pages.member_portal_services.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-calendar"></i> Church Services</h1>
-        <p>Upcoming services at {{ $church->name }}</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.member.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item">Services</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-calendar',
+    'title' => __('pages.member_portal_services.title'),
+    'subtitle' => __('pages.member_portal_services.subtitle', ['church' => $church->name]),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.member.dashboard'],
+        ['label' => __('menu.services')],
+    ],
+])
 
 <div class="tile">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Service</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Preacher</th>
-                    <th>Venue</th>
-                    <th>Theme</th>
+                    <th>{{ __('pages.shared.service') }}</th>
+                    <th>{{ __('common.date') }}</th>
+                    <th>{{ __('pages.shared.time') }}</th>
+                    <th>{{ __('pages.shared.preacher') }}</th>
+                    <th>{{ __('common.venue') }}</th>
+                    <th>{{ __('pages.shared.theme') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,7 +46,7 @@
                         <td>{{ $service->theme ?? '—' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-muted">No upcoming services scheduled.</td></tr>
+                    <tr><td colspan="6" class="text-muted">{{ __('pages.member_portal_services.empty') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

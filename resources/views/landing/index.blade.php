@@ -6,12 +6,12 @@
     $landingCss = \App\Support\WauminiBrand::publicAsset('css/landing.css');
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{{ $appName }} — Church Management Platform</title>
-    <meta name="description" content="{{ $appName }} helps churches manage members, finance, attendance, communications, and more — all in one secure cloud platform.">
+    <title>{{ $appName }} — {{ __('landing.tagline') }}</title>
+    <meta name="description" content="{{ $appName }} {{ __('landing.meta_description') }}">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -66,20 +66,21 @@
                     @endif
                 </a>
 
-                <button type="button" class="landing-menu-toggle landing-hide-desktop" @click="open = !open" aria-label="Toggle menu">
+                <button type="button" class="landing-menu-toggle landing-hide-desktop" @click="open = !open" aria-label="{{ __('landing.toggle_menu') }}">
                     <i class="fa" :class="open ? 'fa-times' : 'fa-bars'"></i>
                 </button>
 
                 <nav class="landing-menu landing-nav-center" :class="{ 'is-open': open }">
-                    <a href="#home" @click="open = false">Home</a>
-                    <a href="#features" @click="open = false">Features</a>
-                    <a href="#about" @click="open = false">About</a>
-                    <a href="#pricing" @click="open = false">Pricing</a>
+                    <a href="#home" @click="open = false">{{ __('landing.home') }}</a>
+                    <a href="#features" @click="open = false">{{ __('landing.features') }}</a>
+                    <a href="#about" @click="open = false">{{ __('landing.about') }}</a>
+                    <a href="#pricing" @click="open = false">{{ __('landing.pricing') }}</a>
                 </nav>
 
                 <div class="landing-nav-actions">
-                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-ghost landing-hide-mobile">Church Login</a>
-                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary">Get Started</a>
+                    @include('partials.locale-switcher', ['variant' => 'links', 'class' => 'landing-locale-switcher landing-hide-mobile'])
+                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-ghost landing-hide-mobile">{{ __('landing.church_login') }}</a>
+                    <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary">{{ __('landing.get_started') }}</a>
                 </div>
             </div>
         </div>
@@ -92,32 +93,32 @@
         <div class="landing-container landing-hero-grid">
             <div>
                 <div class="landing-eyebrow">
-                    <i class="fa fa-shield"></i> Trusted church management platform
+                    <i class="fa fa-shield"></i> {{ __('landing.trusted_platform') }}
                 </div>
-                <h1>Run your church with <span>clarity</span> and confidence</h1>
+                <h1>{!! __('landing.hero_title') !!}</h1>
                 <p class="landing-hero-lead">
-                    {{ $appName }} brings members, finance, attendance, SMS, and leadership tools into one beautiful dashboard — built for African churches.
+                    {{ __('landing.hero_lead', ['app' => $appName]) }}
                 </p>
                 <div class="landing-hero-actions">
                     <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary">
-                        <i class="fa fa-sign-in"></i> Sign in to your church
+                        <i class="fa fa-sign-in"></i> {{ __('landing.sign_in_church') }}
                     </a>
                     <a href="#pricing" class="landing-btn landing-btn-ghost">
-                        <i class="fa fa-tags"></i> View pricing
+                        <i class="fa fa-tags"></i> {{ __('landing.view_pricing') }}
                     </a>
                 </div>
                 <div class="landing-stats">
                     <div class="landing-stat">
-                        <strong>All-in-one</strong>
-                        <span>Members & finance</span>
+                        <strong>{{ __('landing.stat_all_in_one') }}</strong>
+                        <span>{{ __('landing.stat_all_in_one_desc') }}</span>
                     </div>
                     <div class="landing-stat">
-                        <strong>Secure</strong>
-                        <span>Role-based access</span>
+                        <strong>{{ __('landing.stat_secure') }}</strong>
+                        <span>{{ __('landing.stat_secure_desc') }}</span>
                     </div>
                     <div class="landing-stat">
-                        <strong>Cloud</strong>
-                        <span>Access anywhere</span>
+                        <strong>{{ __('landing.stat_cloud') }}</strong>
+                        <span>{{ __('landing.stat_cloud_desc') }}</span>
                     </div>
                 </div>
             </div>
@@ -128,12 +129,12 @@
                 </div>
                 <img src="{{ $s('img/girl-laptop.png') }}" alt="{{ $appName }} dashboard preview">
                 <div class="landing-float-card one">
-                    <strong><i class="fa fa-calendar-check-o landing-icon-accent"></i> Sunday attendance</strong>
-                    <span>Tracked in real time</span>
+                    <strong><i class="fa fa-calendar-check-o landing-icon-accent"></i> {{ __('landing.float_attendance') }}</strong>
+                    <span>{{ __('landing.float_attendance_desc') }}</span>
                 </div>
                 <div class="landing-float-card two">
-                    <strong><i class="fa fa-money landing-icon-accent"></i> Tithes & offerings</strong>
-                    <span>Clear finance reports</span>
+                    <strong><i class="fa fa-money landing-icon-accent"></i> {{ __('landing.float_giving') }}</strong>
+                    <span>{{ __('landing.float_giving_desc') }}</span>
                 </div>
             </div>
         </div>
@@ -145,17 +146,17 @@
     <section class="landing-section" id="features">
         <div class="landing-container">
             <div class="landing-pill-row">
-                <span class="landing-pill"><i class="fa fa-users"></i> Members</span>
-                <span class="landing-pill"><i class="fa fa-money"></i> Finance</span>
-                <span class="landing-pill"><i class="fa fa-calendar"></i> Attendance</span>
-                <span class="landing-pill"><i class="fa fa-envelope"></i> SMS</span>
-                <span class="landing-pill"><i class="fa fa-line-chart"></i> Reports</span>
+                <span class="landing-pill"><i class="fa fa-users"></i> {{ __('landing.pill_members') }}</span>
+                <span class="landing-pill"><i class="fa fa-money"></i> {{ __('landing.pill_finance') }}</span>
+                <span class="landing-pill"><i class="fa fa-calendar"></i> {{ __('landing.pill_attendance') }}</span>
+                <span class="landing-pill"><i class="fa fa-envelope"></i> {{ __('landing.pill_sms') }}</span>
+                <span class="landing-pill"><i class="fa fa-line-chart"></i> {{ __('landing.pill_reports') }}</span>
             </div>
 
             <div class="landing-section-head">
-                <span class="eyebrow">Features</span>
-                <h2>Everything your church team needs in one place</h2>
-                <p>From the secretary’s desk to the treasurer’s office — manage people, money, and ministry without scattered spreadsheets.</p>
+                <span class="eyebrow">{{ __('landing.features_eyebrow') }}</span>
+                <h2>{{ __('landing.features_title') }}</h2>
+                <p>{{ __('landing.features_lead') }}</p>
             </div>
 
             <div class="landing-feature-grid">
@@ -163,43 +164,43 @@
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #5b72ee, #7b8cff);">
                         <i class="fa fa-users"></i>
                     </div>
-                    <h3>Member Management</h3>
-                    <p>Register members, families, leadership, and keep your membership records organized.</p>
+                    <h3>{{ __('landing.feature_members_title') }}</h3>
+                    <p>{{ __('landing.feature_members_desc') }}</p>
                 </article>
                 <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #940000, #c41e1e);">
                         <i class="fa fa-money"></i>
                     </div>
-                    <h3>Finance & Giving</h3>
-                    <p>Record tithes, offerings, pledges, budgets, and expenses with approval workflows.</p>
+                    <h3>{{ __('landing.feature_finance_title') }}</h3>
+                    <p>{{ __('landing.feature_finance_desc') }}</p>
                 </article>
                 <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #29b9e7, #5ed0f7);">
                         <i class="fa fa-calendar-check-o"></i>
                     </div>
-                    <h3>Services & Attendance</h3>
-                    <p>Plan services, track attendance, and manage special events with ease.</p>
+                    <h3>{{ __('landing.feature_services_title') }}</h3>
+                    <p>{{ __('landing.feature_services_desc') }}</p>
                 </article>
                 <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #f48c06, #ffb347);">
                         <i class="fa fa-bullhorn"></i>
                     </div>
-                    <h3>Announcements & SMS</h3>
-                    <p>Reach your congregation with announcements and SMS notifications.</p>
+                    <h3>{{ __('landing.feature_announcements_title') }}</h3>
+                    <p>{{ __('landing.feature_announcements_desc') }}</p>
                 </article>
                 <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #33c18f, #5fe0ad);">
                         <i class="fa fa-sitemap"></i>
                     </div>
-                    <h3>Branches & Roles</h3>
-                    <p>Support multiple branches with role-based permissions for each staff member.</p>
+                    <h3>{{ __('landing.feature_branches_title') }}</h3>
+                    <p>{{ __('landing.feature_branches_desc') }}</p>
                 </article>
                 <article class="landing-feature-card">
                     <div class="landing-feature-icon" style="background: linear-gradient(135deg, #2f327d, #4b4f9b);">
                         <i class="fa fa-bar-chart"></i>
                     </div>
-                    <h3>Reports & Analytics</h3>
-                    <p>Member summaries, giving reports, and budget performance at a glance.</p>
+                    <h3>{{ __('landing.feature_reports_title') }}</h3>
+                    <p>{{ __('landing.feature_reports_desc') }}</p>
                 </article>
             </div>
         </div>
@@ -208,33 +209,33 @@
     <section class="landing-section alt" id="about">
         <div class="landing-container landing-about">
             <div class="landing-about-copy">
-                <span class="eyebrow">About {{ $appName }}</span>
-                <h2>Built for how churches really work</h2>
+                <span class="eyebrow">{{ __('landing.about_eyebrow', ['app' => $appName]) }}</span>
+                <h2>{{ __('landing.about_title') }}</h2>
                 <p class="landing-about-lead">
-                    {{ $appName }} is a cloud platform that helps your leadership team stay organized — members, finances, attendance, SMS, and reports in one secure place.
+                    {{ __('landing.about_lead', ['app' => $appName]) }}
                 </p>
                 <ul class="landing-checklist">
-                    <li><i class="fa fa-check-circle"></i><span>One dashboard for pastors, secretaries, treasurers, and admins</span></li>
-                    <li><i class="fa fa-check-circle"></i><span>Member portal so your congregation can stay connected</span></li>
-                    <li><i class="fa fa-check-circle"></i><span>Multi-branch support with role-based permissions</span></li>
-                    <li><i class="fa fa-check-circle"></i><span>Assets, departments, bereavements, and more</span></li>
+                    <li><i class="fa fa-check-circle"></i><span>{{ __('landing.about_check_1') }}</span></li>
+                    <li><i class="fa fa-check-circle"></i><span>{{ __('landing.about_check_2') }}</span></li>
+                    <li><i class="fa fa-check-circle"></i><span>{{ __('landing.about_check_3') }}</span></li>
+                    <li><i class="fa fa-check-circle"></i><span>{{ __('landing.about_check_4') }}</span></li>
                 </ul>
 
                 <div class="landing-about-audience">
                     <div class="landing-audience-card">
                         <div class="landing-audience-icon"><i class="fa fa-users"></i></div>
                         <div>
-                            <h4>Church leaders</h4>
-                            <p>Manage members, finance, services, and ministry operations.</p>
-                            <a href="{{ route('church.login') }}">Open dashboard <i class="fa fa-arrow-right"></i></a>
+                            <h4>{{ __('landing.audience_leaders') }}</h4>
+                            <p>{{ __('landing.audience_leaders_desc') }}</p>
+                            <a href="{{ route('church.login') }}">{{ __('landing.open_dashboard') }} <i class="fa fa-arrow-right"></i></a>
                         </div>
                     </div>
                     <div class="landing-audience-card">
                         <div class="landing-audience-icon alt"><i class="fa fa-user"></i></div>
                         <div>
-                            <h4>Members</h4>
-                            <p>View announcements, giving history, and church updates.</p>
-                            <a href="{{ route('church.login') }}">Member login <i class="fa fa-arrow-right"></i></a>
+                            <h4>{{ __('landing.audience_members') }}</h4>
+                            <p>{{ __('landing.audience_members_desc') }}</p>
+                            <a href="{{ route('church.login') }}">{{ __('landing.member_login') }} <i class="fa fa-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
@@ -242,13 +243,13 @@
 
             <div class="landing-about-visual">
                 <div class="landing-about-frame">
-                    <img src="{{ $s('img/teacher-explaining.png') }}" alt="Church team using {{ $appName }}">
+                    <img src="{{ $s('img/teacher-explaining.png') }}" alt="{{ __('landing.about_image_alt', ['app' => $appName]) }}">
                 </div>
                 <div class="landing-about-badge">
                     <i class="fa fa-cloud"></i>
                     <div>
-                        <strong>Cloud-based</strong>
-                        <span>Secure & accessible anywhere</span>
+                        <strong>{{ __('landing.cloud_based') }}</strong>
+                        <span>{{ __('landing.cloud_desc') }}</span>
                     </div>
                 </div>
             </div>
@@ -258,30 +259,30 @@
     <section class="landing-section">
         <div class="landing-container">
             <div class="landing-section-head">
-                <span class="eyebrow">How it works</span>
-                <h2>Get started in three simple steps</h2>
-                <p>Your church gets onboarded, your team logs in, and you start managing with confidence.</p>
+                <span class="eyebrow">{{ __('landing.how_eyebrow') }}</span>
+                <h2>{{ __('landing.how_title') }}</h2>
+                <p>{{ __('landing.how_lead') }}</p>
             </div>
             <div class="landing-steps">
                 <div class="landing-step">
                     <div class="landing-step-num">1</div>
                     <div>
-                        <h3>Choose your plan</h3>
-                        <p>Pick a package that fits your church size and ministry needs.</p>
+                        <h3>{{ __('landing.step_1_title') }}</h3>
+                        <p>{{ __('landing.step_1_desc') }}</p>
                     </div>
                 </div>
                 <div class="landing-step">
                     <div class="landing-step-num">2</div>
                     <div>
-                        <h3>Set up your church</h3>
-                        <p>Add members, configure branches, and invite your leadership team.</p>
+                        <h3>{{ __('landing.step_2_title') }}</h3>
+                        <p>{{ __('landing.step_2_desc') }}</p>
                     </div>
                 </div>
                 <div class="landing-step">
                     <div class="landing-step-num">3</div>
                     <div>
-                        <h3>Manage with confidence</h3>
-                        <p>Track giving, attendance, and communication from one place.</p>
+                        <h3>{{ __('landing.step_3_title') }}</h3>
+                        <p>{{ __('landing.step_3_desc') }}</p>
                     </div>
                 </div>
             </div>
@@ -291,9 +292,9 @@
     <section class="landing-section alt" id="pricing">
         <div class="landing-container">
             <div class="landing-section-head">
-                <span class="eyebrow">Pricing</span>
-                <h2>Simple, transparent plans</h2>
-                <p>Every plan includes secure cloud hosting{{ $packages->isNotEmpty() ? ' and a free trial period' : '' }}. Prices are managed by your platform administrator.</p>
+                <span class="eyebrow">{{ __('landing.pricing_eyebrow') }}</span>
+                <h2>{{ __('landing.pricing_title') }}</h2>
+                <p>{{ str_replace(':trial', $packages->isNotEmpty() ? __('landing.pricing_lead_trial') : '', __('landing.pricing_lead')) }}</p>
             </div>
 
             <div class="landing-pricing-grid">
@@ -303,32 +304,32 @@
                     @endphp
                     <article class="landing-price-card {{ $isPopular ? 'popular' : '' }}">
                         @if($isPopular)
-                            <span class="landing-price-badge">Most popular</span>
+                            <span class="landing-price-badge">{{ __('landing.most_popular') }}</span>
                         @endif
                         <h3>{{ $package->name }}</h3>
                         <p class="desc">{{ $package->description }}</p>
                         @include('partials.public-package-pricing', ['package' => $package, 'currencyCode' => $currencyCode])
                         <ul class="landing-price-features">
                             @if($package->max_members)
-                                <li><i class="fa fa-check"></i><span>Up to {{ number_format($package->max_members) }} members</span></li>
+                                <li><i class="fa fa-check"></i><span>{{ __('landing.up_to_members', ['count' => number_format($package->max_members)]) }}</span></li>
                             @else
-                                <li><i class="fa fa-check"></i><span>Unlimited members</span></li>
+                                <li><i class="fa fa-check"></i><span>{{ __('landing.unlimited_members') }}</span></li>
                             @endif
                             @if($package->max_sms_monthly)
-                                <li><i class="fa fa-check"></i><span>{{ number_format($package->max_sms_monthly) }} SMS / month</span></li>
+                                <li><i class="fa fa-check"></i><span>{{ __('landing.sms_per_month', ['count' => number_format($package->max_sms_monthly)]) }}</span></li>
                             @endif
                             @foreach($package->features->filter(fn ($feature) => (bool) $feature->pivot?->is_enabled) as $feature)
                                 <li><i class="fa fa-check"></i><span>{{ $feature->name }}</span></li>
                             @endforeach
                         </ul>
                         <a href="{{ route('church.login') }}" class="landing-btn {{ $isPopular ? 'landing-btn-primary' : 'landing-btn-ghost' }}">
-                            Get started
+                            {{ __('landing.get_started') }}
                         </a>
                     </article>
                 @empty
                     <div class="landing-pricing-empty">
-                        <p>Pricing plans will be published soon.</p>
-                        <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary">Contact us to get started</a>
+                        <p>{{ __('landing.pricing_empty') }}</p>
+                        <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary">{{ __('landing.contact_get_started') }}</a>
                     </div>
                 @endforelse
             </div>
@@ -338,11 +339,11 @@
     <section class="landing-section">
         <div class="landing-container">
             <div class="landing-cta">
-                <h2>Ready to modernize your church administration?</h2>
-                <p>Join churches using {{ $appName }} to manage members, finances, and ministry with less paperwork and more impact.</p>
+                <h2>{{ __('landing.cta_title') }}</h2>
+                <p>{{ __('landing.cta_lead', ['app' => $appName]) }}</p>
                 <div class="landing-cta-actions">
                     <a href="{{ route('church.login') }}" class="landing-btn landing-btn-primary landing-cta-btn-light">
-                        <i class="fa fa-rocket"></i> Get started today
+                        <i class="fa fa-rocket"></i> {{ __('landing.get_started_today') }}
                     </a>
                 </div>
             </div>
@@ -360,35 +361,35 @@
                             <span>{{ $appName }}</span>
                         @endif
                     </a>
-                    <p>Church management platform for members, finance, attendance, and communications — built for modern ministry teams.</p>
+                    <p>{{ __('landing.footer_desc') }}</p>
                     <div class="landing-footer-highlights">
-                        <span><i class="fa fa-shield"></i> Secure cloud</span>
-                        <span><i class="fa fa-users"></i> Multi-branch</span>
-                        <span><i class="fa fa-mobile"></i> Access anywhere</span>
+                        <span><i class="fa fa-shield"></i> {{ __('landing.footer_secure') }}</span>
+                        <span><i class="fa fa-users"></i> {{ __('landing.footer_multibranch') }}</span>
+                        <span><i class="fa fa-mobile"></i> {{ __('landing.footer_access') }}</span>
                     </div>
                 </div>
 
                 <div class="landing-footer-col">
-                    <h4>Explore</h4>
+                    <h4>{{ __('landing.footer_explore') }}</h4>
                     <ul>
-                        <li><a href="#home">Home</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#home">{{ __('landing.home') }}</a></li>
+                        <li><a href="#features">{{ __('landing.features') }}</a></li>
+                        <li><a href="#about">{{ __('landing.about') }}</a></li>
+                        <li><a href="#pricing">{{ __('landing.pricing') }}</a></li>
                     </ul>
                 </div>
 
                 <div class="landing-footer-col">
-                    <h4>Access</h4>
+                    <h4>{{ __('landing.footer_access_col') }}</h4>
                     <ul>
-                        <li><a href="{{ route('church.login') }}">Church Login</a></li>
-                        <li><a href="{{ route('owner.login') }}">Platform Admin</a></li>
-                        <li><a href="{{ route('church.login') }}">Get Started</a></li>
+                        <li><a href="{{ route('church.login') }}">{{ __('landing.church_login') }}</a></li>
+                        <li><a href="{{ route('owner.login') }}">{{ __('landing.platform_admin') }}</a></li>
+                        <li><a href="{{ route('church.login') }}">{{ __('landing.get_started') }}</a></li>
                     </ul>
                 </div>
 
                 <div class="landing-footer-col landing-footer-contact-col">
-                    <h4>Contact</h4>
+                    <h4>{{ __('landing.footer_contact') }}</h4>
                     <ul class="landing-footer-contact">
                         <li>
                             <i class="fa fa-map-marker"></i>
@@ -402,14 +403,14 @@
                         <li>
                             <i class="fa fa-phone"></i>
                             <span>
-                                <span class="landing-contact-label">Call Us Now</span>
+                                <span class="landing-contact-label">{{ __('landing.call_us') }}</span>
                                 <a href="tel:+255749719998">+255 749 719 998</a>
                             </span>
                         </li>
                         <li>
                             <i class="fa fa-envelope-o"></i>
                             <span>
-                                <span class="landing-contact-label">Mail Us Now</span>
+                                <span class="landing-contact-label">{{ __('landing.mail_us') }}</span>
                                 <a href="mailto:emca@emca.tech">emca@emca.tech</a>
                             </span>
                         </li>
@@ -420,8 +421,8 @@
 
         <div class="landing-footer-bottom">
             <div class="landing-container landing-footer-bottom-inner">
-                <p>&copy; {{ date('Y') }} {{ $appName }}. All rights reserved.</p>
-                <p class="landing-footer-powered">Powered by <a href="https://www.emca.tech" target="_blank" rel="noopener noreferrer">EmCa Technologies</a></p>
+                <p>&copy; {{ date('Y') }} {{ $appName }}. {{ __('landing.all_rights') }}</p>
+                <p class="landing-footer-powered">{{ __('landing.powered_by') }} <a href="https://www.emca.tech" target="_blank" rel="noopener noreferrer">EmCa Technologies</a></p>
             </div>
         </div>
     </footer>

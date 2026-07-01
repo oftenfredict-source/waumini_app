@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Income vs Expenditure')
+@section('title', __('reports.income_vs_expenditure'))
 
 @include('church.reports.partials.styles')
 
@@ -10,7 +10,7 @@
 @include('church.reports.partials.nav')
 
 <div class="report-hero">
-    <h2><i class="fa fa-balance-scale"></i> Income vs Expenditure</h2>
+    <h2><i class="fa fa-balance-scale"></i> {{ __('reports.income_vs_expenditure') }}</h2>
     <p class="lead">{{ $start->format('M d, Y') }} – {{ $end->format('M d, Y') }}</p>
 </div>
 
@@ -19,19 +19,19 @@
 <div class="row mb-3">
     <div class="col-md-4 mb-3">
         <div class="card report-stat-card"><div class="card-body">
-            <div class="report-stat-label">Total Income</div>
+            <div class="report-stat-label">{{ __('reports.total_income') }}</div>
             <div class="report-stat-value text-success">{{ $currency }} {{ number_format($financial['income'], 0) }}</div>
         </div></div>
     </div>
     <div class="col-md-4 mb-3">
         <div class="card report-stat-card"><div class="card-body">
-            <div class="report-stat-label">Total Expenses</div>
+            <div class="report-stat-label">{{ __('reports.total_expenses') }}</div>
             <div class="report-stat-value text-danger">{{ $currency }} {{ number_format($financial['expenses'], 0) }}</div>
         </div></div>
     </div>
     <div class="col-md-4 mb-3">
         <div class="card report-stat-card"><div class="card-body">
-            <div class="report-stat-label">Net Balance</div>
+            <div class="report-stat-label">{{ __('reports.net_balance') }}</div>
             <div class="report-stat-value {{ $financial['net'] >= 0 ? 'text-success' : 'text-danger' }}">
                 {{ $currency }} {{ number_format($financial['net'], 0) }}
             </div>
@@ -42,28 +42,28 @@
 <div class="row">
     <div class="col-lg-5 mb-4">
         <div class="tile">
-            <h3 class="tile-title">Income Sources</h3>
+            <h3 class="tile-title">{{ __('reports.income_sources') }}</h3>
             <table class="table table-sm mb-0">
-                <tr><th>Tithes</th><td class="text-right">{{ $currency }} {{ number_format($financial['tithes'], 2) }}</td></tr>
-                <tr><th>Offerings</th><td class="text-right">{{ $currency }} {{ number_format($financial['offerings'], 2) }}</td></tr>
-                <tr><th>Pledge Payments</th><td class="text-right">{{ $currency }} {{ number_format($financial['pledges'], 2) }}</td></tr>
-                <tr><th>Bereavements</th><td class="text-right">{{ $currency }} {{ number_format($financial['bereavements'], 2) }}</td></tr>
-                <tr class="font-weight-bold border-top"><th>Total Income</th><td class="text-right">{{ $currency }} {{ number_format($financial['income'], 2) }}</td></tr>
+                <tr><th>{{ __('reports.tithes') }}</th><td class="text-right">{{ $currency }} {{ number_format($financial['tithes'], 2) }}</td></tr>
+                <tr><th>{{ __('reports.offerings') }}</th><td class="text-right">{{ $currency }} {{ number_format($financial['offerings'], 2) }}</td></tr>
+                <tr><th>{{ __('reports.pledge_payments') }}</th><td class="text-right">{{ $currency }} {{ number_format($financial['pledges'], 2) }}</td></tr>
+                <tr><th>{{ __('reports.bereavements') }}</th><td class="text-right">{{ $currency }} {{ number_format($financial['bereavements'], 2) }}</td></tr>
+                <tr class="font-weight-bold border-top"><th>{{ __('reports.total_income') }}</th><td class="text-right">{{ $currency }} {{ number_format($financial['income'], 2) }}</td></tr>
             </table>
         </div>
     </div>
     <div class="col-lg-7 mb-4">
         <div class="tile">
-            <h3 class="tile-title">Monthly Comparison</h3>
+            <h3 class="tile-title">{{ __('reports.monthly_comparison') }}</h3>
             <div class="report-chart-wrap"><canvas id="incomeExpenseChart"></canvas></div>
         </div>
     </div>
 </div>
 
 <div class="tile">
-    <h3 class="tile-title">Monthly Detail</h3>
+    <h3 class="tile-title">{{ __('reports.monthly_detail') }}</h3>
     <table class="table table-sm table-hover mb-0">
-        <thead><tr><th>Month</th><th class="text-right">Income</th><th class="text-right">Expenses</th><th class="text-right">Net</th></tr></thead>
+        <thead><tr><th>{{ __('reports.month') }}</th><th class="text-right">{{ __('reports.income') }}</th><th class="text-right">{{ __('reports.expenses') }}</th><th class="text-right">{{ __('reports.net') }}</th></tr></thead>
         <tbody>
             @foreach($report['monthly'] as $row)
                 <tr>
@@ -93,8 +93,8 @@ document.addEventListener('DOMContentLoaded', function () {
         data: {
             labels: monthly.map(r => r.month),
             datasets: [
-                { label: 'Income', data: monthly.map(r => r.income), backgroundColor: 'rgba(148,0,0,0.75)', borderRadius: 6 },
-                { label: 'Expenses', data: monthly.map(r => r.expenses), backgroundColor: 'rgba(220,53,69,0.65)', borderRadius: 6 },
+                { label: @json(__('reports.income')), data: monthly.map(r => r.income), backgroundColor: 'rgba(148,0,0,0.75)', borderRadius: 6 },
+                { label: @json(__('reports.expenses')), data: monthly.map(r => r.expenses), backgroundColor: 'rgba(220,53,69,0.65)', borderRadius: 6 },
             ]
         },
         options: {

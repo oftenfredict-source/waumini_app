@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Church\System;
 
+use App\Models\SystemSetting;
 use App\Services\Church\ChurchSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ class SettingsController extends SystemController
             'tab' => $tab,
             'settings' => $this->churchSettingsService->all($church),
             'categories' => config('church_settings.categories'),
+            'platformSenderId' => SystemSetting::smsGatewayConfig()['sender_id'],
         ]);
     }
 

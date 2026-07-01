@@ -1,16 +1,16 @@
 @extends('layouts.owner')
 
-@section('title', 'Support')
+@section('title', __('owner.sup.title'))
 
 @section('content')
 <div class="app-title">
     <div>
-        <h1><i class="fa fa-life-ring"></i> Support Tickets</h1>
-        <p>Church support requests and issues</p>
+        <h1><i class="fa fa-life-ring"></i> {{ __('owner.sup.heading') }}</h1>
+        <p>{{ __('owner.sup.subtitle') }}</p>
     </div>
     <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">Overview</a></li>
-        <li class="breadcrumb-item">Support</li>
+        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">{{ __('owner.overview') }}</a></li>
+        <li class="breadcrumb-item">{{ __('owner.support') }}</li>
     </ul>
 </div>
 
@@ -18,19 +18,19 @@
     <div class="col-md-4">
         <div class="widget-small warning coloured-icon">
             <i class="icon fa fa-folder-open fa-3x"></i>
-            <div class="info"><h4>Open</h4><p><b>{{ $stats['open'] }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.sup.open') }}</h4><p><b>{{ $stats['open'] }}</b></p></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="widget-small info coloured-icon">
             <i class="icon fa fa-spinner fa-3x"></i>
-            <div class="info"><h4>In Progress</h4><p><b>{{ $stats['in_progress'] }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.sup.in_progress') }}</h4><p><b>{{ $stats['in_progress'] }}</b></p></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="widget-small success coloured-icon">
             <i class="icon fa fa-check fa-3x"></i>
-            <div class="info"><h4>Resolved</h4><p><b>{{ $stats['resolved'] }}</b></p></div>
+            <div class="info"><h4>{{ __('owner.sup.resolved') }}</h4><p><b>{{ $stats['resolved'] }}</b></p></div>
         </div>
     </div>
 </div>
@@ -38,25 +38,25 @@
 <div class="tile">
     <form method="GET" class="form-inline mb-3">
         <select name="status" class="form-control mr-2">
-            <option value="">All statuses</option>
+            <option value="">{{ __('pages.shared.all_statuses') }}</option>
             @foreach(['open','in_progress','waiting','resolved','closed'] as $s)
                 <option value="{{ $s }}" @selected(($filters['status'] ?? '') === $s)>{{ ucfirst(str_replace('_', ' ', $s)) }}</option>
             @endforeach
         </select>
-        <button type="submit" class="btn btn-primary">Filter</button>
+        <button type="submit" class="btn btn-primary">{{ __('common.filter') }}</button>
     </form>
 
     <div class="table-responsive">
         <table class="table table-hover table-bordered">
             <thead>
                 <tr>
-                    <th>Subject</th>
-                    <th>Church</th>
-                    <th>Category</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Assigned</th>
-                    <th>Created</th>
+                    <th>{{ __('common.subject') }}</th>
+                    <th>{{ __('owner.church_label') }}</th>
+                    <th>{{ __('owner.sup.category') }}</th>
+                    <th>{{ __('owner.sup.priority') }}</th>
+                    <th>{{ __('owner.status') }}</th>
+                    <th>{{ __('owner.sup.assigned') }}</th>
+                    <th>{{ __('common.created') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -74,7 +74,7 @@
                     <tr>
                         <td colspan="7" class="text-center text-muted py-4">
                             <i class="fa fa-ticket fa-2x d-block mb-2"></i>
-                            No support tickets yet. Tickets from churches will appear here.
+                            {{ __('owner.sup.no_tickets') }}
                         </td>
                     </tr>
                 @endforelse

@@ -16,7 +16,7 @@
 <div class="row">
     <div class="col-md-4">
         <div class="form-group">
-            <label>Guest Type *</label>
+            <label>{{ __('pages.promise_guests.form_guest_type') }} *</label>
             <select name="guest_type" class="form-control @error('guest_type') is-invalid @enderror" required>
                 @foreach($guestTypes as $type)
                     <option value="{{ $type->value }}" @selected($defaultGuestType === $type->value)>
@@ -29,7 +29,7 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>Full Name *</label>
+            <label>{{ __('pages.promise_guests.form_full_name') }} *</label>
             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                 value="{{ old('name', $guest?->name) }}" required>
             @error('name')<small class="text-danger">{{ $message }}</small>@enderror
@@ -37,15 +37,15 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>Phone Number *</label>
+            <label>{{ __('common.phone') }} *</label>
             <input type="text" name="phone_number" class="form-control @error('phone_number') is-invalid @enderror"
-                value="{{ old('phone_number', $guest?->phone_number) }}" placeholder="+2557XXXXXXXX" required>
+                value="{{ old('phone_number', $guest?->phone_number) }}" placeholder="{{ __('pages.promise_guests.form_phone_placeholder') }}" required>
             @error('phone_number')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>Email</label>
+            <label>{{ __('common.email') }}</label>
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                 value="{{ old('email', $guest?->email) }}">
             @error('email')<small class="text-danger">{{ $message }}</small>@enderror
@@ -53,7 +53,7 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <label>Visit / Promised Date *</label>
+            <label>{{ __('pages.promise_guests.form_visit_date') }} *</label>
             <input type="date" name="promised_date" id="promised_date" class="form-control @error('promised_date') is-invalid @enderror"
                 value="{{ old('promised_date', $guest?->promised_date?->toDateString() ?? now()->toDateString()) }}" required>
             @error('promised_date')<small class="text-danger">{{ $message }}</small>@enderror
@@ -63,7 +63,7 @@
     @if($guest)
         <div class="col-md-4">
             <div class="form-group">
-                <label>Status *</label>
+                <label>{{ __('common.status') }} *</label>
                 <select name="status" class="form-control @error('status') is-invalid @enderror" required>
                     @foreach($statuses as $status)
                         <option value="{{ $status->value }}" @selected(old('status', $guest->status->value) === $status->value)>
@@ -78,11 +78,11 @@
 
     <div class="col-md-12">
         <div class="form-group">
-            <label>Link to Event or Service</label>
+            <label>{{ __('pages.promise_guests.form_link_event') }}</label>
             <select name="event_link_type" id="event_link_type" class="form-control @error('event_link_type') is-invalid @enderror">
-                <option value="none" @selected($defaultLinkType === 'none')>— Date only (no specific service/event) —</option>
-                <option value="church_service" @selected($defaultLinkType === 'church_service')>Church Service</option>
-                <option value="special_event" @selected($defaultLinkType === 'special_event')>Special Event</option>
+                <option value="none" @selected($defaultLinkType === 'none')>{{ __('pages.promise_guests.form_link_none') }}</option>
+                <option value="church_service" @selected($defaultLinkType === 'church_service')>{{ __('pages.promise_guests.form_church_service') }}</option>
+                <option value="special_event" @selected($defaultLinkType === 'special_event')>{{ __('pages.promise_guests.form_special_event') }}</option>
             </select>
             @error('event_link_type')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
@@ -90,9 +90,9 @@
 
     <div class="col-md-6" id="churchServiceGroup" @if($defaultLinkType !== 'church_service') style="display:none;" @endif>
         <div class="form-group">
-            <label>Church Service</label>
+            <label>{{ __('pages.promise_guests.form_church_service') }}</label>
             <select name="church_service_id" id="church_service_id" class="form-control @error('church_service_id') is-invalid @enderror">
-                <option value="">— Select service —</option>
+                <option value="">{{ __('pages.shared.select_service_dash') }}</option>
                 @foreach($services as $service)
                     <option value="{{ $service->id }}"
                         data-service-date="{{ $service->service_date?->toDateString() }}"
@@ -107,9 +107,9 @@
 
     <div class="col-md-6" id="specialEventGroup" @if($defaultLinkType !== 'special_event') style="display:none;" @endif>
         <div class="form-group">
-            <label>Special Event</label>
+            <label>{{ __('pages.promise_guests.form_special_event') }}</label>
             <select name="special_event_id" id="special_event_id" class="form-control @error('special_event_id') is-invalid @enderror">
-                <option value="">— Select event —</option>
+                <option value="">{{ __('pages.shared.select_event') }}</option>
                 @foreach($events as $event)
                     <option value="{{ $event->id }}"
                         data-event-date="{{ $event->event_date?->toDateString() }}"
@@ -124,7 +124,7 @@
 
     <div class="col-md-12">
         <div class="form-group">
-            <label>Notes</label>
+            <label>{{ __('pages.shared.notes') }}</label>
             <textarea name="notes" rows="3" class="form-control @error('notes') is-invalid @enderror">{{ old('notes', $guest?->notes) }}</textarea>
             @error('notes')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
@@ -135,7 +135,7 @@
             <div class="form-check">
                 <label class="form-check-label">
                     <input type="checkbox" name="send_sms" value="1" class="form-check-input" @checked(old('send_sms'))>
-                    Send welcome / reminder SMS now after saving
+                    {{ __('pages.promise_guests.form_send_sms') }}
                 </label>
             </div>
         </div>

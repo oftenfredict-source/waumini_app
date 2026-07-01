@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
         $middleware->alias([
             'owner' => \App\Http\Middleware\EnsureOwnerUser::class,
             'church' => \App\Http\Middleware\EnsureChurchUser::class,

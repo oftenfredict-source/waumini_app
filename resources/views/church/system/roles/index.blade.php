@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Roles & Permissions')
+@section('title', __('pages.system_roles.title'))
 
 @push('styles')
 <style>
@@ -197,15 +197,15 @@
 
 <div class="app-title">
     <div>
-        <h1><i class="fa fa-shield"></i> Roles & Permissions</h1>
-        <p>Configure what each church role can access at {{ $church->name }}</p>
+        <h1><i class="fa fa-shield"></i> {{ __('pages.system_roles.title') }}</h1>
+        <p>{{ __('pages.system_roles.subtitle', ['church' => $church->name]) }}</p>
     </div>
 </div>
 
 <div class="roles-intro">
     <p>
         <i class="fa fa-info-circle text-primary"></i>
-        Select a role below, then enable or disable permissions by category. Changes apply only after you save that role.
+        {{ __('pages.system_roles.intro') }}
     </p>
 </div>
 
@@ -261,10 +261,10 @@
                                 </h4>
                                 <div class="permission-group__actions">
                                     <button type="button" class="js-select-all" data-target="{{ $role->name }}_{{ $group }}">
-                                        Select all
+                                        {{ __('pages.system_roles.select_all') }}
                                     </button>
                                     <button type="button" class="js-clear-all" data-target="{{ $role->name }}_{{ $group }}">
-                                        Clear all
+                                        {{ __('pages.system_roles.clear_all') }}
                                     </button>
                                 </div>
                             </div>
@@ -306,10 +306,10 @@
                             <span class="js-selected-count" data-role="{{ $role->name }}">
                                 {{ count($rolePermissionNames) }}
                             </span>
-                            of {{ $permissions->flatten()->count() }} permissions enabled for {{ $roleLabel }}
+                            {{ __('pages.system_roles.permissions_enabled', ['total' => $permissions->flatten()->count(), 'role' => $roleLabel]) }}
                         </p>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-save"></i> Save {{ $roleLabel }} Permissions
+                            <i class="fa fa-save"></i> {{ __('pages.system_roles.save_role_permissions', ['role' => $roleLabel]) }}
                         </button>
                     </div>
                 </form>

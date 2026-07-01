@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Church;
 
+use App\Services\Church\MemberRegistrationApplicationService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -41,10 +42,9 @@ class ApproveMemberRegistrationRequest extends FormRequest
     private function registrationNeedsSpouseEnvelope(): bool
     {
         $application = $this->route('registration');
-        $data = $application?->registration_data ?? [];
 
-        return ($data['marital_status'] ?? null) === 'married'
-            && ($data['spouse_church_member'] ?? null) === 'yes'
-            && empty($data['spouse_member_id']);
+        return MemberRegistrationApplicationService::needsSpouseEnvelope(
+            $application?->registration_data ?? []
+        );
     }
 }

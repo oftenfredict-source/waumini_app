@@ -8,7 +8,7 @@
     @unless($isAuto)
         <div class="col-md-4">
             <div class="form-group">
-                <label>Celebration Type *</label>
+                <label>{{ __('pages.celebrations.form_celebration_type') }} *</label>
                 <select name="celebration_type" id="celebration_type" class="form-control @error('celebration_type') is-invalid @enderror" required>
                     @foreach($types as $type)
                         <option value="{{ $type->value }}" @selected($defaultType === $type->value)>{{ $type->label() }}</option>
@@ -19,9 +19,9 @@
         </div>
         <div class="col-md-4">
             <div class="form-group">
-                <label>Link to Member (optional)</label>
+                <label>{{ __('pages.celebrations.form_link_member') }}</label>
                 <select name="member_id" id="member_id" class="form-control @error('member_id') is-invalid @enderror">
-                    <option value="">— Not linked —</option>
+                    <option value="">{{ __('pages.shared.not_linked') }}</option>
                     @foreach($members as $member)
                         <option value="{{ $member->id }}"
                             data-dob="{{ $member->date_of_birth?->toDateString() }}"
@@ -36,7 +36,7 @@
         </div>
         <div class="col-md-4">
             <div class="form-group">
-                <label>Title *</label>
+                <label>{{ __('common.title') }} *</label>
                 <input type="text" name="title" id="celebration_title" class="form-control @error('title') is-invalid @enderror"
                     value="{{ old('title', $celebration?->title) }}" required>
                 @error('title')<small class="text-danger">{{ $message }}</small>@enderror
@@ -44,7 +44,7 @@
         </div>
         <div class="col-md-4">
             <div class="form-group">
-                <label>Celebration Date *</label>
+                <label>{{ __('pages.shared.celebration_date') }} *</label>
                 <input type="date" name="celebration_date" id="celebration_date" class="form-control @error('celebration_date') is-invalid @enderror"
                     value="{{ old('celebration_date', $celebration?->celebration_date?->toDateString() ?? now()->toDateString()) }}" required>
                 @error('celebration_date')<small class="text-danger">{{ $message }}</small>@enderror
@@ -52,18 +52,18 @@
         </div>
         <div class="col-md-4">
             <div class="form-group">
-                <label>Original Date</label>
+                <label>{{ __('pages.shared.original_date') }}</label>
                 <input type="date" name="original_date" id="original_date" class="form-control @error('original_date') is-invalid @enderror"
                     value="{{ old('original_date', $celebration?->original_date?->toDateString()) }}">
-                <small class="text-muted">Birth date or wedding date for reference.</small>
+                <small class="text-muted">{{ __('pages.celebrations.form_original_date_hint') }}</small>
                 @error('original_date')<small class="text-danger d-block">{{ $message }}</small>@enderror
             </div>
         </div>
         <div class="col-md-4" id="weddingTypeGroup" style="display:none;">
             <div class="form-group">
-                <label>Wedding Type</label>
+                <label>{{ __('pages.shared.wedding_type') }}</label>
                 <select name="wedding_type" class="form-control @error('wedding_type') is-invalid @enderror">
-                    <option value="">— Select —</option>
+                    <option value="">{{ __('pages.shared.select') }}</option>
                     @foreach($weddingTypes as $wType)
                         <option value="{{ $wType->value }}" @selected(old('wedding_type', $celebration?->wedding_type?->value) === $wType->value)>
                             {{ $wType->label() }}
@@ -77,8 +77,7 @@
         <div class="col-md-12">
             <div class="alert alert-info">
                 <i class="fa fa-info-circle"></i>
-                This celebration was detected automatically from a member profile.
-                You can update its status and notes below.
+                {{ __('pages.celebrations.auto_detected_alert') }}
             </div>
         </div>
     @endunless
@@ -86,7 +85,7 @@
     @if($celebration)
         <div class="col-md-4">
             <div class="form-group">
-                <label>Status *</label>
+                <label>{{ __('common.status') }} *</label>
                 <select name="status" class="form-control @error('status') is-invalid @enderror" required>
                     @foreach($statuses as $status)
                         <option value="{{ $status->value }}" @selected(old('status', $celebration->status->value) === $status->value)>
@@ -101,7 +100,7 @@
 
     <div class="col-md-12">
         <div class="form-group">
-            <label>Notes</label>
+            <label>{{ __('pages.shared.notes') }}</label>
             <textarea name="notes" rows="3" class="form-control @error('notes') is-invalid @enderror">{{ old('notes', $celebration?->notes) }}</textarea>
             @error('notes')<small class="text-danger">{{ $message }}</small>@enderror
         </div>

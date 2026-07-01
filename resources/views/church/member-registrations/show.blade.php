@@ -5,49 +5,49 @@
 @section('content')
 @php
     $labels = [
-        'membership_type' => 'Membership Type',
-        'member_type' => 'Member Type',
-        'full_name' => 'Full Name',
-        'gender' => 'Gender',
-        'date_of_birth' => 'Date of Birth',
-        'education_level' => 'Education Level',
-        'profession' => 'Profession',
-        'nida_number' => 'NIDA Number',
-        'phone_number' => 'Phone',
-        'email' => 'Email',
-        'region' => 'Region',
-        'district' => 'District',
-        'ward' => 'Ward',
-        'street' => 'Street',
-        'po_box' => 'P.O. Box',
-        'tribe' => 'Tribe',
-        'residence_region' => 'Residence Region',
-        'residence_district' => 'Residence District',
-        'residence_ward' => 'Residence Ward',
-        'residence_street' => 'Residence Street',
-        'residence_road' => 'Residence Road',
-        'residence_house_number' => 'House Number',
-        'marital_status' => 'Marital Status',
-        'wedding_type' => 'Wedding Type',
-        'wedding_date' => 'Wedding Date',
-        'spouse_full_name' => 'Spouse Name',
-        'spouse_gender' => 'Spouse Gender',
-        'spouse_date_of_birth' => 'Spouse Date of Birth',
-        'spouse_phone_number' => 'Spouse Phone',
-        'spouse_email' => 'Spouse Email',
+        'membership_type' => __('members.fields.membership_type'),
+        'member_type' => __('members.fields.member_type'),
+        'full_name' => __('members.fields.full_name'),
+        'gender' => __('members.fields.gender'),
+        'date_of_birth' => __('members.fields.date_of_birth'),
+        'education_level' => __('members.fields.education_level'),
+        'profession' => __('members.fields.profession'),
+        'nida_number' => __('members.fields.nida_number'),
+        'phone_number' => __('members.fields.phone_number'),
+        'email' => __('members.fields.email'),
+        'region' => __('members.fields.origin_region'),
+        'district' => __('members.fields.district'),
+        'ward' => __('members.fields.ward'),
+        'street' => __('members.fields.street'),
+        'po_box' => __('members.fields.po_box'),
+        'tribe' => __('members.fields.tribe'),
+        'residence_region' => __('members.fields.region'),
+        'residence_district' => __('pages.member_registrations.residence_district'),
+        'residence_ward' => __('pages.member_registrations.residence_ward'),
+        'residence_street' => __('pages.member_registrations.residence_street'),
+        'residence_road' => __('pages.member_registrations.residence_road'),
+        'residence_house_number' => __('members.fields.house_number'),
+        'marital_status' => __('members.fields.marital_status'),
+        'wedding_type' => __('members.fields.wedding_type'),
+        'wedding_date' => __('members.fields.wedding_date'),
+        'spouse_full_name' => __('members.fields.spouse_full_name'),
+        'spouse_gender' => __('members.fields.spouse_gender'),
+        'spouse_date_of_birth' => __('members.fields.spouse_dob'),
+        'spouse_phone_number' => __('members.fields.spouse_phone'),
+        'spouse_email' => __('pages.member_registrations.spouse_email'),
     ];
 @endphp
 
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-user-plus"></i> {{ $application->full_name }}</h1>
-        <p><code>{{ $application->application_number }}</code></p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.member-registrations.index') }}">Registration Approvals</a></li>
-        <li class="breadcrumb-item">{{ $application->application_number }}</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-user-plus',
+    'title' => $application->full_name,
+    'subtitle' => $application->application_number,
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.registration_approvals'), 'route' => 'church.member-registrations.index'],
+        ['label' => $application->application_number],
+    ],
+])
 
 @include('partials.sweetalert-flash')
 
@@ -58,29 +58,29 @@
                 <span class="badge badge-{{ $application->status->badgeClass() }}">{{ $application->status->label() }}</span>
             </div>
             <table class="table table-borderless table-sm">
-                <tr><th width="180">Applicant</th><td>{{ $application->full_name }}</td></tr>
-                <tr><th>Phone</th><td>{{ $application->phone_number ?? '—' }}</td></tr>
-                <tr><th>Branch</th><td>{{ $application->branch?->displayLabel() ?? '—' }}</td></tr>
-                <tr><th>Submitted</th><td>{{ $application->created_at?->format('M d, Y g:i A') }}</td></tr>
+                <tr><th width="180">{{ __('pages.shared.applicant') }}</th><td>{{ $application->full_name }}</td></tr>
+                <tr><th>{{ __('common.phone') }}</th><td>{{ $application->phone_number ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.member_registrations.branch') }}</th><td>{{ $application->branch?->displayLabel() ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.shared.submitted') }}</th><td>{{ $application->created_at?->format('M d, Y g:i A') }}</td></tr>
                 @if($application->member)
-                    <tr><th>Member Record</th><td><a href="{{ route('church.members.show', $application->member) }}">{{ $application->member->member_number }}</a></td></tr>
+                    <tr><th>{{ __('pages.member_registrations.member_record') }}</th><td><a href="{{ route('church.members.show', $application->member) }}">{{ $application->member->member_number }}</a></td></tr>
                 @endif
                 @if($application->assigned_envelope_number)
-                    <tr><th>Envelope</th><td><code>{{ $application->assigned_envelope_number }}</code></td></tr>
+                    <tr><th>{{ __('pages.member_registrations.envelope') }}</th><td><code>{{ $application->assigned_envelope_number }}</code></td></tr>
                 @endif
                 @if($application->reviewer)
-                    <tr><th>Reviewed By</th><td>{{ $application->reviewer->name }} — {{ $application->reviewed_at?->format('M d, Y g:i A') }}</td></tr>
+                    <tr><th>{{ __('pages.member_registrations.reviewed_by') }}</th><td>{{ $application->reviewer->name }} — {{ $application->reviewed_at?->format('M d, Y g:i A') }}</td></tr>
                 @endif
                 @if($application->rejection_reason)
-                    <tr><th>Rejection Reason</th><td>{{ $application->rejection_reason }}</td></tr>
+                    <tr><th>{{ __('pages.member_registrations.rejection_reason') }}</th><td>{{ $application->rejection_reason }}</td></tr>
                 @endif
             </table>
 
             @if($application->profilePictureUrl())
-                <img src="{{ $application->profilePictureUrl() }}" alt="Profile photo" class="img-thumbnail mb-3" style="max-width: 160px;">
+                <img src="{{ $application->profilePictureUrl() }}" alt="{{ __('pages.member_registrations.profile_photo_alt') }}" class="img-thumbnail mb-3" style="max-width: 160px;">
             @endif
 
-            <h5 class="mt-3">Registration Details</h5>
+            <h5 class="mt-3">{{ __('pages.member_registrations.registration_details') }}</h5>
             <table class="table table-sm table-striped">
                 <tbody>
                     @foreach($labels as $key => $label)
@@ -93,9 +93,9 @@
                     @endforeach
                     @if(!empty($registrationData['is_baptized']))
                         <tr>
-                            <th>Baptized</th>
+                            <th>{{ __('pages.member_registrations.baptized') }}</th>
                             <td>
-                                Yes
+                                {{ __('common.yes') }}
                                 @if(!empty($registrationData['baptism_date']))
                                     — {{ $registrationData['baptism_date'] }}
                                 @endif
@@ -109,7 +109,7 @@
             </table>
 
             @if(count($dependants) > 0)
-                <h5 class="mt-3">Dependants</h5>
+                <h5 class="mt-3">{{ __('pages.member_registrations.dependants') }}</h5>
                 <ul>
                     @foreach($dependants as $dependant)
                         <li>{{ $dependant['full_name'] ?? '—' }} ({{ $dependant['relationship'] ?? '—' }})</li>
@@ -122,47 +122,47 @@
     <div class="col-lg-4">
         @can('review', $application)
             <div class="tile mb-3">
-                <h5><i class="fa fa-check"></i> Approve Registration</h5>
-                <p class="text-muted small">Assign an envelope number and create the member login account.</p>
+                <h5><i class="fa fa-check"></i> {{ __('pages.member_registrations.approve_title') }}</h5>
+                <p class="text-muted small">{{ __('pages.member_registrations.approve_help') }}</p>
                 <form method="POST" action="{{ route('church.member-registrations.approve', $application) }}" id="approveRegistrationForm">
                     @csrf
                     <div class="form-group">
-                        <label>Envelope Number *</label>
+                        <label>{{ __('pages.member_registrations.envelope_number') }} *</label>
                         <input type="text" name="envelope_number" id="approval_envelope_number" class="form-control"
                             maxlength="3" pattern="\d{3}" required>
                         <small id="approval_envelope_status" class="form-text"></small>
                     </div>
                     @if($needsSpouseEnvelope)
                         <div class="form-group">
-                            <label>Spouse Envelope Number *</label>
+                            <label>{{ __('pages.member_registrations.spouse_envelope_number') }} *</label>
                             <input type="text" name="spouse_envelope_number" id="approval_spouse_envelope_number" class="form-control"
                                 maxlength="3" pattern="\d{3}" required>
                         </div>
                     @endif
                     <button type="submit" class="btn btn-success btn-block">
-                        <i class="fa fa-check"></i> Approve & Create Member
+                        <i class="fa fa-check"></i> {{ __('pages.member_registrations.approve_button') }}
                     </button>
                 </form>
             </div>
 
             <div class="tile">
-                <h5><i class="fa fa-times"></i> Reject Registration</h5>
+                <h5><i class="fa fa-times"></i> {{ __('pages.member_registrations.reject_title') }}</h5>
                 <form method="POST" action="{{ route('church.member-registrations.reject', $application) }}">
                     @csrf
                     <div class="form-group">
-                        <label>Reason (optional)</label>
-                        <textarea name="rejection_reason" class="form-control" rows="3" placeholder="Reason for rejection"></textarea>
+                        <label>{{ __('pages.member_registrations.reason_optional') }}</label>
+                        <textarea name="rejection_reason" class="form-control" rows="3" placeholder="{{ __('pages.member_registrations.reason_placeholder') }}"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-danger btn-block" onclick="return confirm('Reject this registration application?')">
-                        Reject Application
+                    <button type="submit" class="btn btn-danger btn-block" onclick="return confirm(@json(__('pages.member_registrations.reject_confirm')))">
+                        {{ __('pages.member_registrations.reject_button') }}
                     </button>
                 </form>
             </div>
         @else
             <div class="tile">
-                <p class="text-muted mb-0">This application has already been reviewed.</p>
+                <p class="text-muted mb-0">{{ __('pages.member_registrations.already_reviewed') }}</p>
                 @if($application->status->value === 'approved' && $application->member)
-                    <a href="{{ route('church.members.show', $application->member) }}" class="btn btn-primary btn-block mt-3">View Member Profile</a>
+                    <a href="{{ route('church.members.show', $application->member) }}" class="btn btn-primary btn-block mt-3">{{ __('pages.member_registrations.view_member_profile') }}</a>
                 @endif
             </div>
         @endcan

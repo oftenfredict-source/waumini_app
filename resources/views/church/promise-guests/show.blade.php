@@ -3,46 +3,46 @@
 @section('title', $guest->name)
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-user"></i> {{ $guest->name }}</h1>
-        <p>{{ $guest->guest_type->label() }} — {{ $guest->eventLabel() }}</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.promise-guests.index') }}">Guests</a></li>
-        <li class="breadcrumb-item">Details</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-user',
+    'title' => $guest->name,
+    'subtitle' => $guest->guest_type->label() . ' — ' . $guest->eventLabel(),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('pages.promise_guests.breadcrumb'), 'route' => 'church.promise-guests.index'],
+        ['label' => __('pages.shared.breadcrumb_details')],
+    ],
+])
 
 <div class="row">
     <div class="col-md-8">
         <div class="tile">
-            <h3 class="tile-title">Guest Information</h3>
+            <h3 class="tile-title">{{ __('pages.shared.guest_information') }}</h3>
             <table class="table table-borderless table-sm">
-                <tr><th width="180">Type</th><td>{{ $guest->guest_type->label() }}</td></tr>
-                <tr><th>Status</th><td><span class="badge badge-{{ $guest->status->badgeClass() }}">{{ $guest->status->label() }}</span></td></tr>
-                <tr><th>Phone</th><td>{{ $guest->phone_number }}</td></tr>
-                <tr><th>Email</th><td>{{ $guest->email ?? '—' }}</td></tr>
-                <tr><th>Visit Date</th><td>{{ $guest->promised_date->format('M d, Y') }}</td></tr>
-                <tr><th>Linked To</th><td>{{ $guest->eventLabel() }}</td></tr>
-                <tr><th>Notes</th><td>{{ $guest->notes ?? '—' }}</td></tr>
-                <tr><th>Registered By</th><td>{{ $guest->creator?->name ?? '—' }}</td></tr>
-                <tr><th>Registered On</th><td>{{ $guest->created_at->format('M d, Y H:i') }}</td></tr>
+                <tr><th width="180">{{ __('common.type') }}</th><td>{{ $guest->guest_type->label() }}</td></tr>
+                <tr><th>{{ __('common.status') }}</th><td><span class="badge badge-{{ $guest->status->badgeClass() }}">{{ $guest->status->label() }}</span></td></tr>
+                <tr><th>{{ __('common.phone') }}</th><td>{{ $guest->phone_number }}</td></tr>
+                <tr><th>{{ __('common.email') }}</th><td>{{ $guest->email ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.shared.visit_date') }}</th><td>{{ $guest->promised_date->format('M d, Y') }}</td></tr>
+                <tr><th>{{ __('pages.shared.linked_to') }}</th><td>{{ $guest->eventLabel() }}</td></tr>
+                <tr><th>{{ __('pages.shared.notes') }}</th><td>{{ $guest->notes ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.shared.registered_by') }}</th><td>{{ $guest->creator?->name ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.shared.registered_on') }}</th><td>{{ $guest->created_at->format('M d, Y H:i') }}</td></tr>
                 @if($guest->notified_at)
-                    <tr><th>SMS Sent</th><td>{{ $guest->notified_at->format('M d, Y H:i') }}</td></tr>
+                    <tr><th>{{ __('pages.shared.sms_sent') }}</th><td>{{ $guest->notified_at->format('M d, Y H:i') }}</td></tr>
                 @endif
             </table>
         </div>
     </div>
     <div class="col-md-4">
         <div class="tile">
-            <h3 class="tile-title">Actions</h3>
+            <h3 class="tile-title">{{ __('common.actions') }}</h3>
             <a href="{{ route('church.promise-guests.index') }}" class="btn btn-secondary btn-block mb-2">
-                <i class="fa fa-arrow-left"></i> Back to Guests
+                <i class="fa fa-arrow-left"></i> {{ __('pages.promise_guests.back_to') }}
             </a>
             @can('update', $guest)
                 <a href="{{ route('church.promise-guests.edit', $guest) }}" class="btn btn-primary btn-block mb-2">
-                    <i class="fa fa-pencil"></i> Edit Guest
+                    <i class="fa fa-pencil"></i> {{ __('pages.promise_guests.edit_guest') }}
                 </a>
             @endcan
             @can('sendSms', $guest)
@@ -51,9 +51,9 @@
                     <button type="submit" class="btn btn-success btn-block">
                         <i class="fa fa-comment"></i>
                         @if($guest->status === \App\Enums\PromiseGuestStatus::Attended)
-                            Send Welcome Back SMS
+                            {{ __('pages.promise_guests.welcome_back_sms') }}
                         @else
-                            Send SMS Reminder
+                            {{ __('pages.promise_guests.send_reminder_sms') }}
                         @endif
                     </button>
                 </form>
@@ -63,18 +63,18 @@
                     <form method="POST" action="{{ route('church.promise-guests.mark-attended', $guest) }}" class="mb-2">
                         @csrf
                         <button type="submit" class="btn btn-outline-success btn-block">
-                            <i class="fa fa-check"></i> Mark as Attended
+                            <i class="fa fa-check"></i> {{ __('pages.promise_guests.mark_attended') }}
                         </button>
                     </form>
                 @endif
             @endcan
             @can('delete', $guest)
                 <form method="POST" action="{{ route('church.promise-guests.destroy', $guest) }}"
-                    data-swal-confirm="Delete this guest record?" data-swal-delete>
+                    data-swal-confirm="{{ __('pages.promise_guests.delete_confirm') }}" data-swal-delete>
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger btn-block">
-                        <i class="fa fa-trash"></i> Delete Guest
+                        <i class="fa fa-trash"></i> {{ __('pages.promise_guests.delete_guest') }}
                     </button>
                 </form>
             @endcan

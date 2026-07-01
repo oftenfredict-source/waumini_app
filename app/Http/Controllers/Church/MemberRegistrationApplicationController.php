@@ -73,9 +73,7 @@ class MemberRegistrationApplicationController extends Controller
 
         $registration->load(['branch', 'reviewer', 'member']);
         $data = $registration->registration_data ?? [];
-        $needsSpouseEnvelope = ($data['marital_status'] ?? null) === 'married'
-            && ($data['spouse_church_member'] ?? null) === 'yes'
-            && empty($data['spouse_member_id']);
+        $needsSpouseEnvelope = MemberRegistrationApplicationService::needsSpouseEnvelope($data);
 
         return view('church.member-registrations.show', [
             'application' => $registration,
@@ -94,9 +92,13 @@ class MemberRegistrationApplicationController extends Controller
             $request->string('spouse_envelope_number')->toString() ?: null,
         );
 
+        $message = $this->memberService->spouseMemberWasCreated()
+            ? 'Registration approved. Member and spouse accounts were created successfully.'
+            : 'Registration approved. Member account created successfully.';
+
         $redirect = redirect()
             ->route('church.member-registrations.show', $registration)
-            ->with('success', 'Registration approved. Member account created successfully.');
+            ->with('success', $message);
 
         if ($request->user()->canManageMemberPasswords()) {
             $redirect->with('registered_accounts', $result['accounts']);

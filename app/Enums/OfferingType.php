@@ -2,22 +2,16 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum OfferingType: string
 {
+    use HasTranslatableLabel;
+
     case General = 'general';
     case Special = 'special';
     case Thanksgiving = 'thanksgiving';
     case BuildingFund = 'building_fund';
     case Other = 'other';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::General => 'General',
-            self::Special => 'Special',
-            self::Thanksgiving => 'Thanksgiving',
-            self::BuildingFund => 'Building Fund',
-            self::Other => 'Other',
-        };
-    }
 }

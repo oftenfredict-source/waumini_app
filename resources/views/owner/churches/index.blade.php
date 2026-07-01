@@ -1,36 +1,36 @@
 @extends('layouts.owner')
 
-@section('title', 'Churches')
+@section('title', __('owner.church.title'))
 
 @section('content')
 <div class="app-title">
     <div>
-        <h1><i class="fa fa-building"></i> Churches</h1>
-        <p>Manage all registered churches</p>
+        <h1><i class="fa fa-building"></i> {{ __('owner.church.title') }}</h1>
+        <p>{{ __('owner.church.subtitle') }}</p>
     </div>
     <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">Overview</a></li>
-        <li class="breadcrumb-item">Churches</li>
+        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">{{ __('owner.overview') }}</a></li>
+        <li class="breadcrumb-item">{{ __('owner.churches') }}</li>
     </ul>
 </div>
 
 <div class="tile">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
         <form method="GET" class="form-inline">
-            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="Search..." value="{{ $filters['search'] ?? '' }}">
+            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="{{ __('owner.church.search_placeholder') }}" value="{{ $filters['search'] ?? '' }}">
             <select name="status" class="form-control mr-2 mb-2">
-                <option value="">All statuses</option>
+                <option value="">{{ __('pages.shared.all_statuses') }}</option>
                 @foreach($statuses as $status)
                     <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>
                         {{ $status->label() }}
                     </option>
                 @endforeach
             </select>
-            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> Filter</button>
+            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
         </form>
         @can('create', App\Models\Church::class)
             <a href="{{ route('owner.churches.create') }}" class="btn btn-primary mb-2">
-                <i class="fa fa-plus"></i> Add Church
+                <i class="fa fa-plus"></i> {{ __('owner.church.add') }}
             </a>
         @endcan
     </div>
@@ -39,13 +39,13 @@
         <table class="table table-hover table-bordered">
             <thead>
                 <tr>
-                    <th>Church</th>
-                    <th>Subdomain</th>
-                    <th>Email</th>
-                    <th>Package</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th width="180">Actions</th>
+                    <th>{{ __('owner.church_label') }}</th>
+                    <th>{{ __('owner.church.subdomain') }}</th>
+                    <th>{{ __('owner.email') }}</th>
+                    <th>{{ __('owner.package') }}</th>
+                    <th>{{ __('owner.status') }}</th>
+                    <th>{{ __('owner.church.created') }}</th>
+                    <th width="180">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -61,13 +61,13 @@
                         <td>@include('owner.components.status-badge', ['status' => $church->status])</td>
                         <td>{{ $church->created_at->format('M d, Y') }}</td>
                         <td>
-                            <a href="{{ route('owner.churches.show', $church) }}" class="btn btn-sm btn-info" title="View"><i class="fa fa-eye"></i></a>
-                            <a href="{{ route('owner.churches.edit', $church) }}" class="btn btn-sm btn-warning" title="Edit"><i class="fa fa-edit"></i></a>
+                            <a href="{{ route('owner.churches.show', $church) }}" class="btn btn-sm btn-info" title="{{ __('common.view') }}"><i class="fa fa-eye"></i></a>
+                            <a href="{{ route('owner.churches.edit', $church) }}" class="btn btn-sm btn-warning" title="{{ __('common.edit') }}"><i class="fa fa-edit"></i></a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted">No churches found.</td>
+                        <td colspan="7" class="text-center text-muted">{{ __('owner.church.no_found') }}</td>
                     </tr>
                 @endforelse
             </tbody>

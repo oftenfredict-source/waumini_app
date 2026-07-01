@@ -36,7 +36,15 @@
         if (!fill) return;
 
         fill.style.width = ((step / totalSteps) * 100) + '%';
-        if (label) label.textContent = step;
+        if (label) {
+            if (window.registerStepProgress && window.registerStepProgress.template) {
+                label.textContent = window.registerStepProgress.template
+                    .replace(':current', String(step))
+                    .replace(':total', String(window.registerStepProgress.total || totalSteps));
+            } else {
+                label.textContent = step;
+            }
+        }
         if (stepName && window.registerStepNames) {
             stepName.textContent = window.registerStepNames[step - 1] || '';
         }
@@ -110,6 +118,19 @@
         return local ? '+255' + local : '';
     }
 
+    function wizardI18n(path, fallback) {
+        var value = window.memberWizardI18n;
+        if (!value) {
+            return fallback || path;
+        }
+
+        path.split('.').forEach(function (part) {
+            value = value && Object.prototype.hasOwnProperty.call(value, part) ? value[part] : null;
+        });
+
+        return value || fallback || path;
+    }
+
     function initTanzaniaLocations() {
         var regionEl = document.getElementById('region');
         var districtEl = document.getElementById('district');
@@ -120,7 +141,7 @@
         if (!regionEl || !districtEl || !locationsUrl) return;
 
         function populateRegions(selectEl, selected) {
-            selectEl.innerHTML = '<option value="">Select region</option>';
+            selectEl.innerHTML = '<option value="">' + wizardI18n('locations.select_region', 'Select region') + '</option>';
             regions.forEach(function (region) {
                 var option = document.createElement('option');
                 option.value = region.name;
@@ -134,7 +155,7 @@
             var region = regions.find(function (item) { return item.name === regionName; });
             var districts = region ? region.districts : [];
 
-            districtSelect.innerHTML = '<option value="">Select district</option>';
+            districtSelect.innerHTML = '<option value="">' + wizardI18n('locations.select_district', 'Select district') + '</option>';
             districts.forEach(function (district) {
                 var option = document.createElement('option');
                 option.value = district.name;
@@ -175,8 +196,10 @@
                 }
             })
             .catch(function () {
-                regionEl.innerHTML = '<option value="">Unable to load regions</option>';
-                if (residenceRegionEl) residenceRegionEl.innerHTML = '<option value="">Unable to load regions</option>';
+                regionEl.innerHTML = '<option value="">' + wizardI18n('locations.unable_load_regions', 'Unable to load regions') + '</option>';
+                if (residenceRegionEl) {
+                    residenceRegionEl.innerHTML = '<option value="">' + wizardI18n('locations.unable_load_regions', 'Unable to load regions') + '</option>';
+                }
             });
     }
 
@@ -246,76 +269,86 @@
 
     function buildSummary() {
         syncDependantNames();
+        var s = function (key, fallback) {
+            return wizardI18n('summary.' + key, fallback);
+        };
+        var yesNo = function (checked) {
+            return checked ? wizardI18n('yes', 'Yes') : wizardI18n('no', 'No');
+        };
         var html = '<div class="row">';
-        html += summaryBlock('Personal Information', [
-            ['Membership Type', getSelectText('membership_type')],
-            ['Stay Duration', getField('membership_type') === 'temporary'
+        html += summaryBlock(s('personal_information', 'Personal Information'), [
+            [s('membership_type', 'Membership Type'), getSelectText('membership_type')],
+            [s('stay_duration', 'Stay Duration'), getField('membership_type') === 'temporary'
                 ? (getField('temporary_duration_value') + ' ' + getSelectText('temporary_duration_unit'))
                 : ''],
-            ['Member Type', getSelectText('member_type')],
-            ['Envelope Number', getField('envelope_number')],
-            ['Full Name', getField('full_name')],
-            ['Gender', getSelectText('gender')],
-            ['Date of Birth', getField('date_of_birth')],
-            ['Education Level', getSelectText('education_level')],
-            ['Profession', getField('profession')],
-            ['NIDA Number', getField('nida_number')],
-            ['Baptized', document.getElementById('is_baptized')?.checked ? 'Yes' : 'No'],
-            ['Baptism Date', document.getElementById('is_baptized')?.checked ? getField('baptism_date') : ''],
-            ['Baptism Place', document.getElementById('is_baptized')?.checked ? getField('baptism_place') : ''],
-            ['Baptized By', document.getElementById('is_baptized')?.checked ? getField('baptized_by') : ''],
+            [s('member_type', 'Member Type'), getSelectText('member_type')],
+            [s('envelope_number', 'Envelope Number'), getField('envelope_number')],
+            [s('full_name', 'Full Name'), getField('full_name')],
+            [s('gender', 'Gender'), getSelectText('gender')],
+            [s('date_of_birth', 'Date of Birth'), getField('date_of_birth')],
+            [s('education_level', 'Education Level'), getSelectText('education_level')],
+            [s('profession', 'Profession'), getField('profession')],
+            [s('nida_number', 'NIDA Number'), getField('nida_number')],
+            [s('baptized', 'Baptized'), yesNo(document.getElementById('is_baptized')?.checked)],
+            [s('baptism_date', 'Baptism Date'), document.getElementById('is_baptized')?.checked ? getField('baptism_date') : ''],
+            [s('baptism_place', 'Baptism Place'), document.getElementById('is_baptized')?.checked ? getField('baptism_place') : ''],
+            [s('baptized_by', 'Baptized By'), document.getElementById('is_baptized')?.checked ? getField('baptized_by') : ''],
         ]);
-        html += summaryBlock('Contact & Origin', [
-            ['Phone', formatPhoneDisplay()],
-            ['Email', getField('email')],
-            ['Origin Region', getSelectText('region')],
-            ['District', getSelectText('district')],
-            ['Ward', getField('ward')],
-            ['Street', getField('street')],
-            ['P.O. Box', getField('po_box')],
-            ['Tribe', getTribeDisplay('tribe', 'other_tribe')],
+        html += summaryBlock(s('contact_origin', 'Contact & Origin'), [
+            [s('phone', 'Phone'), formatPhoneDisplay()],
+            [s('email', 'Email'), getField('email')],
+            [s('origin_region', 'Origin Region'), getSelectText('region')],
+            [s('district', 'District'), getSelectText('district')],
+            [s('ward', 'Ward'), getField('ward')],
+            [s('street', 'Street'), getField('street')],
+            [s('po_box', 'P.O. Box'), getField('po_box')],
+            [s('tribe', 'Tribe'), getTribeDisplay('tribe', 'other_tribe')],
         ]);
-        html += summaryBlock('Residence', [
-            ['Region', getSelectText('residence_region')],
-            ['District', getSelectText('residence_district')],
-            ['Ward', getField('residence_ward')],
-            ['Street', getField('residence_street')],
-            ['Road', getField('residence_road')],
-            ['House Number', getField('residence_house_number')],
+        html += summaryBlock(s('residence', 'Residence'), [
+            [s('region', 'Region'), getSelectText('residence_region')],
+            [s('district', 'District'), getSelectText('residence_district')],
+            [s('ward', 'Ward'), getField('residence_ward')],
+            [s('street', 'Street'), getField('residence_street')],
+            [s('road', 'Road'), getField('residence_road')],
+            [s('house_number', 'House Number'), getField('residence_house_number')],
         ]);
-        html += summaryBlock('Family Information', (function () {
+        html += summaryBlock(s('family_information', 'Family Information'), (function () {
             var rows = [
-                ['Marital Status', getSelectText('marital_status')],
+                [s('marital_status', 'Marital Status'), getSelectText('marital_status')],
             ];
             if (getField('marital_status') === 'married') {
-                rows.push(['Wedding Type', getSelectText('wedding_type')]);
-                rows.push(['Wedding Date', getField('wedding_date')]);
-                rows.push(['Spouse Church Member', getSelectText('spouse_church_member')]);
+                rows.push([s('wedding_type', 'Wedding Type'), getSelectText('wedding_type')]);
+                rows.push([s('wedding_date', 'Wedding Date'), getField('wedding_date')]);
+                rows.push([s('spouse_church_member', 'Spouse Church Member'), getSelectText('spouse_church_member')]);
                 if (getField('spouse_church_member') === 'yes') {
-                    rows.push(['Spouse Entry Method', getSelectText('spouse_input_method')]);
-                    if (getField('spouse_input_method') === 'select') {
-                        rows.push(['Spouse (Selected)', getSelectText('spouse_member_id')]);
-                        rows.push(['Spouse Envelope', document.getElementById('spouse_envelope_number_select')?.value]);
+                    if (!isSelfRegistration()) {
+                        rows.push([s('spouse_entry_method', 'Spouse Entry Method'), getSelectText('spouse_input_method')]);
+                    }
+                    if (!isSelfRegistration() && getField('spouse_input_method') === 'select') {
+                        rows.push([s('spouse_selected', 'Spouse (Selected)'), getSelectText('spouse_member_id')]);
+                        rows.push([s('spouse_envelope', 'Spouse Envelope'), document.getElementById('spouse_envelope_number_select')?.value]);
                     } else {
-                        rows.push(['Spouse Name', getField('spouse_full_name')]);
-                        rows.push(['Spouse Envelope', document.getElementById('spouse_envelope_number_manual')?.value]);
-                        rows.push(['Spouse Gender', getSelectText('spouse_gender')]);
-                        rows.push(['Spouse DOB', getField('spouse_date_of_birth')]);
-                        rows.push(['Spouse Phone', formatSpousePhoneDisplay()]);
-                        rows.push(['Spouse Tribe', getTribeDisplay('spouse_tribe', 'spouse_other_tribe')]);
+                        rows.push([s('spouse_name', 'Spouse Name'), getField('spouse_full_name')]);
+                        if (!isSelfRegistration()) {
+                            rows.push([s('spouse_envelope', 'Spouse Envelope'), document.getElementById('spouse_envelope_number_manual')?.value]);
+                        }
+                        rows.push([s('spouse_gender', 'Spouse Gender'), getSelectText('spouse_gender')]);
+                        rows.push([s('spouse_dob', 'Spouse DOB'), getField('spouse_date_of_birth')]);
+                        rows.push([s('spouse_phone', 'Spouse Phone'), formatSpousePhoneDisplay()]);
+                        rows.push([s('spouse_tribe', 'Spouse Tribe'), getTribeDisplay('spouse_tribe', 'spouse_other_tribe')]);
                     }
                 } else {
-                    rows.push(['Spouse Name', getField('spouse_full_name')]);
-                    rows.push(['Spouse Gender', getSelectText('spouse_gender')]);
-                    rows.push(['Spouse DOB', getField('spouse_date_of_birth')]);
-                    rows.push(['Spouse Phone', formatSpousePhoneDisplay()]);
-                    rows.push(['Spouse Tribe', getTribeDisplay('spouse_tribe', 'spouse_other_tribe')]);
+                    rows.push([s('spouse_name', 'Spouse Name'), getField('spouse_full_name')]);
+                    rows.push([s('spouse_gender', 'Spouse Gender'), getSelectText('spouse_gender')]);
+                    rows.push([s('spouse_dob', 'Spouse DOB'), getField('spouse_date_of_birth')]);
+                    rows.push([s('spouse_phone', 'Spouse Phone'), formatSpousePhoneDisplay()]);
+                    rows.push([s('spouse_tribe', 'Spouse Tribe'), getTribeDisplay('spouse_tribe', 'spouse_other_tribe')]);
                 }
             }
             if (window.memberWizardConfig && window.memberWizardConfig.isEdit) {
                 var notes = getField('notes');
                 if (notes) {
-                    rows.push(['Notes', notes]);
+                    rows.push([s('notes', 'Notes'), notes]);
                 }
             }
             return rows;
@@ -324,7 +357,7 @@
 
         var dependants = document.querySelectorAll('#dependantsContainer .dependant-row');
         if (dependants.length) {
-            html += '<h5 class="mt-3">Dependants</h5><ul class="list-group">';
+            html += '<h5 class="mt-3">' + s('dependants', 'Dependants') + '</h5><ul class="list-group">';
             dependants.forEach(function (row) {
                 var name = row.querySelector('.dependant-name').value;
                 var rel = row.querySelector('.dependant-relationship');
@@ -491,7 +524,15 @@
         });
     }
 
+    function isSelfRegistration() {
+        return !!(window.memberWizardConfig && window.memberWizardConfig.isSelfRegistration);
+    }
+
     function syncSpouseEnvelopeFieldName() {
+        if (isSelfRegistration()) {
+            return;
+        }
+
         var selectField = document.getElementById('spouse_envelope_number_select');
         var manualField = document.getElementById('spouse_envelope_number_manual');
         var isMember = getField('spouse_church_member') === 'yes';
@@ -533,15 +574,16 @@
         var memberSelect = document.getElementById('spouseMemberSelect');
         var manualFields = document.getElementById('spouseManualFields');
         var envelopeManualWrap = document.getElementById('spouseEnvelopeManualWrap');
+        var selfReg = isSelfRegistration();
 
         if (methodWrap) methodWrap.style.display = isMember ? 'block' : 'none';
 
-        var useSelect = isMember && method === 'select';
-        var useManual = !isMember || (isMember && method === 'manual');
+        var useSelect = !selfReg && isMember && method === 'select';
+        var useManual = selfReg ? true : (!isMember || (isMember && method === 'manual'));
 
         if (memberSelect) memberSelect.style.display = useSelect ? 'block' : 'none';
         if (manualFields) manualFields.style.display = useManual ? 'block' : 'none';
-        if (envelopeManualWrap) envelopeManualWrap.style.display = (isMember && method === 'manual') ? 'block' : 'none';
+        if (envelopeManualWrap) envelopeManualWrap.style.display = (!selfReg && isMember && method === 'manual') ? 'block' : 'none';
 
         setFieldEnabled(memberSelect, useSelect);
         setFieldEnabled(manualFields, useManual);

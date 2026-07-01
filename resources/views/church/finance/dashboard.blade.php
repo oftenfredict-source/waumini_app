@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'Finance Dashboard')
+@section('title', __('finance.dashboard_title'))
 
 @push('styles')
 <style>
@@ -136,8 +136,8 @@
 <div class="finance-hero">
     <div class="row align-items-center">
         <div class="col-lg-8">
-            <h2><i class="fa fa-line-chart"></i> Finance Dashboard</h2>
-            <p class="lead">Overview of church income, collections, and financial health for {{ $period['label'] }}.</p>
+            <h2><i class="fa fa-line-chart"></i> {{ __('finance.dashboard_heading') }}</h2>
+            <p class="lead">{{ __('finance.dashboard_subtitle', ['period' => $period['label']]) }}</p>
         </div>
         <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
             <form method="GET" class="form-inline justify-content-lg-end">
@@ -153,15 +153,15 @@
         <div class="card finance-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="finance-stat-label">Income ({{ $period['label'] }})</div>
+                    <div class="finance-stat-label">{{ __('finance.income_period', ['period' => $period['label']]) }}</div>
                     <div class="finance-stat-value text-primary">TZS {{ number_format($summary['total_income'], 0) }}</div>
                     @if($change !== null)
                         <small class="{{ $change >= 0 ? 'finance-change-up' : 'finance-change-down' }}">
                             <i class="fa fa-{{ $change >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
-                            {{ abs($change) }}% vs last month
+                            {{ __('finance.vs_last_month', ['percent' => abs($change)]) }}
                         </small>
                     @else
-                        <small class="finance-change-neutral">No prior month data</small>
+                        <small class="finance-change-neutral">{{ __('finance.no_prior_month') }}</small>
                     @endif
                 </div>
                 <div class="finance-stat-icon" style="background:#940000;"><i class="fa fa-arrow-up"></i></div>
@@ -172,9 +172,9 @@
         <div class="card finance-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="finance-stat-label">Net (This Month)</div>
+                    <div class="finance-stat-label">{{ __('finance.net_this_month') }}</div>
                     <div class="finance-stat-value text-success">TZS {{ number_format($summary['net_balance'], 0) }}</div>
-                    <small class="text-muted">Income minus expenses</small>
+                    <small class="text-muted">{{ __('finance.income_minus_expenses') }}</small>
                 </div>
                 <div class="finance-stat-icon" style="background:#28a745;"><i class="fa fa-balance-scale"></i></div>
             </div>
@@ -184,9 +184,9 @@
         <div class="card finance-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="finance-stat-label">All-Time Balance</div>
+                    <div class="finance-stat-label">{{ __('finance.all_time_balance') }}</div>
                     <div class="finance-stat-value">TZS {{ number_format($summary['all_time_balance'], 0) }}</div>
-                    <small class="text-muted">Recorded church finances</small>
+                    <small class="text-muted">{{ __('finance.recorded_finances') }}</small>
                 </div>
                 <div class="finance-stat-icon" style="background:#17a2b8;"><i class="fa fa-university"></i></div>
             </div>
@@ -196,9 +196,9 @@
         <div class="card finance-stat-card">
             <div class="card-body d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="finance-stat-label">Bereavement Income</div>
+                    <div class="finance-stat-label">{{ __('finance.bereavement_income') }}</div>
                     <div class="finance-stat-value" style="color:#6f42c1;">TZS {{ number_format($summary['bereavement_month'], 0) }}</div>
-                    <small class="text-muted">{{ $dashboard['quick_stats']['contributors_this_month'] }} contributors</small>
+                    <small class="text-muted">{{ __('finance.contributors', ['count' => $dashboard['quick_stats']['contributors_this_month']]) }}</small>
                 </div>
                 <div class="finance-stat-icon" style="background:#6f42c1;"><i class="fa fa-heart"></i></div>
             </div>
@@ -212,14 +212,14 @@
         <div class="alert alert-light border d-flex justify-content-between align-items-center mb-0">
             <div>
                 <i class="fa fa-check-circle text-warning"></i>
-                <strong>Pending Approvals:</strong>
-                {{ $summary['pending_approvals_count'] }} items
+                <strong>{{ __('finance.pending_approvals') }}</strong>
+                {{ __('finance.items', ['count' => $summary['pending_approvals_count']]) }}
                 @if($summary['pending_approvals_amount'] > 0)
                     (TZS {{ number_format($summary['pending_approvals_amount'], 0) }})
                 @endif
             </div>
             <a href="{{ route('church.finance.approvals') }}" class="btn btn-sm btn-outline-primary">
-                Open Approval Dashboard
+                {{ __('finance.open_approval_dashboard') }}
             </a>
         </div>
     </div>
@@ -229,7 +229,7 @@
 <div class="row">
     <div class="col-lg-8 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-area-chart"></i> Income vs Expenses (6 Months)</h3>
+            <h3 class="tile-title"><i class="fa fa-area-chart"></i> {{ __('finance.income_vs_expenses_6m') }}</h3>
             <div class="finance-chart-wrap">
                 <canvas id="incomeExpenseChart"></canvas>
             </div>
@@ -237,7 +237,7 @@
     </div>
     <div class="col-lg-4 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-pie-chart"></i> Income Mix</h3>
+            <h3 class="tile-title"><i class="fa fa-pie-chart"></i> {{ __('finance.income_mix') }}</h3>
             <div class="finance-chart-wrap">
                 <canvas id="incomeMixChart"></canvas>
             </div>
@@ -248,7 +248,7 @@
 <div class="row">
     <div class="col-lg-5 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-bar-chart"></i> Income Breakdown ({{ $period['label'] }})</h3>
+            <h3 class="tile-title"><i class="fa fa-bar-chart"></i> {{ __('finance.income_breakdown', ['period' => $period['label']]) }}</h3>
             @foreach($breakdown as $item)
                 <div class="finance-breakdown-item">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -261,11 +261,11 @@
                     <div class="finance-breakdown-bar">
                         <span style="width:{{ $item['percent'] }}%; background:{{ $item['color'] }};"></span>
                     </div>
-                    <small class="text-muted">{{ $item['percent'] }}% of total income</small>
+                    <small class="text-muted">{{ __('finance.percent_of_income', ['percent' => $item['percent']]) }}</small>
                 </div>
             @endforeach
             @if($summary['total_income'] == 0)
-                <p class="text-muted mt-3 mb-0">No income recorded for this period yet. Bereavement, tithe, offerings, and pledge payments will appear here as transactions are recorded.</p>
+                <p class="text-muted mt-3 mb-0">{{ __('finance.no_income_period') }}</p>
             @endif
         </div>
     </div>
@@ -273,8 +273,8 @@
     <div class="col-lg-7 mb-4">
         <div class="tile">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="tile-title mb-0"><i class="fa fa-history"></i> Recent Transactions</h3>
-                <a href="{{ route('church.bereavements.index') }}" class="btn btn-sm btn-outline-primary">Bereavements</a>
+                <h3 class="tile-title mb-0"><i class="fa fa-history"></i> {{ __('finance.recent_transactions') }}</h3>
+                <a href="{{ route('church.bereavements.index') }}" class="btn btn-sm btn-outline-primary">{{ __('finance.bereavements') }}</a>
             </div>
             @forelse($dashboard['recent_transactions'] as $transaction)
                 <div class="finance-transaction">
@@ -290,14 +290,14 @@
                         <div class="font-weight-bold text-success">TZS {{ number_format($transaction['amount'], 0) }}</div>
                         <span class="badge {{ $transaction['badge_class'] }}">{{ $transaction['label'] }}</span>
                         @if($transaction['route'])
-                            <div><a href="{{ $transaction['route'] }}" class="small">View</a></div>
+                            <div><a href="{{ $transaction['route'] }}" class="small">{{ __('common.view') }}</a></div>
                         @endif
                     </div>
                 </div>
             @empty
                 <div class="text-center text-muted py-4">
                     <i class="fa fa-inbox fa-2x mb-2"></i>
-                    <p>No recent transactions yet.</p>
+                    <p>{{ __('finance.no_recent_transactions') }}</p>
                 </div>
             @endforelse
         </div>
@@ -307,22 +307,22 @@
 <div class="row">
     <div class="col-lg-6 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-heart"></i> Open Bereavement Collections</h3>
+            <h3 class="tile-title"><i class="fa fa-heart"></i> {{ __('finance.open_bereavement') }}</h3>
             @forelse($dashboard['open_bereavements'] as $event)
                 <div class="mb-3 pb-3 border-bottom">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <strong>{{ $event->deceased_name }}</strong>
                             <div class="small text-muted">
-                                Ends {{ $event->contribution_end_date->format('M d, Y') }}
-                                · {{ $event->daysRemaining() }} days left
+                                {{ __('finance.ends', ['date' => $event->contribution_end_date->format('M d, Y')]) }}
+                                · {{ __('finance.days_left', ['count' => $event->daysRemaining()]) }}
                             </div>
                         </div>
-                        <a href="{{ route('church.bereavements.show', $event) }}" class="btn btn-sm btn-outline-primary">Manage</a>
+                        <a href="{{ route('church.bereavements.show', $event) }}" class="btn btn-sm btn-outline-primary">{{ __('finance.manage') }}</a>
                     </div>
                     <div class="d-flex justify-content-between small mt-2 mb-1">
-                        <span>TZS {{ number_format($event->total_raised ?? 0, 0) }} raised</span>
-                        <span>{{ $event->contributors_count ?? 0 }} contributors</span>
+                        <span>{{ __('finance.raised', ['amount' => number_format($event->total_raised ?? 0, 0)]) }}</span>
+                        <span>{{ __('finance.contributors', ['count' => $event->contributors_count ?? 0]) }}</span>
                     </div>
                     <div class="bereavement-progress">
                         @php
@@ -335,9 +335,9 @@
             @empty
                 <div class="text-center text-muted py-3">
                     <i class="fa fa-heart-o fa-2x mb-2"></i>
-                    <p>No open bereavement collections.</p>
+                    <p>{{ __('finance.no_open_bereavement') }}</p>
                     @can('create', \App\Models\BereavementEvent::class)
-                        <a href="{{ route('church.bereavements.create') }}" class="btn btn-sm btn-primary">Create Bereavement</a>
+                        <a href="{{ route('church.bereavements.create') }}" class="btn btn-sm btn-primary">{{ __('finance.create_bereavement') }}</a>
                     @endcan
                 </div>
             @endforelse
@@ -346,49 +346,49 @@
 
     <div class="col-lg-6 mb-4">
         <div class="tile">
-            <h3 class="tile-title"><i class="fa fa-bolt"></i> Quick Actions</h3>
+            <h3 class="tile-title"><i class="fa fa-bolt"></i> {{ __('finance.quick_actions') }}</h3>
             <div class="row">
                 <div class="col-md-4 col-6 mb-3">
                     <a href="{{ route('church.tithes.index') }}" class="finance-quick-link">
                         <i class="fa fa-money d-block"></i>
-                        <strong>Tithes</strong>
+                        <strong>{{ __('finance.tithes') }}</strong>
                     </a>
                 </div>
                 <div class="col-md-4 col-6 mb-3">
                     <a href="{{ route('church.offerings.index') }}" class="finance-quick-link">
                         <i class="fa fa-gift d-block"></i>
-                        <strong>Offerings</strong>
+                        <strong>{{ __('finance.offerings') }}</strong>
                     </a>
                 </div>
                 <div class="col-md-4 col-6 mb-3">
                     <a href="{{ route('church.pledges.index') }}" class="finance-quick-link">
                         <i class="fa fa-handshake-o d-block"></i>
-                        <strong>Pledges</strong>
+                        <strong>{{ __('finance.pledges') }}</strong>
                     </a>
                 </div>
                 <div class="col-md-4 col-6 mb-3">
                     <a href="{{ route('church.budget.index') }}" class="finance-quick-link">
                         <i class="fa fa-file-text-o d-block"></i>
-                        <strong>Budget</strong>
+                        <strong>{{ __('finance.budget') }}</strong>
                     </a>
                 </div>
                 <div class="col-md-4 col-6 mb-3">
                     <a href="{{ route('church.bereavements.index') }}" class="finance-quick-link">
                         <i class="fa fa-heart d-block"></i>
-                        <strong>Bereavements</strong>
+                        <strong>{{ __('finance.bereavements') }}</strong>
                     </a>
                 </div>
                 <div class="col-md-4 col-6 mb-3">
                     <a href="{{ route('church.reports.index') }}" class="finance-quick-link">
                         <i class="fa fa-bar-chart d-block"></i>
-                        <strong>Reports</strong>
+                        <strong>{{ __('finance.reports') }}</strong>
                     </a>
                 </div>
             </div>
             @if($canManage)
                 <div class="alert alert-info mb-0 mt-2">
                     <i class="fa fa-info-circle"></i>
-                    Budgets & expenses, tithes, offerings, pledge payments, and bereavements are now reflected on this dashboard.
+                    {{ __('finance.dashboard_info') }}
                 </div>
             @endif
         </div>
@@ -412,13 +412,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: trendData.map(item => item.short_month),
                 datasets: [
                     {
-                        label: 'Income',
+                        label: @json(__('finance.chart_income')),
                         data: trendData.map(item => item.income),
                         backgroundColor: 'rgba(148, 0, 0, 0.75)',
                         borderRadius: 6,
                     },
                     {
-                        label: 'Expenses',
+                        label: @json(__('finance.chart_expenses')),
                         data: trendData.map(item => item.expenses),
                         backgroundColor: 'rgba(220, 53, 69, 0.65)',
                         borderRadius: 6,
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tooltip: {
                         callbacks: {
                             label: function(ctx) {
-                                if (!hasData) return 'No income recorded';
+                                if (!hasData) return @json(__('finance.chart_no_income'));
                                 return ctx.label + ': TZS ' + Number(ctx.raw).toLocaleString();
                             }
                         }

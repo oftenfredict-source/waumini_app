@@ -2,16 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum TemporaryDurationUnit: string
 {
+    use HasTranslatableLabel;
+
     case Month = 'month';
     case Year = 'year';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::Month => 'Month(s)',
-            self::Year => 'Year(s)',
-        };
-    }
 }

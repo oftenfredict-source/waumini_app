@@ -1,10 +1,10 @@
 @php $vali = asset('vali-master/docs'); @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Maintenance - {{ config('app.name') }}</title>
+    <title>{{ __('common.maintenance_title') }} - {{ config('app.name') }}</title>
     <link rel="stylesheet" href="{{ $vali }}/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     @include('partials.brand-styles')
@@ -12,10 +12,16 @@
         body {
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             background: #f5f6fa;
             padding: 1.5rem;
+        }
+        .maintenance-locale {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
         }
         .maintenance-card {
             max-width: 520px;
@@ -52,11 +58,14 @@
     </style>
 </head>
 <body>
+    <div class="maintenance-locale">
+        @include('partials.locale-switcher', ['variant' => 'links', 'class' => 'maintenance-locale-switcher'])
+    </div>
     <div class="maintenance-card">
         <div class="maintenance-icon">
             <i class="fa fa-wrench"></i>
         </div>
-        <h1>System Under Maintenance</h1>
+        <h1>{{ __('common.maintenance_heading') }}</h1>
         <p>{{ $message }}</p>
     </div>
 </body>

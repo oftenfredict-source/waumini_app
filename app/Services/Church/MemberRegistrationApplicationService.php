@@ -17,6 +17,16 @@ class MemberRegistrationApplicationService
         private readonly MemberService $memberService,
     ) {}
 
+    public static function needsSpouseEnvelope(array $data): bool
+    {
+        if (($data['marital_status'] ?? null) !== 'married' || ! empty($data['spouse_member_id'])) {
+            return false;
+        }
+
+        return ($data['spouse_church_member'] ?? null) === 'yes'
+            || ! empty(trim((string) ($data['spouse_full_name'] ?? '')));
+    }
+
     public function submit(
         Church $church,
         array $data,
@@ -25,10 +35,7 @@ class MemberRegistrationApplicationService
     ): MemberRegistrationApplication {
         $data['spouse_input_method'] = 'manual';
         $data['spouse_member_id'] = null;
-
-        if (($data['spouse_church_member'] ?? null) === 'yes') {
-            $data['spouse_envelope_number'] = null;
-        }
+        $data['spouse_envelope_number'] = null;
 
         $profilePath = null;
 
@@ -79,7 +86,7 @@ class MemberRegistrationApplicationService
             $data['envelope_number'] = $envelopeNumber;
             $data['branch_id'] = $data['branch_id'] ?? $application->branch_id;
 
-            if (! empty($data['spouse_church_member']) && $data['spouse_church_member'] === 'yes' && $spouseEnvelopeNumber) {
+            if (! empty(trim((string) ($data['spouse_full_name'] ?? ''))) && $spouseEnvelopeNumber) {
                 if (! $this->memberService->isEnvelopeAvailable($application->church, $spouseEnvelopeNumber, null)) {
                     throw ValidationException::withMessages([
                         'spouse_envelope_number' => 'Spouse envelope number is already in use.',

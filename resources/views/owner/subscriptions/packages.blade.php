@@ -1,16 +1,16 @@
 @extends('layouts.owner')
 
-@section('title', 'Subscription Packages')
+@section('title', __('owner.subs.packages_title'))
 
 @section('content')
 <div class="app-title">
     <div>
-        <h1><i class="fa fa-tags"></i> Packages</h1>
-        <p>Subscription plans and features</p>
+        <h1><i class="fa fa-tags"></i> {{ __('owner.packages') }}</h1>
+        <p>{{ __('owner.subs.packages_subtitle') }}</p>
     </div>
     <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('owner.subscriptions.index') }}">Subscriptions</a></li>
-        <li class="breadcrumb-item">Packages</li>
+        <li class="breadcrumb-item"><a href="{{ route('owner.subscriptions.index') }}">{{ __('owner.subscriptions') }}</a></li>
+        <li class="breadcrumb-item">{{ __('owner.packages') }}</li>
     </ul>
 </div>
 
@@ -21,13 +21,13 @@
                 <h3 class="tile-title">{{ $package->name }}</h3>
                 <p>{{ $package->description }}</p>
                 <hr>
-                <p><strong>Installation:</strong> ${{ number_format($package->installation_price, 2) }}</p>
-                <p><strong>Yearly:</strong> ${{ number_format($package->yearly_price, 2) }}</p>
-                <p><strong>Trial:</strong> {{ $package->trial_days }} days</p>
+                <p><strong>{{ __('owner.subs.installation') }}</strong> ${{ number_format($package->installation_price, 2) }}</p>
+                <p><strong>{{ __('owner.subs.yearly') }}</strong> ${{ number_format($package->yearly_price, 2) }}</p>
+                <p><strong>{{ __('owner.subs.trial_days', ['days' => $package->trial_days]) }}</strong></p>
                 @if($package->max_members)
-                    <p><strong>Max members:</strong> {{ number_format($package->max_members) }}</p>
+                    <p><strong>{{ __('owner.subs.max_members') }}</strong> {{ number_format($package->max_members) }}</p>
                 @endif
-                <h5 class="mt-3">Features</h5>
+                <h5 class="mt-3">{{ __('owner.subs.features') }}</h5>
                 <ul class="mb-0">
                     @foreach($package->features as $feature)
                         <li>

@@ -1,16 +1,16 @@
 @extends('layouts.owner')
 
-@section('title', 'Subscriptions')
+@section('title', __('owner.subs.title'))
 
 @section('content')
 <div class="app-title">
     <div>
-        <h1><i class="fa fa-credit-card"></i> Subscriptions</h1>
-        <p>Manage packages and church subscriptions</p>
+        <h1><i class="fa fa-credit-card"></i> {{ __('owner.subs.title') }}</h1>
+        <p>{{ __('owner.subs.subtitle') }}</p>
     </div>
     <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">Overview</a></li>
-        <li class="breadcrumb-item">Subscriptions</li>
+        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">{{ __('owner.overview') }}</a></li>
+        <li class="breadcrumb-item">{{ __('owner.subscriptions') }}</li>
     </ul>
 </div>
 
@@ -20,26 +20,26 @@
             <div class="tile">
                 <h4>{{ $package->name }}</h4>
                 <p class="text-muted">{{ $package->description }}</p>
-                <p><strong>Installation:</strong> {{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($package->installation_price, 2) }} &middot; <strong>Yearly:</strong> {{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($package->yearly_price, 2) }}</p>
-                <p><span class="badge badge-info">{{ $package->active_count }} active</span> &middot; {{ $package->trial_days }} day trial</p>
-                <a href="{{ route('owner.settings.index', ['tab' => 'packages']) }}" class="btn btn-sm btn-outline-primary">Manage in Settings</a>
+                <p><strong>{{ __('owner.subs.installation') }}</strong> {{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($package->installation_price, 2) }} &middot; <strong>{{ __('owner.subs.yearly') }}</strong> {{ \App\Models\SystemSetting::platformCurrency() }} {{ number_format($package->yearly_price, 2) }}</p>
+                <p><span class="badge badge-info">{{ __('owner.subs.active_trial', ['active' => $package->active_count, 'days' => $package->trial_days]) }}</span></p>
+                <a href="{{ route('owner.settings.index', ['tab' => 'packages']) }}" class="btn btn-sm btn-outline-primary">{{ __('owner.subs.manage_settings') }}</a>
             </div>
         </div>
     @endforeach
 </div>
 
 <div class="tile">
-    <h3 class="tile-title">Church Subscriptions</h3>
+    <h3 class="tile-title">{{ __('owner.subs.church_subscriptions') }}</h3>
     <div class="table-responsive">
         <table class="table table-hover table-bordered">
             <thead>
                 <tr>
-                    <th>Church</th>
-                    <th>Package</th>
-                    <th>Billing</th>
-                    <th>Status</th>
-                    <th>Starts</th>
-                    <th>Ends / Trial</th>
+                    <th>{{ __('owner.church_label') }}</th>
+                    <th>{{ __('owner.package') }}</th>
+                    <th>{{ __('owner.church.billing') }}</th>
+                    <th>{{ __('owner.status') }}</th>
+                    <th>{{ __('owner.church.starts') }}</th>
+                    <th>{{ __('owner.subs.ends_trial') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,7 +55,7 @@
                         <td>{{ ($subscription->trial_ends_at ?? $subscription->ends_at)?->format('M d, Y') ?? '—' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted">No subscriptions yet.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted">{{ __('owner.subs.no_subscriptions') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

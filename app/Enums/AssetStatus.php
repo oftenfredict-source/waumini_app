@@ -2,22 +2,16 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\HasTranslatableLabel;
+
 enum AssetStatus: string
 {
+    use HasTranslatableLabel;
+
     case Active = 'active';
     case UnderMaintenance = 'under_maintenance';
     case Disposed = 'disposed';
     case Lost = 'lost';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Active => 'Active',
-            self::UnderMaintenance => 'Under Maintenance',
-            self::Disposed => 'Disposed',
-            self::Lost => 'Lost',
-        };
-    }
 
     public function badgeClass(): string
     {

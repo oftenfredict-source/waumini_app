@@ -6,15 +6,15 @@
             @endif
         @endforeach
         <div class="form-group col-md-4">
-            <label>Start Date</label>
+            <label>{{ __('reports.start_date') }}</label>
             <input type="date" name="start_date" class="form-control" value="{{ $start->format('Y-m-d') }}">
         </div>
         <div class="form-group col-md-4">
-            <label>End Date</label>
+            <label>{{ __('reports.end_date') }}</label>
             <input type="date" name="end_date" class="form-control" value="{{ $end->format('Y-m-d') }}">
         </div>
         <div class="form-group col-md-4">
-            <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-filter"></i> Apply</button>
+            <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-filter"></i> {{ __('reports.apply') }}</button>
         </div>
     </form>
 </div>

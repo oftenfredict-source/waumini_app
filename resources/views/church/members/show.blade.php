@@ -3,24 +3,23 @@
 @section('title', $member->full_name)
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-user"></i> {{ $member->full_name }}</h1>
-        <p>Member profile</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.members.index') }}">Members</a></li>
-        <li class="breadcrumb-item">{{ $member->full_name }}</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-user',
+    'title' => $member->full_name,
+    'subtitle' => __('pages.members.show_subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.members'), 'route' => 'church.members.index'],
+        ['label' => $member->full_name],
+    ],
+])
 
 @if($member->isArchived())
     <div class="alert alert-warning">
-        <h5 class="alert-heading"><i class="fa fa-archive"></i> Archived Member</h5>
-        <p class="mb-1"><strong>Archived:</strong> {{ $member->archived_at?->format('M d, Y H:i') ?? '—' }}</p>
-        <p class="mb-1"><strong>By:</strong> {{ $member->archivedBy?->name ?? '—' }}</p>
-        <p class="mb-0"><strong>Reason:</strong> {{ $member->archive_reason ?? '—' }}</p>
+        <h5 class="alert-heading"><i class="fa fa-archive"></i> {{ __('pages.members.archived_member') }}</h5>
+        <p class="mb-1"><strong>{{ __('pages.members.archived_label') }}</strong> {{ $member->archived_at?->format('M d, Y H:i') ?? '—' }}</p>
+        <p class="mb-1"><strong>{{ __('pages.members.archived_by') }}</strong> {{ $member->archivedBy?->name ?? '—' }}</p>
+        <p class="mb-0"><strong>{{ __('pages.members.reason') }}</strong> {{ $member->archive_reason ?? '—' }}</p>
     </div>
 @endif
 
@@ -32,61 +31,61 @@
                     <img src="{{ $member->profilePictureUrl() }}" alt="{{ $member->full_name }}" class="profile-preview mr-3">
                 @endif
                 <div class="flex-grow-1">
-                    <h3 class="tile-title">Personal Information</h3>
+                    <h3 class="tile-title">{{ __('members.summary.personal_information') }}</h3>
                     <table class="table table-borderless table-sm">
-                        <tr><th width="180">Member ID</th><td><code>{{ $member->member_number }}</code></td></tr>
-                        <tr><th>Envelope Number</th><td><code>{{ $member->envelope_number ?? '—' }}</code></td></tr>
-                        <tr><th>Membership Type</th><td>{{ ucfirst($member->membership_type->value) }}</td></tr>
+                        <tr><th width="180">{{ __('pages.shared.member_id') }}</th><td><code>{{ $member->member_number }}</code></td></tr>
+                        <tr><th>{{ __('pages.shared.envelope_number') }}</th><td><code>{{ $member->envelope_number ?? '—' }}</code></td></tr>
+                        <tr><th>{{ __('members.fields.membership_type') }}</th><td>{{ ucfirst($member->membership_type->value) }}</td></tr>
                         @if($member->isTemporary())
-                            <tr><th>Stay Duration</th><td>{{ $member->temporaryDurationLabel() ?? '—' }}</td></tr>
-                            <tr><th>Expires On</th>
+                            <tr><th>{{ __('pages.members.stay_duration') }}</th><td>{{ $member->temporaryDurationLabel() ?? '—' }}</td></tr>
+                            <tr><th>{{ __('pages.members.expires_on') }}</th>
                                 <td>
                                     {{ $member->membership_expires_at?->format('M d, Y') ?? '—' }}
                                     @if($member->membership_expires_at)
                                         @if($member->isMembershipExpired())
-                                            <span class="badge badge-danger">Expired</span>
+                                            <span class="badge badge-danger">{{ __('common.expired') }}</span>
                                         @else
-                                            <span class="badge badge-info">{{ $member->membershipDaysRemaining() }} days left</span>
+                                            <span class="badge badge-info">{{ __('pages.members.days_left', ['count' => $member->membershipDaysRemaining()]) }}</span>
                                         @endif
                                     @endif
                                 </td>
                             </tr>
                         @endif
-                        <tr><th>Member Type</th><td>{{ $member->member_type?->label() ?? '—' }}</td></tr>
-                        <tr><th>Gender</th><td>{{ $member->gender ? ucfirst($member->gender) : '—' }}</td></tr>
-                        <tr><th>Date of Birth</th><td>{{ $member->date_of_birth?->format('M d, Y') ?? '—' }}</td></tr>
-                        <tr><th>Education</th><td>{{ $member->education_level?->label() ?? '—' }}</td></tr>
-                        <tr><th>Profession</th><td>{{ $member->profession ?? '—' }}</td></tr>
-                        <tr><th>NIDA</th><td>{{ $member->nida_number ?? '—' }}</td></tr>
-                        <tr><th>Baptism</th>
+                        <tr><th>{{ __('members.fields.member_type') }}</th><td>{{ $member->member_type?->label() ?? '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.gender') }}</th><td>{{ $member->gender ? ucfirst($member->gender) : '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.date_of_birth') }}</th><td>{{ $member->date_of_birth?->format('M d, Y') ?? '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.education_level') }}</th><td>{{ $member->education_level?->label() ?? '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.profession') }}</th><td>{{ $member->profession ?? '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.nida_number') }}</th><td>{{ $member->nida_number ?? '—' }}</td></tr>
+                        <tr><th>{{ __('pages.members.baptism') }}</th>
                             <td>
                                 @if($member->is_baptized)
-                                    <span class="badge badge-info">Baptized</span>
+                                    <span class="badge badge-info">{{ __('members.summary.baptized') }}</span>
                                     @if($member->baptism_date)
-                                        <div class="small text-muted mt-1">Date: {{ $member->baptism_date->format('M d, Y') }}</div>
+                                        <div class="small text-muted mt-1">{{ __('pages.members.baptism_date_label') }} {{ $member->baptism_date->format('M d, Y') }}</div>
                                     @endif
                                     @if($member->baptism_place)
-                                        <div class="small text-muted">Place: {{ $member->baptism_place }}</div>
+                                        <div class="small text-muted">{{ __('pages.members.baptism_place_label') }} {{ $member->baptism_place }}</div>
                                     @endif
                                     @if($member->baptized_by)
-                                        <div class="small text-muted">By: {{ $member->baptized_by }}</div>
+                                        <div class="small text-muted">{{ __('pages.members.baptized_by_label') }} {{ $member->baptized_by }}</div>
                                     @endif
                                 @else
-                                    <span class="text-muted">Not baptized / not recorded</span>
+                                    <span class="text-muted">{{ __('pages.members.not_baptized') }}</span>
                                 @endif
                             </td>
                         </tr>
-                        <tr><th>Status</th>
+                        <tr><th>{{ __('common.status') }}</th>
                             <td>
                                 @if($member->isArchived())
-                                    <span class="badge badge-secondary">Archived</span>
+                                    <span class="badge badge-secondary">{{ __('pages.members.archived_badge') }}</span>
                                 @else
-                                    <span class="badge badge-success">Active</span>
+                                    <span class="badge badge-success">{{ __('common.active') }}</span>
                                 @endif
                             </td>
                         </tr>
                         @if($member->user)
-                            <tr><th>Login Username</th><td><code>{{ $member->member_number }}</code></td></tr>
+                            <tr><th>{{ __('pages.members.login_username') }}</th><td><code>{{ $member->member_number }}</code></td></tr>
                         @endif
                     </table>
                 </div>
@@ -94,69 +93,69 @@
         </div>
 
         <div class="tile">
-            <h3 class="tile-title">Contact & Origin</h3>
+            <h3 class="tile-title">{{ __('members.summary.contact_origin') }}</h3>
             <table class="table table-borderless table-sm">
-                <tr><th width="180">Phone</th><td>{{ $member->phone_number }}</td></tr>
-                <tr><th>Email</th><td>{{ $member->email ?? '—' }}</td></tr>
-                <tr><th>Origin</th><td>{{ collect([$member->region, $member->district, $member->ward, $member->street])->filter()->implode(', ') ?: '—' }}</td></tr>
-                <tr><th>P.O. Box</th><td>{{ $member->po_box ?? '—' }}</td></tr>
-                <tr><th>Tribe</th><td>{{ $member->other_tribe ?: ($member->tribe && $member->tribe !== 'Other' ? $member->tribe : '—') }}</td></tr>
+                <tr><th width="180">{{ __('common.phone') }}</th><td>{{ $member->phone_number }}</td></tr>
+                <tr><th>{{ __('members.fields.email') }}</th><td>{{ $member->email ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.members.origin') }}</th><td>{{ collect([$member->region, $member->district, $member->ward, $member->street])->filter()->implode(', ') ?: '—' }}</td></tr>
+                <tr><th>{{ __('members.fields.po_box') }}</th><td>{{ $member->po_box ?? '—' }}</td></tr>
+                <tr><th>{{ __('members.fields.tribe') }}</th><td>{{ $member->other_tribe ?: ($member->tribe && $member->tribe !== 'Other' ? $member->tribe : '—') }}</td></tr>
             </table>
         </div>
 
         <div class="tile">
-            <h3 class="tile-title">Residence</h3>
+            <h3 class="tile-title">{{ __('members.summary.residence') }}</h3>
             <table class="table table-borderless table-sm">
-                <tr><th width="180">Location</th><td>{{ collect([$member->residence_region, $member->residence_district, $member->residence_ward])->filter()->implode(', ') ?: '—' }}</td></tr>
-                <tr><th>Street / Road</th><td>{{ collect([$member->residence_street, $member->residence_road])->filter()->implode(', ') ?: '—' }}</td></tr>
-                <tr><th>House Number</th><td>{{ $member->residence_house_number ?? '—' }}</td></tr>
+                <tr><th width="180">{{ __('common.location') }}</th><td>{{ collect([$member->residence_region, $member->residence_district, $member->residence_ward])->filter()->implode(', ') ?: '—' }}</td></tr>
+                <tr><th>{{ __('pages.members.street_road') }}</th><td>{{ collect([$member->residence_street, $member->residence_road])->filter()->implode(', ') ?: '—' }}</td></tr>
+                <tr><th>{{ __('members.fields.house_number') }}</th><td>{{ $member->residence_house_number ?? '—' }}</td></tr>
             </table>
         </div>
 
         @php $spouse = $member->resolvedSpouse(); @endphp
         @if($member->marital_status || $spouse || $familyDependants->isNotEmpty())
             <div class="tile">
-                <h3 class="tile-title">Family Information</h3>
+                <h3 class="tile-title">{{ __('members.summary.family_information') }}</h3>
                 <table class="table table-borderless table-sm">
                     @if($member->marital_status)
-                        <tr><th width="180">Marital Status</th><td>{{ $member->marital_status->label() }}</td></tr>
+                        <tr><th width="180">{{ __('members.fields.marital_status') }}</th><td>{{ $member->marital_status->label() }}</td></tr>
                     @endif
                     @if($member->marital_status?->value === 'married')
-                        <tr><th>Wedding Type</th><td>{{ $member->wedding_type?->label() ?? '—' }}</td></tr>
-                        <tr><th>Wedding Date</th><td>{{ $member->wedding_date?->format('M d, Y') ?? '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.wedding_type') }}</th><td>{{ $member->wedding_type?->label() ?? '—' }}</td></tr>
+                        <tr><th>{{ __('members.fields.wedding_date') }}</th><td>{{ $member->wedding_date?->format('M d, Y') ?? '—' }}</td></tr>
                     @endif
                     @if($member->marital_status?->value === 'married' || $spouse)
-                        <tr><th>Spouse Church Member</th><td>{{ ($member->spouse_church_member === 'yes' || $spouse) ? 'Yes' : 'No' }}</td></tr>
-                        <tr><th>Spouse Name</th>
+                        <tr><th>{{ __('pages.members.spouse_church_member') }}</th><td>{{ ($member->spouse_church_member === 'yes' || $spouse) ? __('common.yes') : __('common.no') }}</td></tr>
+                        <tr><th>{{ __('pages.members.spouse_name') }}</th>
                             <td>
                                 @if($spouse)
                                     <a href="{{ route('church.members.show', $spouse) }}">{{ $spouse->full_name }}</a>
-                                    <span class="badge badge-light">Registered member</span>
+                                    <span class="badge badge-light">{{ __('pages.members.registered_member') }}</span>
                                 @else
                                     {{ $member->spouse_full_name ?? '—' }}
                                 @endif
                             </td>
                         </tr>
                         @if(!$spouse)
-                            <tr><th>Spouse Gender</th><td>{{ $member->spouse_gender ? ucfirst($member->spouse_gender) : '—' }}</td></tr>
-                            <tr><th>Spouse DOB</th><td>{{ $member->spouse_date_of_birth?->format('M d, Y') ?? '—' }}</td></tr>
-                            <tr><th>Spouse Phone</th><td>{{ $member->spouse_phone_number ?? '—' }}</td></tr>
-                            <tr><th>Spouse Envelope</th><td>{{ $member->spouse_envelope_number ?? '—' }}</td></tr>
+                            <tr><th>{{ __('pages.members.spouse_gender') }}</th><td>{{ $member->spouse_gender ? ucfirst($member->spouse_gender) : '—' }}</td></tr>
+                            <tr><th>{{ __('pages.members.spouse_dob') }}</th><td>{{ $member->spouse_date_of_birth?->format('M d, Y') ?? '—' }}</td></tr>
+                            <tr><th>{{ __('members.fields.spouse_phone') }}</th><td>{{ $member->spouse_phone_number ?? '—' }}</td></tr>
+                            <tr><th>{{ __('pages.members.spouse_envelope') }}</th><td>{{ $member->spouse_envelope_number ?? '—' }}</td></tr>
                         @endif
                     @endif
                 </table>
 
                 @if($familyDependants->isNotEmpty())
-                    <h5 class="mt-3">Dependants / Children</h5>
+                    <h5 class="mt-3">{{ __('pages.members.dependants_children') }}</h5>
                     <table class="table table-bordered table-sm">
-                        <thead><tr><th>Name</th><th>Gender</th><th>DOB</th><th>Age</th><th>Relationship</th><th>Baptism</th><th>Status</th></tr></thead>
+                        <thead><tr><th>{{ __('common.name') }}</th><th>{{ __('members.fields.gender') }}</th><th>{{ __('pages.members.dob_col') }}</th><th>{{ __('pages.members_children.age_col') }}</th><th>{{ __('pages.members.relationship_col') }}</th><th>{{ __('pages.members.baptism') }}</th><th>{{ __('common.status') }}</th></tr></thead>
                         <tbody>
                             @foreach($familyDependants as $dependant)
                                 <tr>
                                     <td>
                                         {{ $dependant->full_name }}
                                         @if($dependant->member_id !== $member->id && $dependant->member)
-                                            <br><small class="text-muted">Registered under {{ $dependant->member->full_name }}</small>
+                                            <br><small class="text-muted">{{ __('pages.members.registered_under', ['name' => $dependant->member->full_name]) }}</small>
                                         @endif
                                     </td>
                                     <td>{{ ucfirst($dependant->gender) }}</td>
@@ -165,7 +164,7 @@
                                     <td>{{ $dependant->relationship->label() }}{{ $dependant->relationship_note ? ' — '.$dependant->relationship_note : '' }}</td>
                                     <td>
                                         @if($dependant->is_baptized)
-                                            Yes
+                                            {{ __('common.yes') }}
                                             @if($dependant->baptism_date)
                                                 <br><small class="text-muted">{{ $dependant->baptism_date->format('M d, Y') }}</small>
                                             @endif
@@ -175,9 +174,9 @@
                                     </td>
                                     <td>
                                         @if($dependant->linkedMember)
-                                            <a href="{{ route('church.members.show', $dependant->linkedMember) }}">Independent member</a>
+                                            <a href="{{ route('church.members.show', $dependant->linkedMember) }}">{{ __('pages.members_children.independent_member') }}</a>
                                         @elseif($dependant->relationship->value === 'child' && $dependant->isEligibleForIndependence())
-                                            <span class="badge badge-warning">Ready to convert</span>
+                                            <span class="badge badge-warning">{{ __('pages.members_children.convert') }}</span>
                                         @else
                                             {{ $dependant->independenceStatusLabel() }}
                                         @endif
@@ -188,19 +187,19 @@
                     </table>
                     @can('viewAny', \App\Models\MemberDependant::class)
                         <a href="{{ route('church.members.children.index') }}" class="btn btn-sm btn-outline-primary">
-                            <i class="fa fa-child"></i> View All Children
+                            <i class="fa fa-child"></i> {{ __('pages.members.view_all_children') }}
                         </a>
                         @can('create', \App\Models\MemberDependant::class)
                             <a href="{{ route('church.members.children.create', ['member_id' => $member->id]) }}" class="btn btn-sm btn-primary">
-                                <i class="fa fa-plus"></i> Add Child
+                                <i class="fa fa-plus"></i> {{ __('pages.members_children.add_child') }}
                             </a>
                         @endcan
                     @endcan
                 @elseif($member->marital_status?->value === 'married' || $spouse)
-                    <p class="text-muted mt-3 mb-0">No children registered for this family yet.</p>
+                    <p class="text-muted mt-3 mb-0">{{ __('pages.members.no_children_family') }}</p>
                     @can('create', \App\Models\MemberDependant::class)
                         <a href="{{ route('church.members.children.create', ['member_id' => $member->id]) }}" class="btn btn-sm btn-primary mt-2">
-                            <i class="fa fa-plus"></i> Add Child
+                            <i class="fa fa-plus"></i> {{ __('pages.members_children.add_child') }}
                         </a>
                     @endcan
                 @endif
@@ -210,33 +209,33 @@
 
     <div class="col-md-4">
         <div class="tile">
-            <h3 class="tile-title">Actions</h3>
+            <h3 class="tile-title">{{ __('pages.members.actions') }}</h3>
             @can('viewAny', \App\Models\Member::class)
                 <a href="{{ route('church.members.index') }}" class="btn btn-secondary btn-block">
-                    <i class="fa fa-arrow-left"></i> Back to Members
+                    <i class="fa fa-arrow-left"></i> {{ __('pages.members.back_to_members') }}
                 </a>
             @endcan
             @can('update', $member)
                 @if(! $member->isArchived())
                     <a href="{{ route('church.members.edit', $member) }}" class="btn btn-primary btn-block mt-2">
-                        <i class="fa fa-pencil"></i> Edit Member
+                        <i class="fa fa-pencil"></i> {{ __('pages.members.edit_member') }}
                     </a>
                 @endif
             @endcan
             @can('viewAny', \App\Models\Member::class)
                 @if($member->isArchived())
                     <a href="{{ route('church.members.archived') }}" class="btn btn-outline-secondary btn-block mt-2">
-                        <i class="fa fa-archive"></i> Archived Members
+                        <i class="fa fa-archive"></i> {{ __('pages.members.archived_members') }}
                     </a>
                 @endif
             @endcan
             @can('restore', $member)
                 @if($member->isArchived())
                     <form method="POST" action="{{ route('church.members.restore', $member) }}" class="mt-2"
-                        data-swal-confirm="Restore {{ $member->full_name }} to active membership?">
+                        data-swal-confirm="{{ __('pages.members.restore_confirm', ['name' => $member->full_name]) }}">
                         @csrf
                         <button type="submit" class="btn btn-success btn-block">
-                            <i class="fa fa-undo"></i> Restore Member
+                            <i class="fa fa-undo"></i> {{ __('pages.members.restore_member') }}
                         </button>
                     </form>
                 @endif
@@ -244,14 +243,14 @@
             @can('archive', $member)
                 @if(! $member->isArchived())
                     <button type="button" class="btn btn-warning btn-block mt-2" data-toggle="modal" data-target="#archiveMemberModal-{{ $member->id }}">
-                        <i class="fa fa-archive"></i> Archive Member
+                        <i class="fa fa-archive"></i> {{ __('pages.members.archive_member') }}
                     </button>
                 @endif
             @endcan
             @if($spouse = $member->resolvedSpouse())
                 @can('view', $spouse)
                     <a href="{{ route('church.members.show', $spouse) }}" class="btn btn-outline-primary btn-block mt-2">
-                        <i class="fa fa-user"></i> View Spouse Profile
+                        <i class="fa fa-user"></i> {{ __('pages.members.view_spouse_profile') }}
                     </a>
                 @endcan
             @endif
@@ -260,13 +259,13 @@
         @can('update', $member)
             @if($member->isTemporary() && ! $member->isArchived())
                 <div class="tile">
-                    <h3 class="tile-title">Temporary Membership</h3>
+                    <h3 class="tile-title">{{ __('pages.members.temporary_membership') }}</h3>
 
                     <form method="POST" action="{{ route('church.members.extend-membership', $member) }}" class="mb-4">
                         @csrf
-                        <p class="text-muted small">Add more time to this member's temporary stay.</p>
+                        <p class="text-muted small">{{ __('pages.members.extend_stay_hint') }}</p>
                         <div class="form-group">
-                            <label>Extend by</label>
+                            <label>{{ __('pages.members.extend_by') }}</label>
                             <div class="input-group">
                                 <input type="number" name="temporary_duration_value" class="form-control"
                                     min="1" max="99" value="6" required>
@@ -278,25 +277,25 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-warning btn-block">
-                            <i class="fa fa-clock-o"></i> Extend Stay
+                            <i class="fa fa-clock-o"></i> {{ __('pages.members.extend_stay') }}
                         </button>
                     </form>
 
                     <form method="POST" action="{{ route('church.members.convert-to-permanent', $member) }}"
-                        data-swal-confirm="Convert {{ $member->full_name }} to a permanent member?">
+                        data-swal-confirm="{{ __('pages.members.convert_confirm', ['name' => $member->full_name]) }}">
                         @csrf
-                        <p class="text-muted small">Upgrade this member to permanent membership.</p>
+                        <p class="text-muted small">{{ __('pages.members.convert_permanent_hint') }}</p>
                         <div class="form-group">
-                            <label>Member Type *</label>
+                            <label>{{ __('members.fields.member_type') }} *</label>
                             <select name="member_type" class="form-control" required>
-                                <option value="">Select</option>
+                                <option value="">{{ __('pages.shared.select') }}</option>
                                 @foreach($memberTypes as $type)
                                     <option value="{{ $type->value }}">{{ $type->label() }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <button type="submit" class="btn btn-success btn-block">
-                            <i class="fa fa-check"></i> Convert to Permanent
+                            <i class="fa fa-check"></i> {{ __('pages.members.convert_to_permanent') }}
                         </button>
                     </form>
                 </div>

@@ -1,48 +1,51 @@
 @extends('layouts.church')
 
-@section('title', 'Member Requests')
+@section('title', __('pages.member_requests.title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-envelope-open"></i> Member Requests</h1>
-        <p>Requests submitted by church members</p>
-    </div>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-envelope-open',
+    'title' => __('pages.member_requests.title'),
+    'subtitle' => __('pages.member_requests.subtitle'),
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.member_requests')],
+    ],
+])
 
 <div class="tile mb-3">
     <form method="GET" class="form-row align-items-end">
         <div class="col-md-4">
-            <label class="small text-muted">Search</label>
-            <input type="text" name="search" class="form-control" value="{{ $filters['search'] ?? '' }}" placeholder="Reference, subject, member name">
+            <label class="small text-muted">{{ __('common.search') }}</label>
+            <input type="text" name="search" class="form-control" value="{{ $filters['search'] ?? '' }}" placeholder="{{ __('pages.member_requests.search_placeholder') }}">
         </div>
         <div class="col-md-3">
-            <label class="small text-muted">Status</label>
+            <label class="small text-muted">{{ __('common.status') }}</label>
             <select name="status" class="form-control">
-                <option value="">All statuses</option>
+                <option value="">{{ __('pages.shared.all_statuses') }}</option>
                 @foreach($statuses as $status)
                     <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $status->label() }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
-            <label class="small text-muted">Filter</label>
+            <label class="small text-muted">{{ __('common.filter') }}</label>
             <select name="filter" class="form-control">
-                <option value="">All requests</option>
-                <option value="mine" @selected(($filters['filter'] ?? '') === 'mine')>Assigned to me</option>
+                <option value="">{{ __('pages.shared.all_requests') }}</option>
+                <option value="mine" @selected(($filters['filter'] ?? '') === 'mine')>{{ __('pages.shared.assigned_to_me') }}</option>
             </select>
         </div>
         <div class="col-md-2">
             @if($canFilterBranches && $branches->count() > 1)
-                <label class="small text-muted">Branch</label>
+                <label class="small text-muted">{{ __('common.branch') }}</label>
                 <select name="branch_id" class="form-control mb-2">
-                    <option value="">All branches</option>
+                    <option value="">{{ __('pages.shared.all_branches') }}</option>
                     @foreach($branches as $branch)
                         <option value="{{ $branch->id }}" @selected((string) ($filters['branch_id'] ?? '') === (string) $branch->id)>{{ $branch->displayLabel() }}</option>
                     @endforeach
                 </select>
             @endif
-            <button type="submit" class="btn btn-primary btn-block">Filter</button>
+            <button type="submit" class="btn btn-primary btn-block">{{ __('common.filter') }}</button>
         </div>
     </form>
 </div>
@@ -52,13 +55,13 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Reference</th>
-                    <th>Member</th>
-                    <th>Type</th>
-                    <th>Subject</th>
-                    <th>Assigned Leader</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th>{{ __('common.reference') }}</th>
+                    <th>{{ __('common.member') }}</th>
+                    <th>{{ __('common.type') }}</th>
+                    <th>{{ __('common.subject') }}</th>
+                    <th>{{ __('pages.shared.assigned_leader') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('common.date') }}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -73,11 +76,11 @@
                         <td><span class="badge badge-{{ $item->status->badgeClass() }}">{{ $item->status->label() }}</span></td>
                         <td>{{ $item->created_at?->format('M d, Y') }}</td>
                         <td class="text-right">
-                            <a href="{{ route('church.member-requests.show', $item) }}" class="btn btn-sm btn-info">View</a>
+                            <a href="{{ route('church.member-requests.show', $item) }}" class="btn btn-sm btn-info">{{ __('common.view') }}</a>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="text-muted">No member requests found.</td></tr>
+                    <tr><td colspan="8" class="text-muted">{{ __('pages.member_requests.empty') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

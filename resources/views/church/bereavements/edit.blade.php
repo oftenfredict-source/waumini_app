@@ -1,19 +1,18 @@
 @extends('layouts.church')
 
-@section('title', 'Edit Bereavement')
+@section('title', __('pages.bereavements.edit_title'))
 
 @section('content')
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-pencil"></i> Edit Bereavement</h1>
-        <p>{{ $event->deceased_name }}</p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('church.dashboard') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('church.bereavements.index') }}">Bereavements</a></li>
-        <li class="breadcrumb-item">Edit</li>
-    </ul>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-pencil',
+    'title' => __('pages.bereavements.edit_title'),
+    'subtitle' => $event->deceased_name,
+    'breadcrumb' => [
+        ['label' => __('common.dashboard'), 'route' => 'church.dashboard'],
+        ['label' => __('menu.bereavements'), 'route' => 'church.bereavements.index'],
+        ['label' => __('pages.shared.breadcrumb_edit')],
+    ],
+])
 
 <div class="tile">
     <form method="POST" action="{{ route('church.bereavements.update', $event) }}">
@@ -24,8 +23,8 @@
             'members' => $members,
         ])
         <div class="tile-footer">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Update Bereavement</button>
-            <a href="{{ route('church.bereavements.show', $event) }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.update_item', ['item' => __('pages.bereavements.item')]) }}</button>
+            <a href="{{ route('church.bereavements.show', $event) }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
 </div>

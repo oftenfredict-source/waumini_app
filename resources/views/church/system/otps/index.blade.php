@@ -1,6 +1,6 @@
 @extends('layouts.church')
 
-@section('title', 'OTP Management')
+@section('title', __('pages.system_otps.title'))
 
 @push('styles')
 <style>
@@ -21,27 +21,26 @@
 @section('content')
 @include('church.system.partials.nav')
 
-<div class="app-title">
-    <div>
-        <h1><i class="fa fa-key"></i> OTP Management</h1>
-        <p>View login verification codes issued for this church</p>
-    </div>
-</div>
+@include('partials.page-header', [
+    'icon' => 'fa fa-key',
+    'title' => __('pages.system_otps.title'),
+    'subtitle' => __('pages.system_otps.subtitle'),
+])
 
 <div class="tile mb-3">
     @if($enabled)
         <div class="alert alert-success mb-0">
             <i class="fa fa-check-circle"></i>
-            <strong>SMS OTP login is enabled</strong> for this church.
-            Active codes appear below and can be shared with users who did not receive the SMS.
-            Manage this under <a href="{{ route('church.system.settings.index', ['tab' => 'security']) }}">Settings → Security</a>.
+            <strong>{{ __('pages.system_otps.enabled_alert') }}</strong>
+            {{ __('pages.system_otps.enabled_detail') }}
+            <a href="{{ route('church.system.settings.index', ['tab' => 'security']) }}">{{ __('pages.system_otps.enabled_settings') }}</a>
         </div>
     @else
         <div class="alert alert-info mb-0">
             <i class="fa fa-info-circle"></i>
-            SMS OTP login is currently <strong>disabled</strong>.
-            Enable it under <a href="{{ route('church.system.settings.index', ['tab' => 'security']) }}">Settings → Security</a>
-            after platform SMS and your church SMS package are active.
+            {{ __('pages.system_otps.disabled_alert') }}
+            {{ __('pages.system_otps.disabled_detail') }}
+            <a href="{{ route('church.system.settings.index', ['tab' => 'security']) }}">{{ __('pages.system_otps.enabled_settings') }}</a>
         </div>
     @endif
 </div>
@@ -50,62 +49,62 @@
     <div class="col-md-3">
         <div class="tile text-center">
             <h4 class="mb-0">{{ $stats['total'] }}</h4>
-            <small class="text-muted">Total OTPs</small>
+            <small class="text-muted">{{ __('pages.system_otps.total_otps') }}</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="tile text-center">
             <h4 class="mb-0 text-success">{{ $stats['active'] }}</h4>
-            <small class="text-muted">Active Now</small>
+            <small class="text-muted">{{ __('pages.system_otps.active_now') }}</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="tile text-center">
             <h4 class="mb-0">{{ $stats['used'] }}</h4>
-            <small class="text-muted">Used</small>
+            <small class="text-muted">{{ __('common.used') }}</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="tile text-center">
             <h4 class="mb-0">{{ $stats['today'] }}</h4>
-            <small class="text-muted">Today</small>
+            <small class="text-muted">{{ __('common.today') }}</small>
         </div>
     </div>
 </div>
 
 <div class="tile">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-        <h4 class="mb-0">Recent OTP Activity</h4>
+        <h4 class="mb-0">{{ __('pages.system_otps.recent_activity') }}</h4>
         <form method="GET" action="{{ route('church.system.otps.index') }}" class="form-inline d-flex flex-wrap gap-2">
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search code, user, phone…"
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('pages.system_otps.search_placeholder') }}"
                    value="{{ request('search') }}">
             <select name="status" class="form-control form-control-sm">
-                <option value="">All statuses</option>
-                <option value="active" @selected(request('status') === 'active')>Active</option>
-                <option value="used" @selected(request('status') === 'used')>Used</option>
-                <option value="expired" @selected(request('status') === 'expired')>Expired</option>
+                <option value="">{{ __('pages.shared.all_statuses') }}</option>
+                <option value="active" @selected(request('status') === 'active')>{{ __('common.active') }}</option>
+                <option value="used" @selected(request('status') === 'used')>{{ __('common.used') }}</option>
+                <option value="expired" @selected(request('status') === 'expired')>{{ __('common.expired') }}</option>
             </select>
-            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-search"></i> Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
             @if(request()->hasAny(['search', 'status']))
-                <a href="{{ route('church.system.otps.index') }}" class="btn btn-secondary btn-sm">Clear</a>
+                <a href="{{ route('church.system.otps.index') }}" class="btn btn-secondary btn-sm">{{ __('common.clear') }}</a>
             @endif
         </form>
     </div>
 
     @if($otps->isEmpty())
-        <p class="text-muted mb-0">No OTP codes have been issued yet.</p>
+        <p class="text-muted mb-0">{{ __('pages.system_otps.empty') }}</p>
     @else
         <div class="table-responsive">
             <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>OTP Code</th>
-                        <th>User</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Attempts</th>
-                        <th>Expires</th>
-                        <th>Sent</th>
+                        <th>{{ __('pages.system_otps.otp_code') }}</th>
+                        <th>{{ __('common.name') }}</th>
+                        <th>{{ __('common.phone') }}</th>
+                        <th>{{ __('common.status') }}</th>
+                        <th>{{ __('pages.system_otps.attempts') }}</th>
+                        <th>{{ __('pages.system_otps.expires') }}</th>
+                        <th>{{ __('pages.system_otps.sent') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,7 +117,7 @@
                                 <span class="otp-code {{ $isActive ? 'otp-code-active' : '' }}">{{ $otp->otp_code }}</span>
                                 @if($isActive)
                                     <button type="button" class="btn btn-link btn-sm p-0 ml-2 copy-otp"
-                                            data-code="{{ $otp->otp_code }}" title="Copy code">
+                                            data-code="{{ $otp->otp_code }}" title="{{ __('pages.system_otps.copy') }}">
                                         <i class="fa fa-copy"></i>
                                     </button>
                                 @endif
@@ -130,11 +129,11 @@
                             <td>{{ $otp->phone ?? '—' }}</td>
                             <td>
                                 @if($otp->is_used)
-                                    <span class="badge badge-secondary">Used</span>
+                                    <span class="badge badge-secondary">{{ __('common.used') }}</span>
                                 @elseif($otp->isExpired())
-                                    <span class="badge badge-warning">Expired</span>
+                                    <span class="badge badge-warning">{{ __('common.expired') }}</span>
                                 @else
-                                    <span class="badge badge-success">Active</span>
+                                    <span class="badge badge-success">{{ __('common.active') }}</span>
                                 @endif
                             </td>
                             <td>{{ $otp->attempts }}/5</td>
