@@ -71,13 +71,6 @@
             @error('password')<span class="auth-field-error">{{ $message }}</span>@enderror
         </div>
 
-        <div class="auth-options">
-            <label class="auth-remember">
-                <input type="checkbox" name="remember" @checked(old('remember'))>
-                <span>{{ __('auth.stay_signed_in') }}</span>
-            </label>
-        </div>
-
         <button class="auth-submit" type="submit">
             <i class="fa fa-sign-in"></i> {{ __('common.sign_in') }}
         </button>

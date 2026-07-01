@@ -91,7 +91,6 @@ class LoginController extends Controller
             $request->session()->put([
                 'otp_user_id' => $user->id,
                 'otp_login_identifier' => $identifier,
-                'otp_remember' => $request->boolean('remember'),
                 'otp_resend_attempts' => 0,
             ]);
 
@@ -143,10 +142,9 @@ class LoginController extends Controller
 
         /** @var User $user */
         $user = $result['user'];
-        $remember = (bool) $request->session()->get('otp_remember', false);
-        $request->session()->forget(['otp_user_id', 'otp_login_identifier', 'otp_remember', 'otp_resend_attempts']);
+        $request->session()->forget(['otp_user_id', 'otp_login_identifier', 'otp_resend_attempts']);
 
-        Auth::login($user, $remember);
+        Auth::login($user, remember: false);
 
         return $this->completeLogin($user, $request, skipPasswordChecks: true);
     }
@@ -196,7 +194,7 @@ class LoginController extends Controller
     private function completeLogin(User $user, Request $request, bool $skipPasswordChecks = false): RedirectResponse
     {
         if (! $skipPasswordChecks) {
-            Auth::login($user, $request->boolean('remember'));
+            Auth::login($user, remember: false);
         }
 
         $user->update(['last_login_at' => now()]);

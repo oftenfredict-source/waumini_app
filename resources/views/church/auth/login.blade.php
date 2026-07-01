@@ -78,10 +78,6 @@
         </div>
 
         <div class="auth-options">
-            <label class="auth-remember">
-                <input type="checkbox" name="remember" @checked(old('remember'))>
-                <span>{{ __('auth.stay_signed_in') }}</span>
-            </label>
             <a href="{{ route('church.password.forgot') }}" class="auth-forgot-link">{{ __('auth.forgot_password') }}</a>
         </div>
 
