@@ -9,6 +9,7 @@ use App\Http\Requests\Owner\UpdateChurchRequest;
 use App\Models\Church;
 use App\Models\SubscriptionPackage;
 use App\Models\SystemSetting;
+use App\Services\Owner\ChurchImpersonationService;
 use App\Services\Owner\ChurchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,13 +19,14 @@ class ChurchController extends Controller
 {
     public function __construct(
         private readonly ChurchService $churchService,
+        private readonly ChurchImpersonationService $impersonationService,
     ) {
         $this->authorizeResource(Church::class, 'church');
     }
 
     public function index(Request $request): View
     {
-        $query = Church::with(['activeSubscription.package', 'primaryDomain'])
+        $query = Church::with(['activeSubscription.package', 'primaryDomain', 'adminUser'])
             ->latest();
 
         if ($search = $request->string('search')->trim()->toString()) {
@@ -158,5 +160,12 @@ class ChurchController extends Controller
                 'email' => $church->adminUser->email,
                 'password' => $plainPassword,
             ]);
+    }
+
+    public function impersonate(Request $request, Church $church): RedirectResponse
+    {
+        $this->authorize('impersonate', $church);
+
+        return $this->impersonationService->start($request->user(), $church, $request);
     }
 }

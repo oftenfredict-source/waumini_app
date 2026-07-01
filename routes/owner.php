@@ -21,6 +21,7 @@ Route::middleware(['auth', 'owner'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('churches', ChurchController::class);
+    Route::post('churches/{church}/impersonate', [ChurchController::class, 'impersonate'])->name('churches.impersonate');
     Route::post('churches/{church}/suspend', [ChurchController::class, 'suspend'])->name('churches.suspend');
     Route::post('churches/{church}/activate', [ChurchController::class, 'activate'])->name('churches.activate');
     Route::post('churches/{church}/regenerate-admin-password', [ChurchController::class, 'regenerateAdminPassword'])->name('churches.regenerate-admin-password');

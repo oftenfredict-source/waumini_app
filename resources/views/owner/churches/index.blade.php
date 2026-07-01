@@ -62,6 +62,16 @@
                         <td>{{ $church->created_at->format('M d, Y') }}</td>
                         <td>
                             <a href="{{ route('owner.churches.show', $church) }}" class="btn btn-sm btn-info" title="{{ __('common.view') }}"><i class="fa fa-eye"></i></a>
+                            @can('impersonate', $church)
+                                @if($church->adminUser)
+                                    <form method="POST" action="{{ route('owner.churches.impersonate', $church) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-primary" title="{{ __('owner.church.enter_church') }}">
+                                            <i class="fa fa-sign-in"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            @endcan
                             <a href="{{ route('owner.churches.edit', $church) }}" class="btn btn-sm btn-warning" title="{{ __('common.edit') }}"><i class="fa fa-edit"></i></a>
                         </td>
                     </tr>

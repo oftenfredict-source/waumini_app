@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\SystemSetting;
+use App\Services\Owner\ChurchImpersonationService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,11 @@ class PreventChurchAccessDuringMaintenance
             return $next($request);
         }
 
-        if ($request->routeIs('church.logout')) {
+        if ($request->routeIs('church.logout', 'church.impersonation.leave')) {
+            return $next($request);
+        }
+
+        if (app(ChurchImpersonationService::class)->isActive($request)) {
             return $next($request);
         }
 

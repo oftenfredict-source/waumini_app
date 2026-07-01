@@ -11,6 +11,7 @@
     @stack('styles')
 </head>
 <body class="app sidebar-mini">
+    @include('church.partials.owner-impersonation-banner')
     <header class="app-header">
         @php $churchLogoUrl = auth()->user()->church?->logoUrl(); @endphp
         <a class="app-header__logo{{ $churchLogoUrl ? ' app-header__logo--brand-image' : '' }}"

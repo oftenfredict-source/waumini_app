@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Church\LeadershipStaffAccessService;
 use App\Services\Church\LoginOtpService;
+use App\Services\Owner\ChurchImpersonationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,7 @@ class LoginController extends Controller
 {
     public function __construct(
         private readonly LoginOtpService $loginOtpService,
+        private readonly ChurchImpersonationService $impersonationService,
     ) {}
 
     public function showLoginForm(): View|RedirectResponse
@@ -184,6 +186,10 @@ class LoginController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        if ($this->impersonationService->isActive($request)) {
+            return $this->impersonationService->stop($request);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

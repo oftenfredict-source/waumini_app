@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\ChurchStatus;
+use App\Services\Owner\ChurchImpersonationService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,7 +32,9 @@ class EnsureChurchUser
                 ->with('error', 'Your church account is not linked to a church.');
         }
 
-        if (in_array($church->status, [ChurchStatus::Suspended, ChurchStatus::Expired], true)) {
+        $ownerImpersonating = app(ChurchImpersonationService::class)->isActive($request);
+
+        if (! $ownerImpersonating && in_array($church->status, [ChurchStatus::Suspended, ChurchStatus::Expired], true)) {
             auth()->logout();
 
             return redirect()->route('church.login')

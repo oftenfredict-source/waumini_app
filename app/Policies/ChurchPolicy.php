@@ -46,4 +46,9 @@ class ChurchPolicy
     {
         return $user->can('churches.update');
     }
+
+    public function impersonate(User $user, Church $church): bool
+    {
+        return $user->can('churches.impersonate');
+    }
 }

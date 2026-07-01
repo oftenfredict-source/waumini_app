@@ -105,6 +105,18 @@
         <div class="tile">
             <h3 class="tile-title">{{ __('owner.church.actions') }}</h3>
             <div class="d-flex flex-column">
+                @can('impersonate', $church)
+                    @if($church->adminUser)
+                        <form method="POST" action="{{ route('owner.churches.impersonate', $church) }}"
+                            data-swal-confirm="{{ __('owner.church.enter_church_confirm') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-primary btn-block mb-2">
+                                <i class="fa fa-sign-in"></i> {{ __('owner.church.enter_church') }}
+                            </button>
+                        </form>
+                    @endif
+                @endcan
+
                 <a href="{{ route('owner.churches.edit', $church) }}" class="btn btn-warning btn-block mb-2">
                     <i class="fa fa-edit"></i> {{ __('owner.church.edit_church') }}
                 </a>

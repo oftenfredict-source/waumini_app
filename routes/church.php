@@ -11,6 +11,7 @@ use App\Http\Controllers\Church\FinanceApprovalController;
 use App\Http\Controllers\Church\FinanceDashboardController;
 use App\Http\Controllers\Church\LeaderController;
 use App\Http\Controllers\Church\ForgotPasswordController;
+use App\Http\Controllers\Church\ImpersonationController;
 use App\Http\Controllers\Church\LoginController;
 use App\Http\Controllers\Church\MemberChildController;
 use App\Http\Controllers\Church\MemberController;
@@ -63,6 +64,7 @@ Route::middleware('church.maintenance')->group(function () {
     Route::get('register/success/{reference}', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'success'])->name('register.success');
 
     Route::middleware(['auth', 'church'])->group(function () {
+    Route::post('impersonation/leave', [ImpersonationController::class, 'leave'])->name('impersonation.leave');
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
