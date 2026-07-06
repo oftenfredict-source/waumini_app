@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Church;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\ConvertChildToMemberRequest;
 use App\Http\Requests\Church\StoreChildRequest;
+use App\Http\Requests\Church\UpdateDependantRequest;
 use App\Models\Member;
 use App\Models\MemberDependant;
 use App\Services\Church\MemberService;
@@ -110,6 +111,30 @@ class MemberChildController extends Controller
         return redirect()
             ->route('church.members.children.index')
             ->with('success', $message);
+    }
+
+    public function edit(MemberDependant $dependant): View
+    {
+        $this->authorize('update', $dependant);
+
+        $dependant->load(['member', 'linkedMember']);
+
+        return view('church.members.children.edit', [
+            'dependant' => $dependant,
+        ]);
+    }
+
+    public function update(UpdateDependantRequest $request, MemberDependant $dependant): RedirectResponse
+    {
+        try {
+            $this->memberService->updateDependant($dependant, $request->validated());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()
+            ->route('church.members.children.index')
+            ->with('success', __('pages.members_children.updated', ['name' => $dependant->fresh()->full_name]));
     }
 
     public function convert(ConvertChildToMemberRequest $request, MemberDependant $dependant): RedirectResponse

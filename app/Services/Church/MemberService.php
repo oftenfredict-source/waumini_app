@@ -235,6 +235,23 @@ class MemberService
         ]);
     }
 
+    public function updateDependant(MemberDependant $dependant, array $data): MemberDependant
+    {
+        if ($dependant->isConverted()) {
+            throw new \RuntimeException('This dependant is already an independent member. Edit them from the member profile.');
+        }
+
+        $dependant->update([
+            'full_name' => $data['full_name'],
+            'gender' => $data['gender'],
+            'date_of_birth' => $data['date_of_birth'] ?? null,
+            'relationship_note' => $data['relationship_note'] ?? null,
+            ...$this->normalizeDependantBaptismFields($data),
+        ]);
+
+        return $dependant->fresh(['member', 'linkedMember']);
+    }
+
     public function spouseMemberWasCreated(): bool
     {
         return $this->spouseMemberCreated;

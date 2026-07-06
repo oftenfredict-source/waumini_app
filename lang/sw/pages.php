@@ -376,6 +376,11 @@ return [
         'additional_note' => 'Maelezo ya Ziada',
         'note_placeholder' => 'mf. aliyefyatuliwa, mtoto wa kambo',
         'conversion_age_hint' => 'Hufuatilia umri kwa ubadilishaji umri wa :age+',
+        'edit_child' => 'Hariri Mtoto / Mtegemezi',
+        'edit_subtitle' => 'Sasisha maelezo ya :name',
+        'dob_edit_hint' => 'Sahihisha tarehe ya kuzaliwa ikiwa iliingizwa vibaya wakati wa usajili.',
+        'updated' => ':name amesasishwa.',
+        'view_parent' => 'Angalia mzazi mwanachama',
     ],
 
     'member_registrations' => [

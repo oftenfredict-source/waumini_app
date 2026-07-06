@@ -127,9 +127,15 @@
                                     <a href="{{ route('church.members.show', $child->linkedMember) }}" class="btn btn-sm btn-success">
                                         <i class="fa fa-user"></i> {{ __('pages.members_children.view_member') }}
                                     </a>
-                                @elseif($child->isEligibleForIndependence())
-                                    @can('convert', $child)
-                                        <form method="POST" action="{{ route('church.members.children.convert', $child) }}" class="form-inline">
+                                @else
+                                    @can('update', $child)
+                                        <a href="{{ route('church.members.children.edit', $child) }}" class="btn btn-sm btn-warning mb-1">
+                                            <i class="fa fa-edit"></i> {{ __('common.edit') }}
+                                        </a>
+                                    @endcan
+                                    @if($child->isEligibleForIndependence())
+                                        @can('convert', $child)
+                                            <form method="POST" action="{{ route('church.members.children.convert', $child) }}" class="form-inline">
                                             @csrf
                                             <input type="text" name="envelope_number" class="form-control form-control-sm mr-1"
                                                 placeholder="{{ __('pages.members_children.env_placeholder') }}" maxlength="3" pattern="\d{3}" required style="width:70px;">
@@ -137,9 +143,10 @@
                                                 <i class="fa fa-user-plus"></i> {{ __('pages.members_children.convert') }}
                                             </button>
                                         </form>
-                                    @endcan
-                                @else
-                                    <span class="text-muted small">{{ __('pages.members_children.under_years', ['age' => $independenceAge]) }}</span>
+                                        @endcan
+                                    @else
+                                        <span class="text-muted small d-block">{{ __('pages.members_children.under_years', ['age' => $independenceAge]) }}</span>
+                                    @endif
                                 @endif
                             </td>
                         </tr>

@@ -376,6 +376,11 @@ return [
         'additional_note' => 'Additional Note',
         'note_placeholder' => 'e.g. adopted, stepchild',
         'conversion_age_hint' => 'Tracks age for conversion at :age+',
+        'edit_child' => 'Edit Child / Dependant',
+        'edit_subtitle' => 'Update details for :name',
+        'dob_edit_hint' => 'Correct the date of birth if it was entered wrongly during registration.',
+        'updated' => ':name has been updated.',
+        'view_parent' => 'View parent member',
     ],
 
     'member_registrations' => [

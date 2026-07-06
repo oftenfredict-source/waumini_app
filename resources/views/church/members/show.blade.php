@@ -148,7 +148,7 @@
                 @if($familyDependants->isNotEmpty())
                     <h5 class="mt-3">{{ __('pages.members.dependants_children') }}</h5>
                     <table class="table table-bordered table-sm">
-                        <thead><tr><th>{{ __('common.name') }}</th><th>{{ __('members.fields.gender') }}</th><th>{{ __('pages.members.dob_col') }}</th><th>{{ __('pages.members_children.age_col') }}</th><th>{{ __('pages.members.relationship_col') }}</th><th>{{ __('pages.members.baptism') }}</th><th>{{ __('common.status') }}</th></tr></thead>
+                        <thead><tr><th>{{ __('common.name') }}</th><th>{{ __('members.fields.gender') }}</th><th>{{ __('pages.members.dob_col') }}</th><th>{{ __('pages.members_children.age_col') }}</th><th>{{ __('pages.members.relationship_col') }}</th><th>{{ __('pages.members.baptism') }}</th><th>{{ __('common.status') }}</th><th></th></tr></thead>
                         <tbody>
                             @foreach($familyDependants as $dependant)
                                 <tr>
@@ -180,6 +180,13 @@
                                         @else
                                             {{ $dependant->independenceStatusLabel() }}
                                         @endif
+                                    </td>
+                                    <td class="text-nowrap">
+                                        @can('update', $dependant)
+                                            <a href="{{ route('church.members.children.edit', $dependant) }}" class="btn btn-xs btn-warning">
+                                                <i class="fa fa-edit"></i> {{ __('common.edit') }}
+                                            </a>
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforeach

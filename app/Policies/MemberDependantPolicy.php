@@ -23,4 +23,12 @@ class MemberDependantPolicy
             && $user->can('members.update')
             && $dependant->church_id === $user->church_id;
     }
+
+    public function update(User $user, MemberDependant $dependant): bool
+    {
+        return $user->isChurchUser()
+            && $user->can('members.update')
+            && $dependant->church_id === $user->church_id
+            && ! $dependant->isConverted();
+    }
 }

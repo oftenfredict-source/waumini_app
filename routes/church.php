@@ -100,6 +100,8 @@ Route::middleware('church.maintenance')->group(function () {
     Route::get('members/children', [MemberChildController::class, 'index'])->name('members.children.index');
     Route::get('members/children/create', [MemberChildController::class, 'create'])->name('members.children.create');
     Route::post('members/children', [MemberChildController::class, 'store'])->name('members.children.store');
+    Route::get('members/children/{dependant}/edit', [MemberChildController::class, 'edit'])->name('members.children.edit');
+    Route::put('members/children/{dependant}', [MemberChildController::class, 'update'])->name('members.children.update');
     Route::post('members/children/process-aged-out', [MemberChildController::class, 'processAgedOut'])->name('members.children.process-aged-out');
     Route::post('members/children/{dependant}/convert', [MemberChildController::class, 'convert'])->name('members.children.convert');
     Route::post('members/{member}/reset-password', [MemberController::class, 'resetPassword'])->name('members.reset-password');
