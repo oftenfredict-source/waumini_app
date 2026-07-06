@@ -733,7 +733,7 @@ class MemberService
             'membership_expires_at' => $member->membership_expires_at,
             'full_name' => $member->spouse_full_name,
             'email' => $member->spouse_email,
-            'phone_number' => $member->spouse_phone_number,
+            'phone_number' => $this->normalizePhoneNumber($member->spouse_phone_number),
             'gender' => $spouseGender,
             'date_of_birth' => $member->spouse_date_of_birth,
             'education_level' => $member->spouse_education_level,
