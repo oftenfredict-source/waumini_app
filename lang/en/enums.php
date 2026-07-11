@@ -87,9 +87,21 @@ return [
         'prayer' => 'Prayer Service',
         'extra' => 'Extra Service',
     ],
+    'service_preacher_type' => [
+        'pastor' => 'Pastor',
+        'leader' => 'Leader',
+        'member' => 'Member',
+        'guest' => 'Special Guest',
+    ],
+    'service_coordinator_type' => [
+        'member' => 'Member',
+        'guest' => 'Special Guest',
+    ],
     'church_staff_role' => [
         'administrator' => 'Administrator',
         'pastor' => 'Pastor',
+        'assistant_pastor' => 'Assistant Pastor',
+        'elder' => 'Church Elder',
         'secretary' => 'Secretary',
         'treasurer' => 'Treasurer',
         'accountant' => 'Accountant',
@@ -121,6 +133,13 @@ return [
         'masters' => 'Masters',
         'phd' => 'PhD',
         'professor' => 'Professor',
+    ],
+    'child_education_level' => [
+        'nursery' => 'Nursery',
+        'primary' => 'Primary',
+        'secondary' => 'Secondary',
+        'advance' => 'Advance',
+        'university' => 'University',
     ],
     'expense_category' => [
         'utilities' => 'Utilities',

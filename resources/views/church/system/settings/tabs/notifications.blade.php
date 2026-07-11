@@ -98,6 +98,17 @@
         </div>
     </div>
 
+    <div class="form-group">
+        <div class="animated-checkbox">
+            <label>
+                <input type="checkbox" name="missed_attendance_sms" value="1"
+                       @checked(old('missed_attendance_sms', $settings['missed_attendance_sms'] ?? true))>
+                <span class="label-text">{{ __('pages.church_settings_notifications.missed_attendance_sms') }}</span>
+            </label>
+        </div>
+        <small class="text-muted">{{ __('pages.church_settings_notifications.missed_attendance_sms_hint') }}</small>
+    </div>
+
     <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.church_settings_notifications.save') }}</button>
 </form>
 

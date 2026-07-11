@@ -11,8 +11,8 @@ return [
     'member_credentials' => [
       'label' => 'Member Account Credentials',
       'description' => 'Sent when a new member account is created (if enabled in settings).',
-      'placeholders' => ['{{name}}', '{{church_name}}', '{{member_id}}', '{{password}}'],
-      'default' => "Karibu {{name}}!\nAkaunti yako ya {{church_name}} imeundwa.\nMember ID: {{member_id}}\nNenosiri: {{password}}",
+      'placeholders' => ['{{name}}', '{{church_name}}', '{{member_id}}', '{{password}}', '{{login_url}}'],
+      'default' => "Karibu {{name}}!\nAkaunti yako ya {{church_name}} imeundwa.\nMember ID: {{member_id}}\nNenosiri: {{password}}\nIngia: {{login_url}}",
     ],
     'password_reset' => [
       'label' => 'Password Reset',
@@ -62,6 +62,12 @@ return [
       'placeholders' => ['{{church_name}}', '{{title}}', '{{content}}'],
       'default' => "{{church_name}}: {{title}}\n{{content}}",
     ],
+    'missed_sunday_services' => [
+      'label' => 'Missed Sunday Services Reminder',
+      'description' => 'Sent automatically when a member misses 3 consecutive recorded Sunday services.',
+      'placeholders' => ['{{name}}', '{{church_name}}', '{{miss_count}}', '{{dates}}'],
+      'default' => "Shalom {{name}}, tumekukosa katika huduma {{miss_count}} za Jumapili zilizopita ({{dates}}) katika {{church_name}}.\n\nTunakukumbusha karibu tena. Mungu akubariki.",
+    ],
     'manual' => [
       'label' => 'Manual / Custom SMS',
       'description' => 'Default template for manually composed messages from the SMS store.',
@@ -83,6 +89,7 @@ return [
     'promise_guest_welcome_back_generic' => 'Promise Guest Welcome Back',
     'finance_approval' => 'Finance Approval',
     'announcement' => 'Announcement',
+    'missed_sunday_services' => 'Missed Sunday Reminder',
     'manual' => 'Manual',
   ],
 ];

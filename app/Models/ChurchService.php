@@ -5,7 +5,10 @@ namespace App\Models;
 use App\Enums\AttendanceSourceType;
 use App\Enums\ChurchServiceStatus;
 use App\Enums\ChurchServiceType;
+use App\Enums\ServiceCoordinatorType;
+use App\Enums\ServicePreacherType;
 use App\Traits\BelongsToChurch;
+use App\Traits\HasSchedulableAttendance;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChurchService extends Model
 {
-    use BelongsToChurch, HasFactory, HasUuid, SoftDeletes;
+    use BelongsToChurch, HasFactory, HasSchedulableAttendance, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'church_id',
@@ -27,6 +30,13 @@ class ChurchService extends Model
         'end_time',
         'theme',
         'preacher',
+        'preacher_type',
+        'preacher_member_id',
+        'preacher_phone',
+        'coordinator_type',
+        'coordinator_member_id',
+        'coordinator_name',
+        'coordinator_phone',
         'venue',
         'status',
         'notes',
@@ -40,6 +50,8 @@ class ChurchService extends Model
             'service_date' => 'date',
             'service_type' => ChurchServiceType::class,
             'status' => ChurchServiceStatus::class,
+            'preacher_type' => ServicePreacherType::class,
+            'coordinator_type' => ServiceCoordinatorType::class,
         ];
     }
 
@@ -51,6 +63,58 @@ class ChurchService extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function preacherMember(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'preacher_member_id');
+    }
+
+    public function coordinatorMember(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'coordinator_member_id');
+    }
+
+    public function preacherDisplay(): string
+    {
+        $name = $this->preacher ?: ($this->preacherMember?->full_name ?? null);
+
+        if (! $name) {
+            return '—';
+        }
+
+        $parts = [$name];
+
+        if ($this->preacher_type) {
+            $parts[] = '('.$this->preacher_type->label().')';
+        }
+
+        if ($this->preacher_type === ServicePreacherType::Guest && $this->preacher_phone) {
+            $parts[] = $this->preacher_phone;
+        }
+
+        return implode(' ', $parts);
+    }
+
+    public function coordinatorDisplay(): string
+    {
+        $name = $this->coordinator_name ?: ($this->coordinatorMember?->full_name ?? null);
+
+        if (! $name) {
+            return '—';
+        }
+
+        $parts = [$name];
+
+        if ($this->coordinator_type) {
+            $parts[] = '('.$this->coordinator_type->label().')';
+        }
+
+        if ($this->coordinator_type === ServiceCoordinatorType::Guest && $this->coordinator_phone) {
+            $parts[] = $this->coordinator_phone;
+        }
+
+        return implode(' ', $parts);
     }
 
     public function attendanceRecords(): HasMany

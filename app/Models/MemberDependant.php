@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ChildEducationLevel;
 use App\Enums\DependantRelationship;
 use App\Models\Church;
 use App\Traits\BelongsToChurch;
@@ -26,6 +27,17 @@ class MemberDependant extends Model
         'baptism_date',
         'baptism_place',
         'baptized_by',
+        'is_kipaimara',
+        'kipaimara_date',
+        'kipaimara_place',
+        'kipaimara_by',
+        'is_student',
+        'education_level',
+        'school_name',
+        'school_region',
+        'school_district',
+        'school_ward',
+        'school_street',
         'relationship',
         'relationship_note',
         'linked_member_id',
@@ -37,6 +49,10 @@ class MemberDependant extends Model
             'date_of_birth' => 'date',
             'is_baptized' => 'boolean',
             'baptism_date' => 'date',
+            'is_kipaimara' => 'boolean',
+            'kipaimara_date' => 'date',
+            'is_student' => 'boolean',
+            'education_level' => ChildEducationLevel::class,
             'relationship' => DependantRelationship::class,
         ];
     }
@@ -54,6 +70,13 @@ class MemberDependant extends Model
     public function linkedMember(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'linked_member_id');
+    }
+
+    public function departments(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Department::class, 'department_dependant', 'member_dependant_id', 'department_id')
+            ->withPivot('auto_assigned')
+            ->withTimestamps();
     }
 
     public function scopeChildren(Builder $query): Builder

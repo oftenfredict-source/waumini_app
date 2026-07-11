@@ -42,7 +42,14 @@ class Department extends Model
     public function members(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Member::class, 'department_member')
-            ->withPivot('role')
+            ->withPivot(['role', 'auto_assigned'])
+            ->withTimestamps();
+    }
+
+    public function dependants(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(MemberDependant::class, 'department_dependant', 'department_id', 'member_dependant_id')
+            ->withPivot('auto_assigned')
             ->withTimestamps();
     }
 }

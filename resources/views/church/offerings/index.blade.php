@@ -68,10 +68,19 @@
             <select name="offering_type" class="form-control mr-2 mb-2">
                 <option value="">{{ __('pages.shared.all_types') }}</option>
                 @foreach($offeringTypes as $type)
+                    @continue($type === \App\Enums\OfferingType::Other)
                     <option value="{{ $type->value }}" @selected(($filters['offering_type'] ?? '') === $type->value)>
                         {{ $type->label() }}
                     </option>
                 @endforeach
+                @foreach(($customOfferingTypes ?? []) as $customType)
+                    <option value="custom:{{ $customType }}" @selected(($filters['offering_type'] ?? '') === 'custom:'.$customType)>
+                        {{ $customType }}
+                    </option>
+                @endforeach
+                <option value="other" @selected(($filters['offering_type'] ?? '') === 'other')>
+                    {{ \App\Enums\OfferingType::Other->label() }}
+                </option>
             </select>
             <select name="status" class="form-control mr-2 mb-2">
                 <option value="">{{ __('pages.shared.all_statuses') }}</option>

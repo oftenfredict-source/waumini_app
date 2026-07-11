@@ -2,7 +2,10 @@
 
 namespace App\Services\Church;
 
+use App\Enums\DepartmentStatus;
+use App\Enums\LeadershipPosition;
 use App\Models\Church;
+use App\Models\Department;
 use App\Models\SystemSetting;
 use App\Services\Church\MemberIdPrefixService;
 use App\Services\Owner\AuditLogService;
@@ -11,6 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ChurchSettingsService
 {
@@ -89,18 +93,32 @@ class ChurchSettingsService
                 validator($input, [
                     'child_max_age' => ['required', 'integer', 'min:1', 'max:30'],
                     'member_id_prefix' => ['required', 'string', 'min:2', 'max:6', 'regex:/^[A-Za-z0-9]+$/'],
+                    'department_assignment_rules' => ['nullable', 'array'],
+                    'department_assignment_rules.*.department_id' => ['nullable'],
+                    'department_assignment_rules.*.min_age' => ['nullable', 'integer', 'min:0', 'max:120'],
+                    'department_assignment_rules.*.max_age' => ['nullable', 'integer', 'min:0', 'max:120'],
+                    'department_assignment_rules.*.genders' => ['nullable', 'array'],
+                    'department_assignment_rules.*.genders.*' => ['string', Rule::in(['male', 'female'])],
+                    'department_assignment_rules.*.leadership_positions' => ['nullable', 'array'],
+                    'department_assignment_rules.*.leadership_positions.*' => ['string', Rule::enum(LeadershipPosition::class)],
                 ])->validate(),
                 [
                     'auto_generate_member_id' => filter_var($input['auto_generate_member_id'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'require_member_phone' => filter_var($input['require_member_phone'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'kipaimara_registration_enabled' => filter_var($input['kipaimara_registration_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'children_education_details_enabled' => filter_var($input['children_education_details_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'department_assignment_enabled' => filter_var($input['department_assignment_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 ],
             ),
             'finance' => array_merge(
                 validator($input, [
                     'fiscal_year_start_month' => ['required', 'integer', 'min:1', 'max:12'],
+                    'custom_offering_types' => ['nullable', 'array', 'max:30'],
+                    'custom_offering_types.*' => ['nullable', 'string', 'max:100'],
                 ])->validate(),
                 [
                     'finance_approval_required' => filter_var($input['finance_approval_required'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'custom_offering_types' => $this->normalizeCustomOfferingTypes($input['custom_offering_types'] ?? []),
                 ],
             ),
             'notifications' => array_merge(
@@ -120,6 +138,7 @@ class ChurchSettingsService
                     'member_credentials_sms' => filter_var($input['member_credentials_sms'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'password_reset_sms' => filter_var($input['password_reset_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
                     'finance_approval_sms' => filter_var($input['finance_approval_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    'missed_attendance_sms' => filter_var($input['missed_attendance_sms'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 ],
             ),
             'security' => array_merge(
@@ -138,6 +157,8 @@ class ChurchSettingsService
             $data['member_id_prefix'] = $church
                 ? app(MemberIdPrefixService::class)->assertAvailable($data['member_id_prefix'], $church->id)
                 : strtoupper($data['member_id_prefix']);
+
+            $data = $this->normalizeDepartmentAssignmentRules($data, $church);
         }
 
         return $data;
@@ -182,6 +203,17 @@ class ChurchSettingsService
             $settings = array_merge($church->settings ?? [], $data);
         }
 
+        if ($tab === 'membership') {
+            unset(
+                $settings['age_department_routing_enabled'],
+                $settings['children_department_id'],
+                $settings['youth_department_id'],
+                $settings['children_department_max_age'],
+                $settings['youth_department_min_age'],
+                $settings['youth_department_max_age'],
+            );
+        }
+
         $church->update(['settings' => $settings]);
         $church->refresh();
 
@@ -194,6 +226,169 @@ class ChurchSettingsService
         );
 
         return $church;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeDepartmentAssignmentRules(array $data, ?Church $church): array
+    {
+        $enabled = (bool) ($data['department_assignment_enabled'] ?? false);
+        $rawRules = is_array($data['department_assignment_rules'] ?? null)
+            ? $data['department_assignment_rules']
+            : [];
+
+        $rules = [];
+        $errors = [];
+
+        foreach (array_values($rawRules) as $index => $rawRule) {
+            if (! is_array($rawRule)) {
+                continue;
+            }
+
+            $departmentId = $rawRule['department_id'] ?? null;
+            $departmentId = $departmentId !== null && $departmentId !== ''
+                ? (int) $departmentId
+                : null;
+
+            $minAge = array_key_exists('min_age', $rawRule) && $rawRule['min_age'] !== null && $rawRule['min_age'] !== ''
+                ? (int) $rawRule['min_age']
+                : null;
+            $maxAge = array_key_exists('max_age', $rawRule) && $rawRule['max_age'] !== null && $rawRule['max_age'] !== ''
+                ? (int) $rawRule['max_age']
+                : null;
+
+            $positions = array_values(array_unique(array_filter(
+                Arr::wrap($rawRule['leadership_positions'] ?? []),
+                fn ($value) => is_string($value) && $value !== ''
+            )));
+
+            $genders = array_values(array_unique(array_filter(
+                Arr::wrap($rawRule['genders'] ?? []),
+                fn ($value) => in_array($value, ['male', 'female'], true)
+            )));
+
+            $isEmptyRow = ! $departmentId
+                && $minAge === null
+                && $maxAge === null
+                && $positions === []
+                && $genders === [];
+
+            if ($isEmptyRow) {
+                continue;
+            }
+
+            $rowErrors = [];
+
+            if (! $departmentId) {
+                $rowErrors["department_assignment_rules.{$index}.department_id"] = 'Select a department for this rule.';
+            } elseif ($church && ! $this->departmentBelongsToChurch($church, $departmentId)) {
+                $rowErrors["department_assignment_rules.{$index}.department_id"] = 'The selected department is invalid for this church.';
+            }
+
+            if ($minAge !== null && $maxAge !== null && $minAge > $maxAge) {
+                $rowErrors["department_assignment_rules.{$index}.min_age"] = 'Minimum age cannot be greater than maximum age.';
+            }
+
+            if (($minAge !== null && $maxAge === null) || ($minAge === null && $maxAge !== null)) {
+                $rowErrors["department_assignment_rules.{$index}.max_age"] = 'Enter both minimum and maximum age for an age rule.';
+            }
+
+            if ($minAge === null && $maxAge === null && $positions === [] && $genders === []) {
+                $rowErrors["department_assignment_rules.{$index}.genders"] = 'Set gender, an age range, and/or at least one leadership position.';
+            }
+
+            foreach ($positions as $position) {
+                if (! LeadershipPosition::tryFrom($position)) {
+                    $rowErrors["department_assignment_rules.{$index}.leadership_positions"] = 'One or more leadership positions are invalid.';
+                    break;
+                }
+            }
+
+            if ($rowErrors !== []) {
+                if ($enabled) {
+                    $errors = array_merge($errors, $rowErrors);
+                }
+
+                continue;
+            }
+
+            $rules[] = [
+                'department_id' => $departmentId,
+                'genders' => $genders,
+                'min_age' => $minAge,
+                'max_age' => $maxAge,
+                'leadership_positions' => $positions,
+            ];
+        }
+
+        if ($enabled && $rules === []) {
+            $errors['department_assignment_rules'] = 'Add at least one department assignment rule, or turn the feature off.';
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        // Drop legacy fixed children/youth keys if present.
+        unset(
+            $data['age_department_routing_enabled'],
+            $data['children_department_id'],
+            $data['youth_department_id'],
+            $data['children_department_max_age'],
+            $data['youth_department_min_age'],
+            $data['youth_department_max_age'],
+        );
+
+        return array_merge($data, [
+            'department_assignment_enabled' => $enabled,
+            'department_assignment_rules' => $rules,
+        ]);
+    }
+
+    private function departmentBelongsToChurch(Church $church, int $departmentId): bool
+    {
+        return Department::forChurch($church->id)
+            ->whereKey($departmentId)
+            ->where('status', DepartmentStatus::Active)
+            ->exists();
+    }
+
+    /**
+     * @param  mixed  $raw
+     * @return list<string>
+     */
+    private function normalizeCustomOfferingTypes(mixed $raw): array
+    {
+        $items = is_array($raw) ? $raw : [];
+        $normalized = [];
+
+        foreach ($items as $item) {
+            $label = trim((string) $item);
+            if ($label === '') {
+                continue;
+            }
+
+            $key = mb_strtolower($label);
+            if (isset($normalized[$key])) {
+                continue;
+            }
+
+            $normalized[$key] = $label;
+        }
+
+        return array_values($normalized);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function customOfferingTypes(Church $church): array
+    {
+        $types = $this->get($church, 'custom_offering_types', []);
+
+        return is_array($types) ? array_values(array_filter(array_map('strval', $types))) : [];
     }
 
     private function uploadLogo(Church $church, UploadedFile $logo): void

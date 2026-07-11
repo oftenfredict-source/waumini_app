@@ -34,6 +34,13 @@ class StoreChildRequest extends FormRequest
             'gender' => ['required', Rule::in(['male', 'female'])],
             'date_of_birth' => ['nullable', 'date', 'before:today'],
             'relationship_note' => ['nullable', 'string', 'max:150'],
+            'is_student' => ['nullable', 'boolean'],
+            'education_level' => ['nullable', 'required_if:is_student,1', Rule::enum(\App\Enums\ChildEducationLevel::class)],
+            'school_name' => ['nullable', 'required_if:is_student,1', 'string', 'max:255'],
+            'school_region' => ['nullable', 'required_if:is_student,1', 'string', 'max:100'],
+            'school_district' => ['nullable', 'required_if:is_student,1', 'string', 'max:100'],
+            'school_ward' => ['nullable', 'string', 'max:100'],
+            'school_street' => ['nullable', 'string', 'max:150'],
         ];
     }
 

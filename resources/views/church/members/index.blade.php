@@ -15,6 +15,85 @@
 
 @include('partials.member-registration-link')
 
+<div class="row mb-3 flex-nowrap member-stats-row">
+    <div class="col px-1">
+        <div class="widget-small primary coloured-icon mb-0">
+            <i class="icon fa fa-users"></i>
+            <div class="info">
+                <h4>{{ number_format($stats['total']) }}</h4>
+                <p>{{ __('pages.shared.total_members') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col px-1">
+        <div class="widget-small info coloured-icon mb-0">
+            <i class="icon fa fa-id-card"></i>
+            <div class="info">
+                <h4>{{ number_format($stats['permanent']) }}</h4>
+                <p>{{ __('pages.shared.permanent') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col px-1">
+        <div class="widget-small warning coloured-icon mb-0">
+            <i class="icon fa fa-clock-o"></i>
+            <div class="info">
+                <h4>{{ number_format($stats['temporary']) }}</h4>
+                <p>{{ __('pages.shared.temporary') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col px-1">
+        <div class="widget-small success coloured-icon mb-0">
+            <i class="icon fa fa-male"></i>
+            <div class="info">
+                <h4>{{ number_format($stats['male']) }}</h4>
+                <p>{{ __('pages.shared.male') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col px-1">
+        <div class="widget-small danger coloured-icon mb-0">
+            <i class="icon fa fa-female"></i>
+            <div class="info">
+                <h4>{{ number_format($stats['female']) }}</h4>
+                <p>{{ __('pages.shared.female') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('styles')
+<style>
+    .member-stats-row {
+        overflow-x: auto;
+    }
+    .member-stats-row > [class*="col"] {
+        min-width: 0;
+    }
+    .member-stats-row .widget-small .icon {
+        min-width: 52px;
+        padding: 12px;
+        font-size: 1.4rem;
+    }
+    .member-stats-row .widget-small .info {
+        padding: 0 10px;
+        overflow: hidden;
+    }
+    .member-stats-row .widget-small .info h4 {
+        font-size: 1.15rem;
+        margin-bottom: 2px;
+        white-space: nowrap;
+    }
+    .member-stats-row .widget-small .info p {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+@endpush
+
 <div class="row mb-3">
     <div class="col-md-8">
         <form method="GET" class="form-inline">

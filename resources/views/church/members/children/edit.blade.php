@@ -121,6 +121,67 @@
             </div>
         </div>
 
+        @php
+            $kipaimaraEnabled = (bool) app(\App\Services\Church\ChurchSettingsService::class)->get(
+                auth()->user()->church,
+                'kipaimara_registration_enabled',
+                false
+            ) || (bool) old('is_kipaimara', $dependant->is_kipaimara);
+        @endphp
+
+        @if($kipaimaraEnabled)
+        <hr>
+        <h5>{{ __('pages.members.kipaimara') }}</h5>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="hidden" name="is_kipaimara" value="0">
+                        <input type="checkbox" name="is_kipaimara" id="is_kipaimara" value="1" class="form-check-input"
+                            @checked(old('is_kipaimara', $dependant->is_kipaimara))>
+                        <label class="form-check-label" for="is_kipaimara">{{ __('members.fields.is_kipaimara') }}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 kipaimara-fields">
+                <div class="form-group">
+                    <label>{{ __('members.fields.kipaimara_date') }}</label>
+                    <input type="date" name="kipaimara_date" class="form-control @error('kipaimara_date') is-invalid @enderror"
+                        value="{{ old('kipaimara_date', $dependant->kipaimara_date?->toDateString()) }}">
+                    @error('kipaimara_date')<small class="text-danger">{{ $message }}</small>@enderror
+                </div>
+            </div>
+            <div class="col-md-4 kipaimara-fields">
+                <div class="form-group">
+                    <label>{{ __('members.fields.kipaimara_place') }}</label>
+                    <input type="text" name="kipaimara_place" class="form-control @error('kipaimara_place') is-invalid @enderror"
+                        value="{{ old('kipaimara_place', $dependant->kipaimara_place) }}">
+                    @error('kipaimara_place')<small class="text-danger">{{ $message }}</small>@enderror
+                </div>
+            </div>
+            <div class="col-md-4 kipaimara-fields">
+                <div class="form-group">
+                    <label>{{ __('members.fields.kipaimara_by') }}</label>
+                    <input type="text" name="kipaimara_by" class="form-control @error('kipaimara_by') is-invalid @enderror"
+                        value="{{ old('kipaimara_by', $dependant->kipaimara_by) }}"
+                        placeholder="{{ __('members.fields.kipaimara_by_placeholder') }}">
+                    @error('kipaimara_by')<small class="text-danger">{{ $message }}</small>@enderror
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @php
+            $childrenEducationEnabled = (bool) app(\App\Services\Church\ChurchSettingsService::class)->get(
+                auth()->user()->church,
+                'children_education_details_enabled',
+                false
+            ) || (bool) old('is_student', $dependant->is_student);
+        @endphp
+        @if($childrenEducationEnabled)
+            @include('church.members.children._education-fields', ['dependant' => $dependant])
+        @endif
+
         <div class="tile-footer">
             <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('members.save_changes') }}</button>
             <a href="{{ route('church.members.children.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
@@ -151,6 +212,22 @@
             baptized.addEventListener('change', toggleBaptismFields);
             toggleBaptismFields();
         }
+
+        var kipaimara = document.getElementById('is_kipaimara');
+        var kipaimaraFields = document.querySelectorAll('.kipaimara-fields');
+
+        function toggleKipaimaraFields() {
+            var show = kipaimara && kipaimara.checked;
+            kipaimaraFields.forEach(function (el) {
+                el.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        if (kipaimara) {
+            kipaimara.addEventListener('change', toggleKipaimaraFields);
+            toggleKipaimaraFields();
+        }
     })();
 </script>
+@include('church.members.children._education-scripts')
 @endpush

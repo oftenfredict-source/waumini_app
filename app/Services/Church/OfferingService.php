@@ -69,6 +69,13 @@ class OfferingService
 
     private function normalizeTypeFields(array $data): array
     {
+        $type = (string) ($data['offering_type'] ?? '');
+
+        if (str_starts_with($type, 'custom:')) {
+            $data['offering_type_other'] = trim(substr($type, strlen('custom:')));
+            $data['offering_type'] = OfferingType::Other->value;
+        }
+
         if (($data['offering_type'] ?? null) !== OfferingType::Other->value) {
             $data['offering_type_other'] = null;
         }

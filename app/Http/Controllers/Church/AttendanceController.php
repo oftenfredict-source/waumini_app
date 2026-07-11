@@ -60,6 +60,8 @@ class AttendanceController extends Controller
                 'guests_count' => $summary['guests_count'],
                 'total_count' => $summary['total_count'],
                 'has_attendance' => $summary['total_count'] > 0,
+                'can_record' => $service->canRecordAttendance(),
+                'opens_at' => $service->attendanceOpensAt(),
             ];
         });
 
@@ -81,6 +83,8 @@ class AttendanceController extends Controller
                 'guests_count' => $summary['guests_count'],
                 'total_count' => $summary['total_count'],
                 'has_attendance' => $summary['total_count'] > 0,
+                'can_record' => $event->canRecordAttendance(),
+                'opens_at' => $event->attendanceOpensAt(),
             ];
         });
 
@@ -96,6 +100,33 @@ class AttendanceController extends Controller
             'sessions' => $sessions,
             'stats' => $stats,
             'filters' => $request->only(['search']),
+        ]);
+    }
+
+    public function statistics(Request $request): View
+    {
+        $this->authorize('viewAny', AttendanceRecord::class);
+
+        $church = auth()->user()->church;
+        $end = $request->filled('end_date')
+            ? \Illuminate\Support\Carbon::parse($request->string('end_date')->toString())->endOfDay()
+            : now()->endOfDay();
+        $start = $request->filled('start_date')
+            ? \Illuminate\Support\Carbon::parse($request->string('start_date')->toString())->startOfDay()
+            : $end->copy()->subMonths(3)->startOfDay();
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+        }
+
+        $report = $this->attendanceService->statistics($church, $start, $end);
+
+        return view('church.attendance.statistics', [
+            'report' => $report,
+            'filters' => [
+                'start_date' => $start->toDateString(),
+                'end_date' => $end->toDateString(),
+            ],
         ]);
     }
 
@@ -123,12 +154,16 @@ class AttendanceController extends Controller
         $attendedDependantIds = [];
         $guestsCount = 0;
         $notes = '';
+        $canRecordAttendance = false;
+        $attendanceOpensAt = null;
 
         $attendanceMode = null;
 
         if ($sourceType && $sourceId) {
             $selectedSource = $this->attendanceService->resolveSource($church, $sourceType, $sourceId);
             $attendanceMode = $this->attendanceService->attendanceMode($selectedSource);
+            $canRecordAttendance = $selectedSource->canRecordAttendance();
+            $attendanceOpensAt = $selectedSource->attendanceOpensAt();
             $summary = $this->attendanceService->summary($church, $sourceType, $sourceId);
             $attendedMemberIds = $summary['records']->pluck('member_id')->filter()->all();
             $attendedDependantIds = $summary['records']->pluck('dependant_id')->filter()->all();
@@ -138,6 +173,8 @@ class AttendanceController extends Controller
 
         $members = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'member_number', 'envelope_number']);
 
@@ -174,6 +211,8 @@ class AttendanceController extends Controller
             'attendedDependantIds' => $attendedDependantIds,
             'guestsCount' => $guestsCount,
             'notes' => $notes,
+            'canRecordAttendance' => $canRecordAttendance,
+            'attendanceOpensAt' => $attendanceOpensAt,
         ]);
     }
 
@@ -218,6 +257,8 @@ class AttendanceController extends Controller
             'summary' => $summary,
             'sourceLabel' => $this->attendanceService->sourceLabel($summary['source']),
             'attendanceMode' => $this->attendanceService->attendanceMode($summary['source']),
+            'canRecordAttendance' => $summary['source']->canRecordAttendance(),
+            'attendanceOpensAt' => $summary['source']->attendanceOpensAt(),
         ]);
     }
 }

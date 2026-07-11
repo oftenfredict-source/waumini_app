@@ -30,9 +30,8 @@
         <div class="col-md-3">
             <label class="small text-muted">{{ __('common.status') }}</label>
             <select name="status" class="form-control">
-                <option value="">{{ __('pages.shared.all_statuses') }}</option>
                 @foreach($statuses as $status)
-                    <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $status->label() }}</option>
+                    <option value="{{ $status->value }}" @selected(($filters['status'] ?? 'pending') === $status->value)>{{ $status->label() }}</option>
                 @endforeach
             </select>
         </div>

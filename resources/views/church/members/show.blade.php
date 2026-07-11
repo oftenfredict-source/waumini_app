@@ -52,6 +52,39 @@
                             </tr>
                         @endif
                         <tr><th>{{ __('members.fields.member_type') }}</th><td>{{ $member->member_type?->label() ?? '—' }}</td></tr>
+                        @if($member->member_type?->value === 'independent')
+                            <tr>
+                                <th>{{ __('members.fields.family_guardian_title') }}</th>
+                                <td>
+                                    @if($member->familyMember)
+                                        <div>
+                                            <a href="{{ route('church.members.show', $member->familyMember) }}">{{ $member->familyMember->full_name }}</a>
+                                            <span class="text-muted">({{ $member->familyMember->member_number }})</span>
+                                            @if($member->guardian_relationship)
+                                                <span class="badge badge-light ml-1">{{ $member->guardian_relationship }}</span>
+                                            @endif
+                                        </div>
+                                        @if($member->secondaryFamilyMember)
+                                            <div class="mt-1">
+                                                <a href="{{ route('church.members.show', $member->secondaryFamilyMember) }}">{{ $member->secondaryFamilyMember->full_name }}</a>
+                                                <span class="text-muted">({{ $member->secondaryFamilyMember->member_number }})</span>
+                                                <span class="badge badge-light ml-1">{{ __('members.fields.linked_spouse_parent') }}</span>
+                                            </div>
+                                        @endif
+                                    @elseif($member->guardian_full_name)
+                                        <div>{{ $member->guardian_full_name }}</div>
+                                        @if($member->guardian_relationship)
+                                            <div class="small text-muted">{{ $member->guardian_relationship }}</div>
+                                        @endif
+                                        @if($member->guardian_phone)
+                                            <div class="small text-muted">{{ $member->guardian_phone }}</div>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                            </tr>
+                        @endif
                         <tr><th>{{ __('members.fields.gender') }}</th><td>{{ $member->gender ? ucfirst($member->gender) : '—' }}</td></tr>
                         <tr><th>{{ __('members.fields.date_of_birth') }}</th><td>{{ $member->date_of_birth?->format('M d, Y') ?? '—' }}</td></tr>
                         <tr><th>{{ __('members.fields.education_level') }}</th><td>{{ $member->education_level?->label() ?? '—' }}</td></tr>
@@ -72,6 +105,24 @@
                                     @endif
                                 @else
                                     <span class="text-muted">{{ __('pages.members.not_baptized') }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr><th>{{ __('pages.members.kipaimara') }}</th>
+                            <td>
+                                @if($member->is_kipaimara)
+                                    <span class="badge badge-info">{{ __('members.summary.kipaimara') }}</span>
+                                    @if($member->kipaimara_date)
+                                        <div class="small text-muted mt-1">{{ __('pages.members.kipaimara_date_label') }} {{ $member->kipaimara_date->format('M d, Y') }}</div>
+                                    @endif
+                                    @if($member->kipaimara_place)
+                                        <div class="small text-muted">{{ __('pages.members.kipaimara_place_label') }} {{ $member->kipaimara_place }}</div>
+                                    @endif
+                                    @if($member->kipaimara_by)
+                                        <div class="small text-muted">{{ __('pages.members.kipaimara_by_label') }} {{ $member->kipaimara_by }}</div>
+                                    @endif
+                                @else
+                                    <span class="text-muted">{{ __('pages.members.not_kipaimara') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -148,7 +199,7 @@
                 @if($familyDependants->isNotEmpty())
                     <h5 class="mt-3">{{ __('pages.members.dependants_children') }}</h5>
                     <table class="table table-bordered table-sm">
-                        <thead><tr><th>{{ __('common.name') }}</th><th>{{ __('members.fields.gender') }}</th><th>{{ __('pages.members.dob_col') }}</th><th>{{ __('pages.members_children.age_col') }}</th><th>{{ __('pages.members.relationship_col') }}</th><th>{{ __('pages.members.baptism') }}</th><th>{{ __('common.status') }}</th><th></th></tr></thead>
+                        <thead><tr><th>{{ __('common.name') }}</th><th>{{ __('members.fields.gender') }}</th><th>{{ __('pages.members.dob_col') }}</th><th>{{ __('pages.members_children.age_col') }}</th><th>{{ __('pages.members.relationship_col') }}</th><th>{{ __('pages.members.baptism') }}</th><th>{{ __('members.fields.student_education_level') }}</th><th>{{ __('common.status') }}</th><th></th></tr></thead>
                         <tbody>
                             @foreach($familyDependants as $dependant)
                                 <tr>
@@ -167,6 +218,21 @@
                                             {{ __('common.yes') }}
                                             @if($dependant->baptism_date)
                                                 <br><small class="text-muted">{{ $dependant->baptism_date->format('M d, Y') }}</small>
+                                            @endif
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($dependant->is_student)
+                                            {{ $dependant->education_level?->label() ?? __('common.yes') }}
+                                            @if($dependant->school_name)
+                                                <br><small class="text-muted">{{ $dependant->school_name }}</small>
+                                            @endif
+                                            @if($dependant->school_region || $dependant->school_district)
+                                                <br><small class="text-muted">
+                                                    {{ collect([$dependant->school_region, $dependant->school_district, $dependant->school_ward, $dependant->school_street])->filter()->implode(', ') }}
+                                                </small>
                                             @endif
                                         @else
                                             —

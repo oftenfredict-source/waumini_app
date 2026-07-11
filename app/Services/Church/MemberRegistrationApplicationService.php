@@ -37,6 +37,8 @@ class MemberRegistrationApplicationService
         $data['spouse_member_id'] = null;
         $data['spouse_envelope_number'] = null;
 
+        $this->memberService->assertNotAlreadyRegisteredMember($church, $data);
+
         $profilePath = null;
 
         if ($profilePicture) {

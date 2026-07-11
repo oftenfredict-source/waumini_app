@@ -54,12 +54,13 @@ use App\Policies\SubscriptionPackagePolicy;
 use App\Policies\SupportTicketPolicy;
 use App\Policies\SystemSettingPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Church\ChurchRolePermissionService;
+use App\Services\Church\HeaderNotificationService;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
-use App\Services\Church\HeaderNotificationService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -112,6 +113,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SupportTicket::class, SupportTicketPolicy::class);
         Gate::policy(SystemSetting::class, SystemSettingPolicy::class);
         Paginator::useBootstrap();
+
+        Gate::before(function ($user, string $ability) {
+            if (! $user instanceof User) {
+                return null;
+            }
+
+            return app(ChurchRolePermissionService::class)->userMay($user, $ability);
+        });
 
         View::composer('layouts.church', function ($view) {
             $user = auth()->user();

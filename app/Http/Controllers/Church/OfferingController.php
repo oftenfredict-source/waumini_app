@@ -12,6 +12,7 @@ use App\Http\Requests\Church\UpdateOfferingRequest;
 use App\Models\ChurchService;
 use App\Models\Member;
 use App\Models\Offering;
+use App\Services\Church\ChurchSettingsService;
 use App\Services\Church\OfferingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class OfferingController extends Controller
 {
     public function __construct(
         private readonly OfferingService $offeringService,
+        private readonly ChurchSettingsService $churchSettings,
     ) {
         $this->authorizeResource(Offering::class, 'offering');
     }
@@ -43,7 +45,12 @@ class OfferingController extends Controller
         }
 
         if ($type = $request->string('offering_type')->trim()->toString()) {
-            $query->where('offering_type', $type);
+            if (str_starts_with($type, 'custom:')) {
+                $query->where('offering_type', OfferingType::Other->value)
+                    ->where('offering_type_other', substr($type, strlen('custom:')));
+            } else {
+                $query->where('offering_type', $type);
+            }
         }
 
         if ($from = $request->string('from')->trim()->toString()) {
@@ -72,6 +79,8 @@ class OfferingController extends Controller
 
         $members = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'envelope_number']);
 
@@ -82,6 +91,7 @@ class OfferingController extends Controller
             'members' => $members,
             'paymentMethods' => FinancePaymentMethod::cases(),
             'offeringTypes' => OfferingType::cases(),
+            'customOfferingTypes' => $this->churchSettings->customOfferingTypes($church),
             'statuses' => FinancialApprovalStatus::cases(),
             'filters' => $request->only(['search', 'member_id', 'status', 'offering_type', 'from', 'to', 'payment_method']),
             'stats' => [
@@ -101,6 +111,8 @@ class OfferingController extends Controller
         $church = auth()->user()->church;
         $members = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'envelope_number']);
 
@@ -109,6 +121,7 @@ class OfferingController extends Controller
             'services' => $this->selectableServices($church->id),
             'paymentMethods' => FinancePaymentMethod::cases(),
             'offeringTypes' => OfferingType::cases(),
+            'customOfferingTypes' => $this->churchSettings->customOfferingTypes($church),
             'contributionTypes' => OfferingContributionType::cases(),
         ]);
     }
@@ -139,15 +152,18 @@ class OfferingController extends Controller
         $church = auth()->user()->church;
         $members = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'envelope_number']);
 
         return view('church.offerings.edit', [
             'offering' => $offering,
             'members' => $members,
-            'services' => $this->selectableServices($church->id),
+            'services' => $this->selectableServices($church->id, $offering->church_service_id),
             'paymentMethods' => FinancePaymentMethod::cases(),
             'offeringTypes' => OfferingType::cases(),
+            'customOfferingTypes' => $this->churchSettings->customOfferingTypes($church),
             'contributionTypes' => OfferingContributionType::cases(),
         ]);
     }
@@ -171,12 +187,22 @@ class OfferingController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, ChurchService>
+     * Services available for general offering collection (started or completed only).
+     *
+     * @return \Illuminate\Support\Collection<int, ChurchService>
      */
-    private function selectableServices(int $churchId)
+    private function selectableServices(int $churchId, ?int $includeServiceId = null)
     {
         return ChurchService::query()
             ->forOfferingSelection($churchId)
-            ->get(['id', 'service_type', 'title', 'service_date', 'start_time']);
+            ->get(['id', 'service_type', 'title', 'service_date', 'start_time', 'end_time', 'status'])
+            ->filter(function (ChurchService $service) use ($includeServiceId) {
+                if ($includeServiceId && $service->id === $includeServiceId) {
+                    return true;
+                }
+
+                return $service->canRecordAttendance();
+            })
+            ->values();
     }
 }

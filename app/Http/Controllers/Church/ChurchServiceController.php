@@ -9,6 +9,7 @@ use App\Http\Requests\Church\StoreChurchServiceRequest;
 use App\Http\Requests\Church\UpdateChurchServiceRequest;
 use App\Models\ChurchService;
 use App\Services\Church\ChurchServiceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -43,6 +44,7 @@ class ChurchServiceController extends Controller
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('theme', 'like', "%{$search}%")
                     ->orWhere('preacher', 'like', "%{$search}%")
+                    ->orWhere('coordinator_name', 'like', "%{$search}%")
                     ->orWhere('venue', 'like', "%{$search}%");
             });
         }
@@ -59,9 +61,13 @@ class ChurchServiceController extends Controller
 
     public function create(): View
     {
+        $church = auth()->user()->church;
+
         return view('church.services.create', [
             'serviceTypes' => ChurchServiceType::cases(),
             'statuses' => ChurchServiceStatus::cases(),
+            'pastors' => $this->churchServiceService->pastorsForChurch($church),
+            'leaders' => $this->churchServiceService->leadersForChurch($church),
         ]);
     }
 
@@ -81,17 +87,22 @@ class ChurchServiceController extends Controller
 
     public function show(ChurchService $service): View
     {
-        $service->load('creator');
+        $service->load(['creator', 'preacherMember', 'coordinatorMember']);
 
         return view('church.services.show', compact('service'));
     }
 
     public function edit(ChurchService $service): View
     {
+        $church = auth()->user()->church;
+        $service->load(['preacherMember', 'coordinatorMember']);
+
         return view('church.services.edit', [
             'service' => $service,
             'serviceTypes' => ChurchServiceType::cases(),
             'statuses' => ChurchServiceStatus::cases(),
+            'pastors' => $this->churchServiceService->pastorsForChurch($church),
+            'leaders' => $this->churchServiceService->leadersForChurch($church),
         ]);
     }
 
@@ -111,5 +122,23 @@ class ChurchServiceController extends Controller
         return redirect()
             ->route('church.services.index')
             ->with('success', 'Service deleted successfully.');
+    }
+
+    public function peopleSearch(Request $request): JsonResponse
+    {
+        $this->authorize('create', ChurchService::class);
+
+        $church = auth()->user()->church;
+        $type = $request->string('type')->toString();
+        $query = $request->string('q')->trim()->toString();
+
+        $data = match ($type) {
+            'pastor' => $this->churchServiceService->pastorsForChurch($church),
+            'leader' => $this->churchServiceService->leadersForChurch($church),
+            'member' => $this->churchServiceService->searchMembers($church, $query),
+            default => collect(),
+        };
+
+        return response()->json(['data' => $data->values()]);
     }
 }

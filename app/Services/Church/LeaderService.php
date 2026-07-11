@@ -13,6 +13,7 @@ class LeaderService
     public function __construct(
         private readonly LeadershipStaffAccessService $leadershipStaffAccessService,
         private readonly ChurchSmsService $churchSmsService,
+        private readonly DepartmentAssignmentService $departmentAssignmentService,
     ) {}
 
     public function assign(Church $church, array $data): Leader
@@ -38,6 +39,8 @@ class LeaderService
             $member,
             (string) $data['position'],
         );
+
+        $this->departmentAssignmentService->assignIfApplicable($church, $member->fresh());
 
         return $leader;
     }

@@ -30,6 +30,9 @@ class StoreMemberSelfRegistrationRequest extends FormRequest
         $isPermanent = $this->input('membership_type') === MembershipType::Permanent->value;
         $isTemporary = $this->input('membership_type') === MembershipType::Temporary->value;
         $spouseUsesManual = $isMarried && $this->input('spouse_church_member') === 'yes';
+        $isIndependent = $isPermanent && $this->input('member_type') === MemberType::Independent->value;
+        $familyUsesMember = $isIndependent && $this->input('family_parent_type') === 'member';
+        $familyUsesGuardian = $isIndependent && $this->input('family_parent_type') === 'guardian';
 
         return [
             'church' => ['nullable', 'string', Rule::exists('churches', 'slug')],
@@ -66,6 +69,10 @@ class StoreMemberSelfRegistrationRequest extends FormRequest
             'baptism_date' => ['nullable', 'date', 'before_or_equal:today'],
             'baptism_place' => ['nullable', 'string', 'max:255'],
             'baptized_by' => ['nullable', 'string', 'max:255'],
+            'is_kipaimara' => ['nullable', 'boolean'],
+            'kipaimara_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'kipaimara_place' => ['nullable', 'string', 'max:255'],
+            'kipaimara_by' => ['nullable', 'string', 'max:255'],
             'profile_picture' => ['nullable', 'image', 'max:2048'],
 
             'phone_number' => ['required', 'string', 'max:30'],
@@ -100,6 +107,30 @@ class StoreMemberSelfRegistrationRequest extends FormRequest
             'spouse_tribe' => ['nullable', 'string', 'max:100'],
             'spouse_other_tribe' => ['required_if:spouse_tribe,Other', 'nullable', 'string', 'max:100'],
 
+            'family_parent_type' => [
+                Rule::requiredIf($isIndependent),
+                'nullable',
+                Rule::in(['member', 'guardian']),
+            ],
+            'family_member_id' => [
+                Rule::requiredIf($familyUsesMember),
+                'nullable',
+                Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId)),
+            ],
+            'guardian_full_name' => [
+                Rule::requiredIf($familyUsesGuardian),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'guardian_phone' => ['nullable', 'string', 'max:30'],
+            'guardian_relationship' => [
+                Rule::requiredIf($isIndependent),
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
             'dependants' => ['nullable', 'array'],
             'dependants.*.full_name' => ['required_with:dependants', 'string', 'max:255'],
             'dependants.*.gender' => ['required_with:dependants', Rule::in(['male', 'female'])],
@@ -110,6 +141,17 @@ class StoreMemberSelfRegistrationRequest extends FormRequest
             'dependants.*.baptism_date' => ['nullable', 'date', 'before_or_equal:today'],
             'dependants.*.baptism_place' => ['nullable', 'string', 'max:255'],
             'dependants.*.baptized_by' => ['nullable', 'string', 'max:255'],
+            'dependants.*.is_kipaimara' => ['nullable', 'boolean'],
+            'dependants.*.kipaimara_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'dependants.*.kipaimara_place' => ['nullable', 'string', 'max:255'],
+            'dependants.*.kipaimara_by' => ['nullable', 'string', 'max:255'],
+            'dependants.*.is_student' => ['nullable', 'boolean'],
+            'dependants.*.education_level' => ['nullable', 'required_if:dependants.*.is_student,1', Rule::enum(\App\Enums\ChildEducationLevel::class)],
+            'dependants.*.school_name' => ['nullable', 'required_if:dependants.*.is_student,1', 'string', 'max:255'],
+            'dependants.*.school_region' => ['nullable', 'required_if:dependants.*.is_student,1', 'string', 'max:100'],
+            'dependants.*.school_district' => ['nullable', 'required_if:dependants.*.is_student,1', 'string', 'max:100'],
+            'dependants.*.school_ward' => ['nullable', 'string', 'max:100'],
+            'dependants.*.school_street' => ['nullable', 'string', 'max:150'],
         ];
     }
 

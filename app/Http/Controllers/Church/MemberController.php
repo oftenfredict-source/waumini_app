@@ -65,10 +65,26 @@ class MemberController extends Controller
             $query->where('membership_type', $membershipType);
         }
 
+        $statsQuery = Member::forChurch($church->id)->activeMembers();
+        $this->branchAccessService->applyBranchFilter(
+            $statsQuery,
+            $user,
+            $request->integer('branch_id') ?: null,
+        );
+
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'permanent' => (clone $statsQuery)->where('membership_type', MembershipType::Permanent)->count(),
+            'temporary' => (clone $statsQuery)->where('membership_type', MembershipType::Temporary)->count(),
+            'male' => (clone $statsQuery)->where('gender', 'male')->count(),
+            'female' => (clone $statsQuery)->where('gender', 'female')->count(),
+        ];
+
         $members = $query->paginate(15)->withQueryString();
 
         return view('church.members.index', [
             'members' => $members,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'membership_type', 'branch_id']),
             'branches' => $this->branchAccessService->selectableBranches($user),
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
@@ -90,8 +106,9 @@ class MemberController extends Controller
 
         $churchMembers = Member::forChurch($church->id)
             ->activeMembers()
+            ->with(['spouseMember:id,full_name,member_number', 'spouseOf:id,full_name,member_number,spouse_member_id'])
             ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email']);
+            ->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email', 'spouse_member_id']);
 
         return view('church.members.create', [
             'churchMembers' => $churchMembers,
@@ -179,7 +196,7 @@ class MemberController extends Controller
 
     public function show(Member $member): View
     {
-        $member->load(['dependants', 'spouseMember', 'spouseOf', 'user', 'archivedBy']);
+        $member->load(['dependants', 'spouseMember', 'spouseOf', 'familyMember', 'secondaryFamilyMember', 'user', 'archivedBy']);
 
         return view('church.members.show', [
             'member' => $member,
@@ -198,8 +215,9 @@ class MemberController extends Controller
         $churchMembers = Member::forChurch($church->id)
             ->activeMembers()
             ->whereKeyNot($member->id)
+            ->with(['spouseMember:id,full_name,member_number', 'spouseOf:id,full_name,member_number,spouse_member_id'])
             ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email']);
+            ->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email', 'spouse_member_id']);
 
         return view('church.members.edit', [
             'member' => $member,

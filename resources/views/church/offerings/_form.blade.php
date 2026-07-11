@@ -43,19 +43,35 @@
     </div>
 
     <div class="col-md-6" id="memberSelectionGroup" @if($defaultContribution !== 'member') style="display:none;" @endif>
-        <div class="form-group">
+        @php
+            $selectedMember = $members->firstWhere('id', (int) old('member_id', $offering?->member_id));
+            $membersForSearch = $members
+                ->sortBy(fn ($m) => sprintf('%s-%s', $m->envelope_number ? '0' : '1', $m->envelope_number ?? ''))
+                ->values()
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'name' => $m->full_name,
+                    'envelope' => $m->envelope_number,
+                ]);
+        @endphp
+        <div class="form-group position-relative">
             <label>{{ __('common.member') }} *</label>
-            <select name="member_id" id="member_id" class="form-control @error('member_id') is-invalid @enderror"
+            <input type="hidden" name="member_id" id="member_id"
+                value="{{ old('member_id', $offering?->member_id) }}"
                 @disabled($defaultContribution !== 'member')>
-                <option value="">{{ __('pages.shared.select_member_dash') }}</option>
-                @foreach($members as $member)
-                    <option value="{{ $member->id }}" @selected(old('member_id', $offering?->member_id) == $member->id)>
-                        {{ $member->full_name }}@if($member->envelope_number) ({{ $member->envelope_number }})@endif
-                    </option>
-                @endforeach
-            </select>
-            @error('member_id')<small class="text-danger">{{ $message }}</small>@enderror
+            <input type="text"
+                id="member_envelope_search"
+                class="form-control @error('member_id') is-invalid @enderror"
+                autocomplete="off"
+                placeholder="{{ __('pages.offerings.search_envelope') }}"
+                value="{{ $selectedMember ? trim(($selectedMember->envelope_number ? $selectedMember->envelope_number.' — ' : '').$selectedMember->full_name) : '' }}"
+                @disabled($defaultContribution !== 'member')>
+            <div id="member_envelope_results" class="list-group position-absolute w-100 shadow-sm"
+                style="display:none; z-index: 20; max-height: 260px; overflow-y: auto;"></div>
+            <small class="text-muted">{{ __('pages.offerings.search_envelope_hint') }}</small>
+            @error('member_id')<small class="text-danger d-block">{{ $message }}</small>@enderror
         </div>
+        <script type="application/json" id="offeringMembersData">@json($membersForSearch)</script>
     </div>
 
     <div class="col-md-6" id="serviceSelectionGroup" @if($defaultContribution !== 'general') style="display:none;" @endif>
@@ -87,12 +103,35 @@
     <div class="col-md-3">
         <div class="form-group">
             <label>{{ __('pages.offerings.form_offering_type') }} *</label>
+            @php
+                $customOfferingTypes = $customOfferingTypes ?? [];
+                $selectedType = old('offering_type');
+                if ($selectedType === null) {
+                    $selectedType = $offering?->offering_type?->value ?? 'general';
+                    if (
+                        $selectedType === \App\Enums\OfferingType::Other->value
+                        && $offering?->offering_type_other
+                        && in_array($offering->offering_type_other, $customOfferingTypes, true)
+                    ) {
+                        $selectedType = 'custom:'.$offering->offering_type_other;
+                    }
+                }
+            @endphp
             <select name="offering_type" id="offering_type" class="form-control @error('offering_type') is-invalid @enderror" required>
                 @foreach($offeringTypes as $type)
-                    <option value="{{ $type->value }}" @selected(old('offering_type', $offering?->offering_type?->value ?? 'general') === $type->value)>
+                    @continue($type === \App\Enums\OfferingType::Other)
+                    <option value="{{ $type->value }}" @selected($selectedType === $type->value)>
                         {{ $type->label() }}
                     </option>
                 @endforeach
+                @foreach($customOfferingTypes as $customType)
+                    <option value="custom:{{ $customType }}" @selected($selectedType === 'custom:'.$customType)>
+                        {{ $customType }}
+                    </option>
+                @endforeach
+                <option value="other" @selected($selectedType === 'other')>
+                    {{ \App\Enums\OfferingType::Other->label() }}
+                </option>
             </select>
             @error('offering_type')<small class="text-danger">{{ $message }}</small>@enderror
         </div>

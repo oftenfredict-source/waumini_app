@@ -47,6 +47,20 @@
     $spousePhoneLocal = $normalizePhoneLocal((string) $d('spouse_phone_number', ''));
     $spouseTribe = $resolveTribeSelection($d('spouse_tribe'), $d('spouse_other_tribe'));
     $baptizedChecked = filter_var($d('is_baptized'), FILTER_VALIDATE_BOOLEAN);
+    $kipaimaraChecked = filter_var($d('is_kipaimara'), FILTER_VALIDATE_BOOLEAN);
+    $settingsChurch = $church
+        ?? ($member?->church ?? null)
+        ?? auth()->user()?->church;
+    $kipaimaraRegistrationEnabled = (bool) ($kipaimaraRegistrationEnabled
+        ?? ($settingsChurch
+            ? app(\App\Services\Church\ChurchSettingsService::class)->get($settingsChurch, 'kipaimara_registration_enabled', false)
+            : false));
+    $showKipaimaraFields = $kipaimaraRegistrationEnabled || ($isEdit && $kipaimaraChecked);
+    $childrenEducationEnabled = (bool) ($childrenEducationEnabled
+        ?? ($settingsChurch
+            ? app(\App\Services\Church\ChurchSettingsService::class)->get($settingsChurch, 'children_education_details_enabled', false)
+            : false));
+    $childEducationLevels = $childEducationLevels ?? \App\Enums\ChildEducationLevel::cases();
     $hasLinkedSpouse = $isEdit && isset($member) && $member->spouseMember;
     $wizardSteps = [
         __('register.steps.personal'),
@@ -243,6 +257,44 @@
                     </div>
                 </div>
             </div>
+
+            @if($showKipaimaraFields)
+            <h4 class="mt-3 mb-3">{{ __('members.fields.kipaimara_info') }}</h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="animated-checkbox mb-3">
+                        <label>
+                            <input type="checkbox" name="is_kipaimara" id="is_kipaimara" value="1" @checked($kipaimaraChecked)>
+                            <span class="label-text">{{ __('members.fields.is_kipaimara') }}</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-12" id="memberKipaimaraFields" style="display:{{ $kipaimaraChecked ? 'block' : 'none' }};">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ __('members.fields.kipaimara_date') }}</label>
+                                <input type="date" name="kipaimara_date" class="form-control" value="{{ $d('kipaimara_date') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ __('members.fields.kipaimara_place') }}</label>
+                                <input type="text" name="kipaimara_place" class="form-control" value="{{ $d('kipaimara_place') }}"
+                                       placeholder="{{ __('members.fields.kipaimara_place_placeholder') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ __('members.fields.kipaimara_by') }}</label>
+                                <input type="text" name="kipaimara_by" class="form-control" value="{{ $d('kipaimara_by') }}"
+                                       placeholder="{{ __('members.fields.kipaimara_by_placeholder') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- STEP 2 --}}
@@ -374,7 +426,7 @@
         {{-- STEP 4 --}}
         <div class="wizard-panel" data-step="4">
             <h3 class="tile-title">{{ $stepHeading(4, $wizardSteps[3]) }}</h3>
-            <div class="row">
+            <div id="maritalStatusSection" class="row">
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>{{ __('members.fields.marital_status') }} *</label>
@@ -385,6 +437,9 @@
                         </select>
                     </div>
                 </div>
+            </div>
+            <div id="independentMaritalNote" class="alert alert-light border mb-3" style="display:none;">
+                {{ __('members.fields.independent_single_note') }}
             </div>
 
             <div id="weddingSection" style="display:none;">
@@ -592,6 +647,90 @@
                 </div>
             @endif
 
+            <div id="independentFamilySection" style="display:none;">
+                <h4 class="mt-4 mb-3">{{ __('members.fields.family_guardian_title') }}</h4>
+                <p class="text-muted">{{ __('members.fields.family_guardian_hint') }}</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.family_parent_type') }} *</label>
+                            @php
+                                $defaultFamilyType = $d('family_parent_type');
+                                if ($defaultFamilyType === null || $defaultFamilyType === '') {
+                                    if ($isEdit && ! empty($member?->family_member_id)) {
+                                        $defaultFamilyType = 'member';
+                                    } elseif ($isEdit && ! empty($member?->guardian_full_name)) {
+                                        $defaultFamilyType = 'guardian';
+                                    } else {
+                                        $defaultFamilyType = 'member';
+                                    }
+                                }
+                            @endphp
+                            <select name="family_parent_type" id="family_parent_type" class="form-control">
+                                <option value="member" @selected($defaultFamilyType === 'member')>{{ __('members.fields.family_lives_with_member') }}</option>
+                                <option value="guardian" @selected($defaultFamilyType === 'guardian')>{{ __('members.fields.family_custom_guardian') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.guardian_relationship') }} *</label>
+                            <select name="guardian_relationship" id="guardian_relationship" class="form-control">
+                                <option value="">{{ __('pages.shared.select_relationship') }}</option>
+                                @foreach(['Father', 'Mother', 'Guardian', 'Uncle', 'Aunt', 'Grandparent', 'Brother', 'Sister', 'Other'] as $rel)
+                                    <option value="{{ $rel }}" @selected($d('guardian_relationship') === $rel)>{{ $rel }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">{{ __('members.fields.family_relationship_hint') }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="independentFamilyMemberSection" class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.family_member') }} *</label>
+                            <select name="family_member_id" id="family_member_id" class="form-control">
+                                <option value="">{{ __('members.options.select_member') }}</option>
+                                @foreach($churchMembers ?? [] as $cm)
+                                    @if(! $isEdit || (int) $cm->id !== (int) ($member->id ?? 0))
+                                        @php $spouse = $cm->resolvedSpouse(); @endphp
+                                        <option value="{{ $cm->id }}"
+                                            data-spouse-id="{{ $spouse?->id ?? '' }}"
+                                            data-spouse-name="{{ $spouse?->full_name ?? '' }}"
+                                            @selected((string) $d('family_member_id') === (string) $cm->id)>
+                                            {{ $cm->full_name }} ({{ $cm->member_number }})
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
+                            <small class="text-muted">{{ __('members.fields.family_member_hint') }}</small>
+                            <div id="secondaryFamilyMemberHint" class="alert alert-info py-2 mt-2 mb-0" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="independentGuardianSection" class="row" style="display:none;">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.guardian_full_name') }} *</label>
+                            <input type="text" name="guardian_full_name" id="guardian_full_name" class="form-control"
+                                value="{{ $d('guardian_full_name') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.guardian_phone') }}</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend"><span class="input-group-text">+255</span></div>
+                                <input type="text" name="guardian_phone" id="guardian_phone" class="form-control"
+                                    value="{{ $d('guardian_phone') }}" placeholder="7XXXXXXXX">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @if(! $isEdit)
             <h4 class="mt-4 mb-3">{{ __('members.fields.dependants_title') }}</h4>
             <p class="text-muted">{{ __('members.fields.dependants_hint') }}</p>
@@ -710,6 +849,98 @@
                     </div>
                 </div>
             </div>
+            @if($showKipaimaraFields)
+            <div class="col-md-12">
+                <div class="animated-checkbox mb-2">
+                    <label>
+                        <input type="checkbox" class="dependant-kipaimara" data-name="is_kipaimara" value="1">
+                        <span class="label-text">{{ __('members.fields.kipaimara_short') }}</span>
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-12 dependant-kipaimara-fields" style="display:none;">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.kipaimara_date') }}</label>
+                            <input type="date" class="form-control dependant-kipaimara-date" data-name="kipaimara_date">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.kipaimara_place') }}</label>
+                            <input type="text" class="form-control dependant-kipaimara-place" data-name="kipaimara_place">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.kipaimara_by_short') }}</label>
+                            <input type="text" class="form-control dependant-kipaimara-by" data-name="kipaimara_by"
+                                   placeholder="{{ __('members.fields.kipaimara_by_placeholder') }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+            @if($childrenEducationEnabled)
+            <div class="col-md-12">
+                <div class="animated-checkbox mb-2">
+                    <label>
+                        <input type="checkbox" class="dependant-is-student" data-name="is_student" value="1">
+                        <span class="label-text">{{ __('members.fields.is_student') }}</span>
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-12 dependant-education-fields" style="display:none;">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.student_education_level') }} *</label>
+                            <select class="form-control dependant-education-level" data-name="education_level">
+                                <option value="">{{ __('members.options.select') }}</option>
+                                @foreach($childEducationLevels as $level)
+                                    <option value="{{ $level->value }}">{{ $level->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.school_name') }} *</label>
+                            <input type="text" class="form-control dependant-school-name" data-name="school_name">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.school_region') }} *</label>
+                            <select class="form-control dependant-school-region" data-name="school_region">
+                                <option value="">{{ __('members.locations.select_region') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.school_district') }} *</label>
+                            <select class="form-control dependant-school-district" data-name="school_district" disabled>
+                                <option value="">{{ __('members.locations.select_region_first') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.school_ward') }} <small class="text-muted">({{ __('members.fields.school_ward_optional') }})</small></label>
+                            <input type="text" class="form-control dependant-school-ward" data-name="school_ward">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{{ __('members.fields.school_street') }} <small class="text-muted">({{ __('members.fields.school_ward_optional') }})</small></label>
+                            <input type="text" class="form-control dependant-school-street" data-name="school_street">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </template>

@@ -59,7 +59,9 @@
                                 @endif
                             </td>
                             <td>{{ $department->head?->full_name ?? '—' }}</td>
-                            <td>{{ $department->members_count }}</td>
+                            <td>
+                                <strong>{{ ($department->members_count ?? 0) + ($department->dependants_count ?? 0) }}</strong>
+                            </td>
                             <td>
                                 <span class="badge badge-{{ $department->status->value === 'active' ? 'success' : 'secondary' }}">
                                     {{ ucfirst($department->status->value) }}

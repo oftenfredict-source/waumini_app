@@ -67,6 +67,11 @@ class AttendanceService
         ];
     }
 
+    public function canRecordAttendance(ChurchService|SpecialEvent $source, ?\Carbon\CarbonInterface $now = null): bool
+    {
+        return $source->canRecordAttendance($now);
+    }
+
     public function sync(
         Church $church,
         string $sourceType,
@@ -78,6 +83,16 @@ class AttendanceService
         ?User $recorder = null,
     ): array {
         $source = $this->resolveSource($church, $sourceType, $sourceId);
+
+        if (! $this->canRecordAttendance($source)) {
+            $opensAt = $source->attendanceOpensAt();
+            $when = $opensAt?->format('M d, Y H:i') ?? 'the scheduled start';
+
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'source_id' => [__('pages.attendance.not_yet_open', ['when' => $when])],
+            ]);
+        }
+
         $enumType = AttendanceSourceType::from($sourceType);
 
         return DB::transaction(function () use ($church, $source, $enumType, $sourceType, $sourceId, $memberIds, $dependantIds, $guestsCount, $notes, $recorder) {
@@ -166,4 +181,193 @@ class AttendanceService
 
         return $summary['total_count'];
     }
+
+    /**
+     * Services (and events) that already have attendance recorded.
+     *
+     * @return array{
+     *     start: \Illuminate\Support\Carbon,
+     *     end: \Illuminate\Support\Carbon,
+     *     totals: array{services: int, member_marks: int, child_marks: int, guests: int, average_members: float},
+     *     sunday_totals: array{services: int, member_marks: int, guests: int, average_members: float, active_members: int, avg_rate: float},
+     *     services: \Illuminate\Support\Collection<int, array<string, mixed>>,
+     *     missing_members: \Illuminate\Support\Collection<int, array<string, mixed>>,
+     *     recent_sundays: \Illuminate\Support\Collection<int, ChurchService>
+     * }
+     */
+    public function statistics(Church $church, ?\Illuminate\Support\Carbon $start = null, ?\Illuminate\Support\Carbon $end = null): array
+    {
+        $end = ($end ?? now())->copy()->endOfDay();
+        $start = ($start ?? now()->subMonths(3))->copy()->startOfDay();
+
+        $services = ChurchService::forChurch($church->id)
+            ->where('status', '!=', \App\Enums\ChurchServiceStatus::Cancelled->value)
+            ->whereBetween('service_date', [$start->toDateString(), $end->toDateString()])
+            ->orderByDesc('service_date')
+            ->orderByDesc('id')
+            ->get();
+
+        $serviceRows = collect();
+        $memberMarks = 0;
+        $childMarks = 0;
+        $guestsTotal = 0;
+        $recordedServices = 0;
+
+        $sundayMemberMarks = 0;
+        $sundayGuests = 0;
+        $sundayRecorded = 0;
+
+        $activeMembersCount = Member::forChurch($church->id)->activeMembers()->count();
+
+        foreach ($services as $service) {
+            $summary = $this->summary($church, AttendanceSourceType::ChurchService->value, $service->id);
+            $hasAttendance = $summary['total_count'] > 0;
+
+            if (! $hasAttendance) {
+                continue;
+            }
+
+            $recordedServices++;
+            $memberMarks += $summary['members_count'];
+            $childMarks += $summary['children_count'];
+            $guestsTotal += $summary['guests_count'];
+
+            $isSunday = $service->service_type === \App\Enums\ChurchServiceType::Sunday;
+            if ($isSunday) {
+                $sundayRecorded++;
+                $sundayMemberMarks += $summary['members_count'];
+                $sundayGuests += $summary['guests_count'];
+            }
+
+            $rate = $activeMembersCount > 0
+                ? round(($summary['members_count'] / $activeMembersCount) * 100, 1)
+                : 0.0;
+
+            $serviceRows->push([
+                'id' => $service->id,
+                'date' => $service->service_date,
+                'title' => $service->displayTitle(),
+                'type' => $service->service_type->label(),
+                'is_sunday' => $isSunday,
+                'members_count' => $summary['members_count'],
+                'children_count' => $summary['children_count'],
+                'guests_count' => $summary['guests_count'],
+                'total_count' => $summary['total_count'],
+                'attendance_rate' => $rate,
+            ]);
+        }
+
+        $recentSundays = $this->recordedSundayServices($church)->take(3)->values();
+        $missingMembers = $this->membersMissingRecentSundays($church, $recentSundays);
+
+        return [
+            'start' => $start,
+            'end' => $end,
+            'totals' => [
+                'services' => $recordedServices,
+                'member_marks' => $memberMarks,
+                'child_marks' => $childMarks,
+                'guests' => $guestsTotal,
+                'average_members' => $recordedServices > 0
+                    ? round($memberMarks / $recordedServices, 1)
+                    : 0.0,
+            ],
+            'sunday_totals' => [
+                'services' => $sundayRecorded,
+                'member_marks' => $sundayMemberMarks,
+                'guests' => $sundayGuests,
+                'average_members' => $sundayRecorded > 0
+                    ? round($sundayMemberMarks / $sundayRecorded, 1)
+                    : 0.0,
+                'active_members' => $activeMembersCount,
+                'avg_rate' => ($sundayRecorded > 0 && $activeMembersCount > 0)
+                    ? round(($sundayMemberMarks / $sundayRecorded / $activeMembersCount) * 100, 1)
+                    : 0.0,
+            ],
+            'services' => $serviceRows,
+            'missing_members' => $missingMembers,
+            'recent_sundays' => $recentSundays,
+        ];
+    }
+
+    /**
+     * @return Collection<int, ChurchService>
+     */
+    public function recordedSundayServices(Church $church, int $limit = 12): Collection
+    {
+        $sourceType = AttendanceSourceType::ChurchService->value;
+
+        return ChurchService::forChurch($church->id)
+            ->where('service_type', \App\Enums\ChurchServiceType::Sunday->value)
+            ->where('status', '!=', \App\Enums\ChurchServiceStatus::Cancelled->value)
+            ->whereDate('service_date', '<=', now()->toDateString())
+            ->where(function ($query) use ($sourceType) {
+                $query->where('guests_count', '>', 0)
+                    ->orWhereExists(function ($sub) use ($sourceType) {
+                        $sub->selectRaw('1')
+                            ->from('attendance_records')
+                            ->whereColumn('attendance_records.source_id', 'church_services.id')
+                            ->where('attendance_records.source_type', $sourceType);
+                    });
+            })
+            ->orderByDesc('service_date')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @param  Collection<int, ChurchService>  $sundays
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function membersMissingRecentSundays(Church $church, Collection $sundays): Collection
+    {
+        if ($sundays->isEmpty()) {
+            return collect();
+        }
+
+        $serviceIds = $sundays->pluck('id')->all();
+        $attended = AttendanceRecord::forChurch($church->id)
+            ->membersOnly()
+            ->where('source_type', AttendanceSourceType::ChurchService->value)
+            ->whereIn('source_id', $serviceIds)
+            ->get(['member_id', 'source_id'])
+            ->groupBy('member_id');
+
+        return Member::forChurch($church->id)
+            ->activeMembers()
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'envelope_number', 'phone_number'])
+            ->map(function (Member $member) use ($sundays, $attended) {
+                $presentIds = $attended->get($member->id)?->pluck('source_id')->all() ?? [];
+                $missed = $sundays->filter(fn (ChurchService $service) => ! in_array($service->id, $presentIds, true));
+                $consecutive = 0;
+
+                foreach ($sundays as $service) {
+                    if (in_array($service->id, $presentIds, true)) {
+                        break;
+                    }
+                    $consecutive++;
+                }
+
+                if ($consecutive === 0) {
+                    return null;
+                }
+
+                return [
+                    'id' => $member->id,
+                    'full_name' => $member->full_name,
+                    'envelope_number' => $member->envelope_number,
+                    'phone_number' => $member->phone_number,
+                    'missed_count' => $missed->count(),
+                    'consecutive_misses' => $consecutive,
+                ];
+            })
+            ->filter()
+            ->sortByDesc('consecutive_misses')
+            ->values();
+    }
 }
+

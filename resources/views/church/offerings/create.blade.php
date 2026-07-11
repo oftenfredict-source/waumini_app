@@ -22,6 +22,7 @@
             'services' => $services,
             'paymentMethods' => $paymentMethods,
             'offeringTypes' => $offeringTypes,
+            'customOfferingTypes' => $customOfferingTypes ?? [],
             'contributionTypes' => $contributionTypes,
         ])
         <div class="tile-footer mt-3">

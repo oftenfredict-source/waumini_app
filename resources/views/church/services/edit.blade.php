@@ -73,14 +73,9 @@
                     @error('theme')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>{{ __('pages.services.preacher_speaker') }}</label>
-                    <input type="text" name="preacher" class="form-control @error('preacher') is-invalid @enderror"
-                        value="{{ old('preacher', $service->preacher) }}" placeholder="{{ __('pages.services.preacher_placeholder') }}">
-                    @error('preacher')<small class="text-danger">{{ $message }}</small>@enderror
-                </div>
-            </div>
+
+            @include('church.services._people-fields', ['service' => $service])
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>{{ __('common.venue') }}</label>
@@ -142,4 +137,5 @@
         }
     })();
 </script>
+@include('church.services._people-scripts')
 @endpush

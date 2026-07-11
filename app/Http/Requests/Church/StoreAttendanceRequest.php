@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Church;
 
 use App\Enums\AttendanceSourceType;
+use App\Services\Church\AttendanceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -59,6 +60,25 @@ class StoreAttendanceRequest extends FormRequest
 
             if (empty($memberIds) && empty($dependantIds) && $guests === 0) {
                 $validator->errors()->add('member_ids', 'Select at least one member, child, or guest.');
+            }
+
+            $sourceType = $this->input('source_type');
+            $sourceId = (int) $this->input('source_id');
+            $church = $this->user()?->church;
+
+            if (! $church || ! $sourceType || ! $sourceId || $validator->errors()->has('source_id')) {
+                return;
+            }
+
+            try {
+                $source = app(AttendanceService::class)->resolveSource($church, $sourceType, $sourceId);
+            } catch (\Throwable) {
+                return;
+            }
+
+            if (! $source->canRecordAttendance()) {
+                $when = $source->attendanceOpensAt()?->format('M d, Y H:i') ?? 'the scheduled start';
+                $validator->errors()->add('source_id', __('pages.attendance.not_yet_open', ['when' => $when]));
             }
         });
     }

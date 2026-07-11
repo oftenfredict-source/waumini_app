@@ -38,6 +38,7 @@
                     </td>
                 </tr>
                 <tr><th>{{ __('pages.shared.members') }}</th><td>{{ $department->members->count() }}</td></tr>
+                <tr><th>{{ __('pages.shared.children') }}</th><td>{{ $department->dependants->count() }}</td></tr>
                 <tr><th>{{ __('common.description') }}</th><td>{{ $department->description ?? '—' }}</td></tr>
                 <tr><th>{{ __('common.created') }}</th><td>{{ $department->created_at->format('M d, Y H:i') }}</td></tr>
             </table>
@@ -143,6 +144,59 @@
                 </div>
             @else
                 <p class="text-muted mb-0">{{ __('pages.departments.no_members_assigned') }}</p>
+            @endif
+        </div>
+
+        <div class="tile mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="tile-title mb-0"><i class="fa fa-child"></i> Children in this department</h3>
+                <span class="badge badge-info">{{ $department->dependants->count() }}</span>
+            </div>
+
+            @if($department->dependants->isNotEmpty())
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Child</th>
+                                <th>Age</th>
+                                <th>Parent / Guardian</th>
+                                <th class="text-right">{{ __('common.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($department->dependants->sortBy('full_name') as $dependant)
+                                <tr>
+                                    <td>{{ $dependant->full_name }}</td>
+                                    <td>{{ $dependant->age() ?? '—' }}</td>
+                                    <td>
+                                        @if($dependant->member)
+                                            <a href="{{ route('church.members.show', $dependant->member) }}">{{ $dependant->member->full_name }}</a>
+                                        @else
+                                            {{ $dependant->guardian_full_name ?? '—' }}
+                                        @endif
+                                    </td>
+                                    <td class="text-right">
+                                        @can('update', $department)
+                                            <form method="POST" action="{{ route('church.departments.dependants.remove', [$department, $dependant]) }}" class="d-inline"
+                                                data-swal-confirm="Remove {{ $dependant->full_name }} from {{ $department->name }}?"
+                                                data-swal-delete
+                                                data-swal-confirm-text="{{ __('pages.shared.yes_remove') }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove child">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-muted mb-0">No children assigned yet. Age rules (e.g. 0–12) sync children from the Children list.</p>
             @endif
         </div>
     </div>

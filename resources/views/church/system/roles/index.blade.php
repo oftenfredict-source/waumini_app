@@ -213,8 +213,10 @@
     <ul class="nav nav-tabs role-tabs" role="tablist">
         @foreach($roles as $index => $role)
             @php
-                $roleLabel = config('church.roles.'.$role->name, ucfirst($role->name));
-                $assignedCount = $role->permissions->count();
+                $roleLabel = $role->label ?? config('church.roles.'.$role->name, ucfirst($role->name));
+                $assignedCount = isset($role->permission_names)
+                    ? count($role->permission_names)
+                    : $role->permissions->count();
             @endphp
             <li class="nav-item">
                 <a class="nav-link @if($index === 0) active @endif"
@@ -232,8 +234,9 @@
     <div class="tab-content p-4">
         @foreach($roles as $index => $role)
             @php
-                $roleLabel = config('church.roles.'.$role->name, ucfirst($role->name));
-                $rolePermissionNames = $role->permissions->pluck('name')->all();
+                $roleLabel = $role->label ?? config('church.roles.'.$role->name, ucfirst($role->name));
+                $rolePermissionNames = $role->permission_names
+                    ?? $role->permissions->pluck('name')->all();
             @endphp
             <div class="tab-pane fade @if($index === 0) show active @endif"
                  id="role-panel-{{ $role->name }}"

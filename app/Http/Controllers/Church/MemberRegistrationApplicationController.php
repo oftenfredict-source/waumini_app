@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Church;
 
+use App\Enums\MemberRegistrationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\ApproveMemberRegistrationRequest;
 use App\Http\Requests\Church\RejectMemberRegistrationRequest;
@@ -40,9 +41,12 @@ class MemberRegistrationApplicationController extends Controller
             $request->integer('branch_id') ?: null,
         );
 
-        if ($status = $request->string('status')->trim()->toString()) {
-            $query->where('status', $status);
+        // This page is for approvals: show pending by default so approved ones leave the list.
+        $status = $request->string('status')->trim()->toString();
+        if ($status === '') {
+            $status = MemberRegistrationStatus::Pending->value;
         }
+        $query->where('status', $status);
 
         if ($search = $request->string('search')->trim()->toString()) {
             $query->where(function ($q) use ($search) {
@@ -54,13 +58,13 @@ class MemberRegistrationApplicationController extends Controller
 
         return view('church.member-registrations.index', [
             'applications' => $query->paginate(15)->withQueryString(),
-            'filters' => $request->only(['search', 'status', 'branch_id']),
-            'statuses' => \App\Enums\MemberRegistrationStatus::cases(),
+            'filters' => array_merge($request->only(['search', 'branch_id']), ['status' => $status]),
+            'statuses' => MemberRegistrationStatus::cases(),
             'branches' => $this->branchAccessService->selectableBranches($user),
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
                 && $this->branchAccessService->managesAllBranches($user),
             'pendingCount' => MemberRegistrationApplication::forChurch($church->id)
-                ->where('status', 'pending')
+                ->where('status', MemberRegistrationStatus::Pending)
                 ->count(),
             'registrationUrl' => $this->churchContextService->registrationUrl($church),
             'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church),
@@ -75,11 +79,21 @@ class MemberRegistrationApplicationController extends Controller
         $data = $registration->registration_data ?? [];
         $needsSpouseEnvelope = MemberRegistrationApplicationService::needsSpouseEnvelope($data);
 
+        $matchingDependant = null;
+        $matchingMember = null;
+
+        if ($registration->isPending()) {
+            $matchingMember = $this->memberService->findMatchingMember($registration->church, $data);
+            $matchingDependant = $this->memberService->findMatchingUnconvertedDependant($registration->church, $data);
+        }
+
         return view('church.member-registrations.show', [
             'application' => $registration,
             'registrationData' => $data,
             'dependants' => $registration->dependants_data ?? [],
             'needsSpouseEnvelope' => $needsSpouseEnvelope,
+            'matchingDependant' => $matchingDependant,
+            'matchingMember' => $matchingMember,
         ]);
     }
 
@@ -96,8 +110,13 @@ class MemberRegistrationApplicationController extends Controller
             ? 'Registration approved. Member and spouse accounts were created successfully.'
             : 'Registration approved. Member account created successfully.';
 
+        if ($linked = $this->memberService->linkedExistingDependant()) {
+            $parentName = $linked->guardianDisplayName();
+            $message = "Registration approved. Linked to the existing child record under {$parentName} — no duplicate person was created.";
+        }
+
         $redirect = redirect()
-            ->route('church.member-registrations.show', $registration)
+            ->route('church.member-registrations.index')
             ->with('success', $message);
 
         if ($request->user()->canManageMemberPasswords()) {
@@ -116,7 +135,7 @@ class MemberRegistrationApplicationController extends Controller
         );
 
         return redirect()
-            ->route('church.member-registrations.show', $registration)
+            ->route('church.member-registrations.index')
             ->with('success', 'Registration application rejected.');
     }
 

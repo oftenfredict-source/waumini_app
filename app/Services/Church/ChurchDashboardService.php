@@ -74,7 +74,9 @@ class ChurchDashboardService
         return [
             'currency' => $church->currency ?? 'TZS',
             'role_label' => $user->churchRoleLabel(),
-            'is_pastor' => $user->user_type === UserType::Pastor,
+            'is_pastor' => in_array($user->user_type, [UserType::Pastor, UserType::AssistantPastor], true),
+            'is_assistant_pastor' => $user->user_type === UserType::AssistantPastor,
+            'is_elder' => $user->user_type === UserType::Elder,
             'is_secretary' => $user->user_type === UserType::Secretary,
             'is_treasurer' => $user->user_type === UserType::Treasurer,
             'is_accountant' => $user->user_type === UserType::Accountant,

@@ -45,7 +45,8 @@
                     </td>
                 </tr>
                 <tr><th>{{ __('pages.shared.theme') }}</th><td>{{ $service->theme ?? '—' }}</td></tr>
-                <tr><th>{{ __('pages.services.preacher_speaker') }}</th><td>{{ $service->preacher ?? '—' }}</td></tr>
+                <tr><th>{{ __('pages.services.preacher_speaker') }}</th><td>{{ $service->preacherDisplay() }}</td></tr>
+                <tr><th>{{ __('pages.services.coordinator') }}</th><td>{{ $service->coordinatorDisplay() }}</td></tr>
                 <tr><th>{{ __('common.venue') }}</th><td>{{ $service->venue ?? '—' }}</td></tr>
                 <tr>
                     <th>{{ __('common.status') }}</th>
@@ -71,6 +72,24 @@
                 <a href="{{ route('church.services.edit', $service) }}" class="btn btn-primary btn-block mt-2">
                     <i class="fa fa-pencil"></i> {{ __('pages.shared.edit_item', ['item' => __('pages.services.item')]) }}
                 </a>
+            @endcan
+            @can('create', \App\Models\AttendanceRecord::class)
+                @if($service->canRecordAttendance())
+                    <a href="{{ route('church.attendance.create', [
+                            'source_type' => \App\Enums\AttendanceSourceType::ChurchService->value,
+                            'source_id' => $service->id,
+                        ]) }}"
+                        class="btn btn-success btn-block mt-2">
+                        <i class="fa fa-check-square-o"></i> {{ __('pages.attendance.record_attendance') }}
+                    </a>
+                @else
+                    <button type="button" class="btn btn-secondary btn-block mt-2" disabled
+                        title="{{ __('pages.attendance.not_yet_open', [
+                            'when' => $service->attendanceOpensAt()?->format('M d, Y H:i') ?? __('pages.attendance.scheduled_start'),
+                        ]) }}">
+                        <i class="fa fa-clock-o"></i> {{ __('pages.attendance.record_attendance') }}
+                    </button>
+                @endif
             @endcan
             @can('delete', $service)
                 <form method="POST" action="{{ route('church.services.destroy', $service) }}" class="mt-2"

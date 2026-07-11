@@ -51,6 +51,22 @@
 
 @include('partials.sweetalert-flash')
 
+@if(!empty($matchingMember))
+    <div class="alert alert-danger">
+        {{ __('pages.member_registrations.already_member_warning', [
+            'member_number' => $matchingMember->member_number,
+            'name' => $matchingMember->full_name,
+        ]) }}
+    </div>
+@elseif(!empty($matchingDependant))
+    <div class="alert alert-info">
+        {{ __('pages.member_registrations.existing_child_notice', [
+            'parent' => $matchingDependant->guardianDisplayName(),
+            'child' => $matchingDependant->full_name,
+        ]) }}
+    </div>
+@endif
+
 <div class="row">
     <div class="col-lg-8">
         <div class="tile mb-3">
@@ -105,6 +121,23 @@
                             </td>
                         </tr>
                     @endif
+                    @if(!empty($registrationData['is_kipaimara']))
+                        <tr>
+                            <th>{{ __('pages.member_registrations.kipaimara') }}</th>
+                            <td>
+                                {{ __('common.yes') }}
+                                @if(!empty($registrationData['kipaimara_date']))
+                                    — {{ $registrationData['kipaimara_date'] }}
+                                @endif
+                                @if(!empty($registrationData['kipaimara_place']))
+                                    ({{ $registrationData['kipaimara_place'] }})
+                                @endif
+                                @if(!empty($registrationData['kipaimara_by']))
+                                    — {{ __('members.fields.kipaimara_by_short') }}: {{ $registrationData['kipaimara_by'] }}
+                                @endif
+                            </td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
 
@@ -121,9 +154,16 @@
 
     <div class="col-lg-4">
         @can('review', $application)
+            @if(empty($matchingMember))
             <div class="tile mb-3">
                 <h5><i class="fa fa-check"></i> {{ __('pages.member_registrations.approve_title') }}</h5>
-                <p class="text-muted small">{{ __('pages.member_registrations.approve_help') }}</p>
+                <p class="text-muted small">
+                    @if(!empty($matchingDependant))
+                        {{ __('pages.member_registrations.approve_help_link_child') }}
+                    @else
+                        {{ __('pages.member_registrations.approve_help') }}
+                    @endif
+                </p>
                 <form method="POST" action="{{ route('church.member-registrations.approve', $application) }}" id="approveRegistrationForm">
                     @csrf
                     <div class="form-group">
@@ -144,6 +184,7 @@
                     </button>
                 </form>
             </div>
+            @endif
 
             <div class="tile">
                 <h5><i class="fa fa-times"></i> {{ __('pages.member_registrations.reject_title') }}</h5>

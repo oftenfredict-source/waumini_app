@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Church\System;
 
 use App\Enums\ChurchStaffRole;
+use App\Services\Church\ChurchRolePermissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RolePermissionController extends SystemController
 {
-    public function __construct()
-    {
+    public function __construct(
+        private readonly ChurchRolePermissionService $rolePermissions,
+    ) {
         $this->middleware(function ($request, $next) {
             abort_unless($request->user()?->can('system.roles'), 403);
 
@@ -22,22 +23,32 @@ class RolePermissionController extends SystemController
 
     public function index(): View
     {
-        $churchRoles = collect(ChurchStaffRole::cases())
-            ->map(fn (ChurchStaffRole $role) => Role::query()
-                ->where('name', $role->value)
-                ->with('permissions')
-                ->first())
-            ->filter();
+        $church = $this->church();
+        $this->rolePermissions->ensureDefaults($church);
+
+        $roles = collect(ChurchStaffRole::configurableCases())->map(function (ChurchStaffRole $staffRole) use ($church) {
+            $permissionNames = $this->rolePermissions->permissionNamesFor($church, $staffRole);
+
+            return (object) [
+                'name' => $staffRole->value,
+                'label' => config('church.roles.'.$staffRole->value, $staffRole->label()),
+                'permissions' => $permissionNames->map(fn (string $name) => (object) ['name' => $name]),
+                'permission_names' => $permissionNames->all(),
+            ];
+        });
+
+        $assignable = $this->rolePermissions->assignablePermissionNames();
 
         $permissions = Permission::query()
             ->where('guard_name', 'web')
+            ->whereIn('name', $assignable)
             ->orderBy('name')
             ->get()
             ->groupBy(fn (Permission $permission) => explode('.', $permission->name)[0] ?? 'general');
 
         return view('church.system.roles.index', [
-            'church' => $this->church(),
-            'roles' => $churchRoles,
+            'church' => $church,
+            'roles' => $roles,
             'permissions' => $permissions,
         ]);
     }
@@ -45,27 +56,23 @@ class RolePermissionController extends SystemController
     public function update(Request $request): RedirectResponse
     {
         $roleName = $request->string('role')->toString();
-        $allowedRoles = array_map(fn (ChurchStaffRole $role) => $role->value, ChurchStaffRole::cases());
+        $allowedRoles = array_map(fn (ChurchStaffRole $role) => $role->value, ChurchStaffRole::configurableCases());
 
         if (! in_array($roleName, $allowedRoles, true)) {
             abort(422, 'Invalid role selected.');
         }
 
-        $permissionNames = Permission::query()
-            ->where('guard_name', 'web')
-            ->pluck('name')
-            ->all();
+        $allowedPermissions = $this->rolePermissions->assignablePermissionNames();
 
         $selected = collect($request->input('permissions', []))
-            ->filter(fn ($name) => in_array($name, $permissionNames, true))
+            ->filter(fn ($name) => in_array($name, $allowedPermissions, true))
             ->values()
             ->all();
 
-        $role = Role::where('name', $roleName)->firstOrFail();
-        $role->syncPermissions($selected);
+        $this->rolePermissions->sync($this->church(), $roleName, $selected);
 
-        $roleLabel = config('church.roles.'.$roleName, ucfirst($roleName));
+        $roleLabel = config('church.roles.'.$roleName, ucfirst(str_replace('_', ' ', $roleName)));
 
-        return back()->with('success', 'Permissions updated for '.$roleLabel.'.');
+        return back()->with('success', __('pages.system_roles.updated', ['role' => $roleLabel]));
     }
 }

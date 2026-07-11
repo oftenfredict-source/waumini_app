@@ -5,6 +5,8 @@ namespace App\Http\Requests\Church;
 use App\Enums\FinancePaymentMethod;
 use App\Enums\OfferingContributionType;
 use App\Enums\OfferingType;
+use App\Models\ChurchService;
+use App\Services\Church\ChurchSettingsService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +18,13 @@ abstract class OfferingRequest extends FormRequest
     protected function offeringRules(): array
     {
         $churchId = $this->user()->church_id;
+        $customTypes = app(ChurchSettingsService::class)
+            ->customOfferingTypes($this->user()->church);
+
+        $allowedTypes = array_merge(
+            array_map(fn (OfferingType $type) => $type->value, OfferingType::cases()),
+            array_map(fn (string $label) => 'custom:'.$label, $customTypes),
+        );
 
         return [
             'contribution_type' => ['required', Rule::enum(OfferingContributionType::class)],
@@ -33,7 +42,7 @@ abstract class OfferingRequest extends FormRequest
             ],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'offering_date' => ['required', 'date', 'before_or_equal:today'],
-            'offering_type' => ['required', Rule::enum(OfferingType::class)],
+            'offering_type' => ['required', 'string', Rule::in($allowedTypes)],
             'offering_type_other' => ['nullable', 'required_if:offering_type,other', 'string', 'max:100'],
             'payment_method' => ['required', Rule::enum(FinancePaymentMethod::class)],
             'reference_number' => [
@@ -44,6 +53,39 @@ abstract class OfferingRequest extends FormRequest
             ],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->input('contribution_type') !== OfferingContributionType::General->value) {
+                return;
+            }
+
+            $serviceId = (int) $this->input('church_service_id');
+            if (! $serviceId || $validator->errors()->has('church_service_id')) {
+                return;
+            }
+
+            $service = ChurchService::query()
+                ->forChurch($this->user()->church_id)
+                ->whereKey($serviceId)
+                ->first();
+
+            if (! $service) {
+                return;
+            }
+
+            if (! $service->canRecordAttendance()) {
+                $when = $service->attendanceOpensAt()?->format('M d, Y H:i')
+                    ?? __('pages.attendance.scheduled_start');
+
+                $validator->errors()->add(
+                    'church_service_id',
+                    __('pages.offerings.service_not_yet_open', ['when' => $when])
+                );
+            }
+        });
     }
 
     /**

@@ -125,6 +125,35 @@ class ChurchSmsService
         $this->sendForChurch($church, $member->phone_number, $message, 'leader_appointment');
     }
 
+    /**
+     * @param  \Illuminate\Support\Collection<int, \App\Models\ChurchService>  $missedSundays
+     * @return array{ok: bool, reason?: string}
+     */
+    public function sendMissedSundayReminder(Church $church, Member $member, int $missCount, $missedSundays): array
+    {
+        if (! $this->churchSmsEnabled($church) || empty($member->phone_number)) {
+            return ['ok' => false, 'reason' => 'sms_disabled_or_no_phone'];
+        }
+
+        if (! (bool) $this->churchSettings->get($church, 'missed_attendance_sms', true)) {
+            return ['ok' => false, 'reason' => 'setting_disabled'];
+        }
+
+        $dates = $missedSundays
+            ->map(fn ($service) => $service->service_date?->format('d/m/Y'))
+            ->filter()
+            ->implode(', ');
+
+        $message = $this->templates->render($church, 'missed_sunday_services', [
+            '{{name}}' => $member->full_name,
+            '{{church_name}}' => $church->name,
+            '{{miss_count}}' => (string) $missCount,
+            '{{dates}}' => $dates,
+        ]);
+
+        return $this->sendForChurch($church, $member->phone_number, $message, 'missed_sunday_services');
+    }
+
     public function sendMemberCredentials(Church $church, Member $member, string $password): void
     {
         if (! $this->churchSmsEnabled($church) || empty($member->phone_number)) {
@@ -135,12 +164,18 @@ class ChurchSmsService
             return;
         }
 
+        $loginUrl = 'www.wauminilink.co.tz';
         $message = $this->templates->render($church, 'member_credentials', [
             '{{name}}' => $member->full_name,
             '{{church_name}}' => $church->name,
             '{{member_id}}' => $member->member_number,
             '{{password}}' => $password,
+            '{{login_url}}' => $loginUrl,
         ]);
+
+        if (! str_contains(strtolower($message), 'wauminilink.co.tz')) {
+            $message .= "\nIngia: {$loginUrl}";
+        }
 
         $this->sendForChurch($church, $member->phone_number, $message, 'member_credentials');
     }

@@ -22,7 +22,9 @@ class StoreDepartmentRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('departments', 'name')->where(fn ($q) => $q->where('church_id', $churchId)),
+                Rule::unique('departments', 'name')->where(
+                    fn ($q) => $q->where('church_id', $churchId)->whereNull('deleted_at')
+                ),
             ],
             'description' => ['nullable', 'string', 'max:2000'],
             'head_id' => [

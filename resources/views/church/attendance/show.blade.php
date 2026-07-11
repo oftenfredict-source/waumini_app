@@ -53,6 +53,7 @@
                 <table class="table table-bordered table-sm">
                     <thead>
                         <tr>
+                            <th>{{ __('pages.shared.envelope') }}</th>
                             <th>{{ __('common.name') }}</th>
                             <th>{{ __('common.type') }}</th>
                             <th>{{ __('pages.shared.recorded_at') }}</th>
@@ -61,6 +62,13 @@
                     <tbody>
                         @forelse($summary['records'] as $record)
                             <tr>
+                                <td>
+                                    @if($record->member?->envelope_number)
+                                        <strong>{{ $record->member->envelope_number }}</strong>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td>{{ $record->attendeeName() }}</td>
                                 <td>
                                     @if($record->member_id)
@@ -77,7 +85,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center text-muted py-3">{{ __('pages.attendance.no_records') }}</td>
+                                <td colspan="4" class="text-center text-muted py-3">{{ __('pages.attendance.no_records') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -95,10 +103,19 @@
                 <i class="fa fa-arrow-left"></i> {{ __('pages.attendance.back_to') }}
             </a>
             @can('create', \App\Models\AttendanceRecord::class)
-                <a href="{{ route('church.attendance.create', ['source_type' => $sourceType->value, 'source_id' => $sourceId]) }}"
-                    class="btn btn-primary btn-block mt-2">
-                    <i class="fa fa-pencil"></i> {{ __('pages.attendance.edit_attendance') }}
-                </a>
+                @if($canRecordAttendance)
+                    <a href="{{ route('church.attendance.create', ['source_type' => $sourceType->value, 'source_id' => $sourceId]) }}"
+                        class="btn btn-primary btn-block mt-2">
+                        <i class="fa fa-pencil"></i> {{ __('pages.attendance.edit_attendance') }}
+                    </a>
+                @else
+                    <button type="button" class="btn btn-secondary btn-block mt-2" disabled>
+                        <i class="fa fa-clock-o"></i>
+                        {{ __('pages.attendance.not_yet_open', [
+                            'when' => $attendanceOpensAt?->format('M d, Y H:i') ?? __('pages.attendance.scheduled_start'),
+                        ]) }}
+                    </button>
+                @endif
             @endcan
         </div>
     </div>

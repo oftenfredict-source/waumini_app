@@ -72,11 +72,21 @@
 </div>
 
 @if($selectedSource)
+    @if(! $canRecordAttendance)
+        <div class="alert alert-warning">
+            <i class="fa fa-clock-o"></i>
+            {{ __('pages.attendance.not_yet_open', [
+                'when' => $attendanceOpensAt?->format('M d, Y H:i') ?? __('pages.attendance.scheduled_start'),
+            ]) }}
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('church.attendance.store') }}">
         @csrf
         <input type="hidden" name="source_type" value="{{ $selectedSourceType }}">
         <input type="hidden" name="source_id" value="{{ $selectedSourceId }}">
 
+        <fieldset @disabled(! $canRecordAttendance)>
         @if($attendanceMode === 'sunday_school')
             <div class="alert alert-success">
                 <i class="fa fa-child"></i>
@@ -121,15 +131,23 @@
                     <div class="tile">
                         <h3 class="tile-title">{{ __('pages.attendance.members_heading', ['count' => $members->count()]) }}</h3>
                         <div class="mb-2">
-                            <input type="text" id="memberSearch" class="form-control form-control-sm" placeholder="{{ __('pages.attendance.search_members') }}">
+                            <input type="text" id="memberSearch" class="form-control form-control-sm" placeholder="{{ __('pages.attendance.search_members_envelope') }}">
                         </div>
                         <div class="attendance-list member-list" style="max-height: 420px; overflow-y: auto;">
                             @forelse($members as $member)
-                                <label class="d-block attendance-item mb-2" data-name="{{ strtolower($member->full_name) }}">
+                                <label class="d-block attendance-item mb-2"
+                                    data-name="{{ strtolower($member->full_name) }}"
+                                    data-envelope="{{ strtolower($member->envelope_number ?? '') }}"
+                                    data-search="{{ strtolower(trim(($member->envelope_number ?? '').' '.$member->full_name.' '.($member->member_number ?? ''))) }}">
                                     <input type="checkbox" name="member_ids[]" value="{{ $member->id }}"
                                         @checked(in_array($member->id, old('member_ids', $attendedMemberIds)))>
+                                    @if($member->envelope_number)
+                                        <strong class="text-primary">{{ $member->envelope_number }}</strong>
+                                        —
+                                    @else
+                                        <span class="badge badge-secondary">{{ __('pages.attendance.no_envelope') }}</span>
+                                    @endif
                                     {{ $member->full_name }}
-                                    <small class="text-muted">({{ $member->member_number }})</small>
                                 </label>
                             @empty
                                 <p class="text-muted">{{ __('pages.attendance.no_active_members') }}</p>
@@ -216,9 +234,12 @@
                 </div>
             @endif
         </div>
+        </fieldset>
 
         <div class="tile-footer mt-3">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.attendance.save_attendance') }}</button>
+            <button type="submit" class="btn btn-primary" @disabled(! $canRecordAttendance)>
+                <i class="fa fa-save"></i> {{ __('pages.attendance.save_attendance') }}
+            </button>
             <a href="{{ route('church.attendance.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
         </div>
     </form>
@@ -256,9 +277,10 @@
             var input = document.getElementById(inputId);
             if (!input) return;
             input.addEventListener('input', function () {
-                var term = input.value.toLowerCase();
+                var term = input.value.toLowerCase().trim();
                 document.querySelectorAll('.' + listClass + ' .attendance-item').forEach(function (item) {
-                    item.style.display = item.dataset.name.indexOf(term) !== -1 ? 'block' : 'none';
+                    var haystack = item.dataset.search || item.dataset.envelope || item.dataset.name || '';
+                    item.style.display = !term || haystack.indexOf(term) !== -1 ? 'block' : 'none';
                 });
             });
         }

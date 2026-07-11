@@ -8,6 +8,8 @@ enum UserType: string
     case Staff = 'staff';
     case ChurchAdmin = 'church_admin';
     case Pastor = 'pastor';
+    case AssistantPastor = 'assistant_pastor';
+    case Elder = 'elder';
     case Secretary = 'secretary';
     case Treasurer = 'treasurer';
     case Accountant = 'accountant';
@@ -18,6 +20,8 @@ enum UserType: string
         return [
             self::ChurchAdmin,
             self::Pastor,
+            self::AssistantPastor,
+            self::Elder,
             self::Secretary,
             self::Treasurer,
             self::Accountant,

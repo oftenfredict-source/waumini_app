@@ -36,6 +36,9 @@ class UpdateMemberRequest extends FormRequest
         $spouseUsesManual = $isMarried && (! $spouseIsMember || $this->input('spouse_input_method') === 'manual');
         $hasLinkedSpouse = (bool) $member->spouse_member_id;
         $canSetSpouse = $isMarried && ! $hasLinkedSpouse;
+        $isIndependent = $isPermanent && $this->input('member_type') === MemberType::Independent->value;
+        $familyUsesMember = $isIndependent && $this->input('family_parent_type') === 'member';
+        $familyUsesGuardian = $isIndependent && $this->input('family_parent_type') === 'guardian';
 
         return [
             'envelope_number' => [
@@ -67,6 +70,10 @@ class UpdateMemberRequest extends FormRequest
             'baptism_date' => ['nullable', 'date', 'before_or_equal:today'],
             'baptism_place' => ['nullable', 'string', 'max:255'],
             'baptized_by' => ['nullable', 'string', 'max:255'],
+            'is_kipaimara' => ['nullable', 'boolean'],
+            'kipaimara_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'kipaimara_place' => ['nullable', 'string', 'max:255'],
+            'kipaimara_by' => ['nullable', 'string', 'max:255'],
             'profile_picture' => ['nullable', 'image', 'max:2048'],
             'phone_number' => ['required', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -119,6 +126,31 @@ class UpdateMemberRequest extends FormRequest
                     $canSetSpouse && $spouseUsesManual,
                     Rule::unique('members', 'envelope_number')->where(fn ($q) => $q->where('church_id', $churchId))
                 ),
+            ],
+            'family_parent_type' => [
+                Rule::requiredIf($isIndependent),
+                'nullable',
+                Rule::in(['member', 'guardian']),
+            ],
+            'family_member_id' => [
+                Rule::requiredIf($familyUsesMember),
+                'nullable',
+                'integer',
+                Rule::notIn([$member->id]),
+                Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId)),
+            ],
+            'guardian_full_name' => [
+                Rule::requiredIf($familyUsesGuardian),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'guardian_phone' => ['nullable', 'string', 'max:30'],
+            'guardian_relationship' => [
+                Rule::requiredIf($isIndependent),
+                'nullable',
+                'string',
+                'max:50',
             ],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

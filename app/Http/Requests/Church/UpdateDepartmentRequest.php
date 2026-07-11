@@ -29,7 +29,7 @@ class UpdateDepartmentRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('departments', 'name')
-                    ->where(fn ($q) => $q->where('church_id', $churchId))
+                    ->where(fn ($q) => $q->where('church_id', $churchId)->whereNull('deleted_at'))
                     ->ignore($department->id),
             ],
             'description' => ['nullable', 'string', 'max:2000'],

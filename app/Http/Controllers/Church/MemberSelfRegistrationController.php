@@ -9,6 +9,7 @@ use App\Enums\MembershipType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreMemberSelfRegistrationRequest;
 use App\Models\ChurchBranch;
+use App\Models\Member;
 use App\Services\Church\ChurchContextService;
 use App\Services\Church\MemberRegistrationApplicationService;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,12 @@ class MemberSelfRegistrationController extends Controller
             ? $church->branches()->orderBy('name')->get()
             : collect();
 
+        $churchMembers = Member::forChurch($church->id)
+            ->where('status', 'active')
+            ->with(['spouseMember:id,full_name,member_number', 'spouseOf:id,full_name,member_number,spouse_member_id'])
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email', 'spouse_member_id']);
+
         return view('church.auth.register', [
             'church' => $church,
             'branches' => $branches,
@@ -47,6 +54,7 @@ class MemberSelfRegistrationController extends Controller
             'dependantRelationships' => \App\Enums\DependantRelationship::cases(),
             'tribes' => config('tanzania.tribes'),
             'durationUnits' => \App\Enums\TemporaryDurationUnit::cases(),
+            'churchMembers' => $churchMembers,
         ]);
     }
 

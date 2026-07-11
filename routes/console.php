@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('members:process-aged-out-children')->daily();
+Schedule::command('attendance:notify-missed-sundays')->dailyAt('08:00');

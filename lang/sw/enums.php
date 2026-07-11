@@ -87,9 +87,21 @@ return [
         'prayer' => 'Ibada ya Maombi',
         'extra' => 'Ibada ya Ziada',
     ],
+    'service_preacher_type' => [
+        'pastor' => 'Mchungaji',
+        'leader' => 'Kiongozi',
+        'member' => 'Mwanachama',
+        'guest' => 'Mgeni Maalum',
+    ],
+    'service_coordinator_type' => [
+        'member' => 'Mwanachama',
+        'guest' => 'Mgeni Maalum',
+    ],
     'church_staff_role' => [
         'administrator' => 'Msimamizi',
         'pastor' => 'Mchungaji',
+        'assistant_pastor' => 'Mchungaji Msaidizi',
+        'elder' => 'Mzee wa Kanisa',
         'secretary' => 'Katibu',
         'treasurer' => 'Mhazini',
         'accountant' => 'Mhasibu',
@@ -121,6 +133,13 @@ return [
         'masters' => 'Shahada ya Uzamili',
         'phd' => 'PhD',
         'professor' => 'Profesa',
+    ],
+    'child_education_level' => [
+        'nursery' => 'Chekechea',
+        'primary' => 'Msingi',
+        'secondary' => 'Sekondari',
+        'advance' => 'Advanced',
+        'university' => 'Chuo Kikuu',
     ],
     'expense_category' => [
         'utilities' => 'Huduma za Msingi',

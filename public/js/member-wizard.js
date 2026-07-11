@@ -138,11 +138,12 @@
         var residenceDistrictEl = document.getElementById('residence_district');
         var locationsUrl = window.memberWizardConfig && window.memberWizardConfig.locationsUrl;
 
-        if (!regionEl || !districtEl || !locationsUrl) return;
+        window.tanzaniaRegions = window.tanzaniaRegions || [];
 
         function populateRegions(selectEl, selected) {
+            if (!selectEl) return;
             selectEl.innerHTML = '<option value="">' + wizardI18n('locations.select_region', 'Select region') + '</option>';
-            regions.forEach(function (region) {
+            (window.tanzaniaRegions || []).forEach(function (region) {
                 var option = document.createElement('option');
                 option.value = region.name;
                 option.textContent = region.name;
@@ -152,10 +153,15 @@
         }
 
         function populateDistricts(regionName, districtSelect, selectedDistrict) {
-            var region = regions.find(function (item) { return item.name === regionName; });
+            if (!districtSelect) return;
+            var region = (window.tanzaniaRegions || []).find(function (item) { return item.name === regionName; });
             var districts = region ? region.districts : [];
 
-            districtSelect.innerHTML = '<option value="">' + wizardI18n('locations.select_district', 'Select district') + '</option>';
+            districtSelect.innerHTML = '<option value="">' + (
+                regionName
+                    ? wizardI18n('locations.select_district', 'Select district')
+                    : wizardI18n('locations.select_region_first', 'Select region first')
+            ) + '</option>';
             districts.forEach(function (district) {
                 var option = document.createElement('option');
                 option.value = district.name;
@@ -167,36 +173,67 @@
             districtSelect.disabled = !regionName;
         }
 
-        var savedRegion = regionEl.getAttribute('data-selected') || '';
-        var savedDistrict = districtEl.getAttribute('data-selected') || '';
-        var savedResidenceRegion = residenceRegionEl ? residenceRegionEl.getAttribute('data-selected') || '' : '';
-        var savedResidenceDistrict = residenceDistrictEl ? residenceDistrictEl.getAttribute('data-selected') || '' : '';
-        var regions = [];
+        window.populateTanzaniaRegions = populateRegions;
+        window.populateTanzaniaDistricts = populateDistricts;
+
+        window.bindDependantSchoolLocation = function (row) {
+            var schoolRegion = row.querySelector('.dependant-school-region');
+            var schoolDistrict = row.querySelector('.dependant-school-district');
+            if (!schoolRegion || !schoolDistrict) return;
+
+            var selectedRegion = schoolRegion.getAttribute('data-selected') || schoolRegion.value || '';
+            var selectedDistrict = schoolDistrict.getAttribute('data-selected') || schoolDistrict.value || '';
+
+            populateRegions(schoolRegion, selectedRegion);
+            populateDistricts(selectedRegion, schoolDistrict, selectedDistrict);
+
+            if (!schoolRegion.dataset.boundLocation) {
+                schoolRegion.addEventListener('change', function () {
+                    populateDistricts(this.value, schoolDistrict, '');
+                });
+                schoolRegion.dataset.boundLocation = '1';
+            }
+        };
+
+        if (!locationsUrl) return;
 
         fetch(locationsUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (response) { return response.json(); })
             .then(function (data) {
-                regions = data.regions || [];
-                populateRegions(regionEl, savedRegion);
-                if (residenceRegionEl) populateRegions(residenceRegionEl, savedResidenceRegion);
+                window.tanzaniaRegions = data.regions || [];
 
-                if (savedRegion) populateDistricts(savedRegion, districtEl, savedDistrict);
-                if (residenceRegionEl && savedResidenceRegion) {
-                    populateDistricts(savedResidenceRegion, residenceDistrictEl, savedResidenceDistrict);
+                if (regionEl && districtEl) {
+                    var savedRegion = regionEl.getAttribute('data-selected') || '';
+                    var savedDistrict = districtEl.getAttribute('data-selected') || '';
+                    populateRegions(regionEl, savedRegion);
+                    if (savedRegion) populateDistricts(savedRegion, districtEl, savedDistrict);
+                    regionEl.addEventListener('change', function () {
+                        populateDistricts(this.value, districtEl, '');
+                    });
                 }
 
-                regionEl.addEventListener('change', function () {
-                    populateDistricts(this.value, districtEl, '');
-                });
-
                 if (residenceRegionEl && residenceDistrictEl) {
+                    var savedResidenceRegion = residenceRegionEl.getAttribute('data-selected') || '';
+                    var savedResidenceDistrict = residenceDistrictEl.getAttribute('data-selected') || '';
+                    populateRegions(residenceRegionEl, savedResidenceRegion);
+                    if (savedResidenceRegion) {
+                        populateDistricts(savedResidenceRegion, residenceDistrictEl, savedResidenceDistrict);
+                    }
                     residenceRegionEl.addEventListener('change', function () {
                         populateDistricts(this.value, residenceDistrictEl, '');
                     });
                 }
+
+                document.querySelectorAll('#dependantsContainer .dependant-row').forEach(function (row) {
+                    if (typeof window.bindDependantSchoolLocation === 'function') {
+                        window.bindDependantSchoolLocation(row);
+                    }
+                });
             })
             .catch(function () {
-                regionEl.innerHTML = '<option value="">' + wizardI18n('locations.unable_load_regions', 'Unable to load regions') + '</option>';
+                if (regionEl) {
+                    regionEl.innerHTML = '<option value="">' + wizardI18n('locations.unable_load_regions', 'Unable to load regions') + '</option>';
+                }
                 if (residenceRegionEl) {
                     residenceRegionEl.innerHTML = '<option value="">' + wizardI18n('locations.unable_load_regions', 'Unable to load regions') + '</option>';
                 }
@@ -293,6 +330,10 @@
             [s('baptism_date', 'Baptism Date'), document.getElementById('is_baptized')?.checked ? getField('baptism_date') : ''],
             [s('baptism_place', 'Baptism Place'), document.getElementById('is_baptized')?.checked ? getField('baptism_place') : ''],
             [s('baptized_by', 'Baptized By'), document.getElementById('is_baptized')?.checked ? getField('baptized_by') : ''],
+            [s('kipaimara', 'Kipaimara'), document.getElementById('is_kipaimara') ? yesNo(document.getElementById('is_kipaimara')?.checked) : ''],
+            [s('kipaimara_date', 'Kipaimara Date'), document.getElementById('is_kipaimara')?.checked ? getField('kipaimara_date') : ''],
+            [s('kipaimara_place', 'Kipaimara Place'), document.getElementById('is_kipaimara')?.checked ? getField('kipaimara_place') : ''],
+            [s('kipaimara_by', 'Confirmed By (Bishop)'), document.getElementById('is_kipaimara')?.checked ? getField('kipaimara_by') : ''],
         ]);
         html += summaryBlock(s('contact_origin', 'Contact & Origin'), [
             [s('phone', 'Phone'), formatPhoneDisplay()],
@@ -343,6 +384,26 @@
                     rows.push([s('spouse_dob', 'Spouse DOB'), getField('spouse_date_of_birth')]);
                     rows.push([s('spouse_phone', 'Spouse Phone'), formatSpousePhoneDisplay()]);
                     rows.push([s('spouse_tribe', 'Spouse Tribe'), getTribeDisplay('spouse_tribe', 'spouse_other_tribe')]);
+                }
+            }
+            if (getField('member_type') === 'independent') {
+                rows = [
+                    [s('marital_status', 'Marital Status'), s('independent_single_note', 'Single (independent)')],
+                    [s('family_parent_type', 'Family / Guardian'), getSelectText('family_parent_type')],
+                    [s('guardian_relationship', 'Relationship'), getSelectText('guardian_relationship') || getField('guardian_relationship')],
+                ];
+                if (getField('family_parent_type') === 'member') {
+                    rows.push([s('family_member', 'Lives with member'), getSelectText('family_member_id')]);
+                    var familySelect = document.getElementById('family_member_id');
+                    var familyOption = familySelect ? familySelect.options[familySelect.selectedIndex] : null;
+                    var spouseName = familyOption ? (familyOption.getAttribute('data-spouse-name') || '') : '';
+                    if (spouseName) {
+                        rows.push([s('linked_spouse_parent', 'Also linked'), spouseName]);
+                    }
+                }
+                if (getField('family_parent_type') === 'guardian') {
+                    rows.push([s('guardian_full_name', 'Guardian'), getField('guardian_full_name')]);
+                    rows.push([s('guardian_phone', 'Guardian Phone'), getField('guardian_phone')]);
                 }
             }
             if (window.memberWizardConfig && window.memberWizardConfig.isEdit) {
@@ -402,6 +463,94 @@
         if (durationUnit) durationUnit.required = temporary;
 
         toggleGenderField();
+        toggleIndependentFamilySection();
+    }
+
+    function toggleIndependentFamilySection() {
+        var section = document.getElementById('independentFamilySection');
+        var maritalSection = document.getElementById('maritalStatusSection');
+        var independentNote = document.getElementById('independentMaritalNote');
+        var maritalStatus = document.getElementById('marital_status');
+        var show = getField('membership_type') === 'permanent' && getField('member_type') === 'independent';
+
+        if (section) section.style.display = show ? 'block' : 'none';
+        if (maritalSection) maritalSection.style.display = show ? 'none' : 'flex';
+        if (independentNote) independentNote.style.display = show ? 'block' : 'none';
+
+        if (show && maritalStatus) {
+            maritalStatus.value = 'single';
+            maritalStatus.removeAttribute('required');
+            toggleSpouseSection();
+        } else if (maritalStatus) {
+            maritalStatus.required = true;
+        }
+
+        toggleIndependentFamilyFields();
+    }
+
+    function toggleIndependentFamilyFields() {
+        var section = document.getElementById('independentFamilySection');
+        var memberSection = document.getElementById('independentFamilyMemberSection');
+        var guardianSection = document.getElementById('independentGuardianSection');
+        var familyType = document.getElementById('family_parent_type');
+        var familyMember = document.getElementById('family_member_id');
+        var guardianName = document.getElementById('guardian_full_name');
+        var relationship = document.getElementById('guardian_relationship');
+        var secondaryHint = document.getElementById('secondaryFamilyMemberHint');
+
+        if (!section || section.style.display === 'none') {
+            if (familyType) familyType.removeAttribute('required');
+            if (familyMember) familyMember.removeAttribute('required');
+            if (guardianName) guardianName.removeAttribute('required');
+            if (relationship) relationship.removeAttribute('required');
+            if (secondaryHint) secondaryHint.style.display = 'none';
+            return;
+        }
+
+        var type = getField('family_parent_type') || 'member';
+        if (familyType) familyType.required = true;
+        if (relationship) relationship.required = true;
+        if (memberSection) memberSection.style.display = type === 'member' ? 'flex' : 'none';
+        if (guardianSection) guardianSection.style.display = type === 'guardian' ? 'flex' : 'none';
+
+        if (familyMember) {
+            if (type === 'member') {
+                familyMember.required = true;
+                updateSecondaryFamilyHint();
+            } else {
+                familyMember.removeAttribute('required');
+                familyMember.value = '';
+                if (secondaryHint) secondaryHint.style.display = 'none';
+            }
+        }
+
+        if (guardianName) {
+            if (type === 'guardian') guardianName.required = true;
+            else {
+                guardianName.removeAttribute('required');
+                guardianName.value = '';
+                var phone = document.getElementById('guardian_phone');
+                if (phone) phone.value = '';
+            }
+        }
+    }
+
+    function updateSecondaryFamilyHint() {
+        var select = document.getElementById('family_member_id');
+        var hint = document.getElementById('secondaryFamilyMemberHint');
+        if (!select || !hint) return;
+
+        var option = select.options[select.selectedIndex];
+        var spouseName = option ? (option.getAttribute('data-spouse-name') || '') : '';
+        if (spouseName) {
+            hint.style.display = 'block';
+            hint.textContent = (window.memberWizardConfig && window.memberWizardConfig.labels && window.memberWizardConfig.labels.secondary_family_hint)
+                ? window.memberWizardConfig.labels.secondary_family_hint.replace(':name', spouseName)
+                : ('Also linking spouse/parent: ' + spouseName);
+        } else {
+            hint.style.display = 'none';
+            hint.textContent = '';
+        }
     }
 
     function toggleGenderField() {
@@ -446,10 +595,42 @@
         }
     }
 
+    function toggleMemberKipaimaraFields() {
+        var kipaimaraCheckbox = document.getElementById('is_kipaimara');
+        var wrap = document.getElementById('memberKipaimaraFields');
+        if (!kipaimaraCheckbox) {
+            return;
+        }
+
+        var checked = kipaimaraCheckbox.checked;
+        if (wrap) {
+            wrap.style.display = checked ? 'block' : 'none';
+        }
+
+        if (!checked) {
+            ['kipaimara_date', 'kipaimara_place', 'kipaimara_by'].forEach(function (name) {
+                var el = form.querySelector('[name="' + name + '"]');
+                if (el) {
+                    el.value = '';
+                }
+            });
+        }
+    }
+
     function prepareFormForSubmit() {
         var baptizedCheckbox = document.getElementById('is_baptized');
         if (baptizedCheckbox && !baptizedCheckbox.checked) {
             ['baptism_date', 'baptism_place', 'baptized_by'].forEach(function (name) {
+                var el = form.querySelector('[name="' + name + '"]');
+                if (el) {
+                    el.value = '';
+                }
+            });
+        }
+
+        var kipaimaraCheckbox = document.getElementById('is_kipaimara');
+        if (kipaimaraCheckbox && !kipaimaraCheckbox.checked) {
+            ['kipaimara_date', 'kipaimara_place', 'kipaimara_by'].forEach(function (name) {
                 var el = form.querySelector('[name="' + name + '"]');
                 if (el) {
                     el.value = '';
@@ -659,8 +840,13 @@
         addDependantBtn.addEventListener('click', function () {
             var template = document.getElementById('dependantTemplate');
             var clone = template.content.cloneNode(true);
-            document.getElementById('dependantsContainer').appendChild(clone);
+            var container = document.getElementById('dependantsContainer');
+            container.appendChild(clone);
             syncDependantNames();
+            var newRow = container.querySelector('.dependant-row:last-child');
+            if (newRow && typeof window.bindDependantSchoolLocation === 'function') {
+                window.bindDependantSchoolLocation(newRow);
+            }
             dependantIndex++;
         });
     }
@@ -682,6 +868,39 @@
                     fields.style.display = e.target.checked ? 'block' : 'none';
                 }
             }
+            if (e.target.classList.contains('dependant-kipaimara')) {
+                var kipaimaraRow = e.target.closest('.dependant-row');
+                var kipaimaraFields = kipaimaraRow ? kipaimaraRow.querySelector('.dependant-kipaimara-fields') : null;
+                if (kipaimaraFields) {
+                    kipaimaraFields.style.display = e.target.checked ? 'block' : 'none';
+                }
+            }
+            if (e.target.classList.contains('dependant-is-student')) {
+                var studentRow = e.target.closest('.dependant-row');
+                var educationFields = studentRow ? studentRow.querySelector('.dependant-education-fields') : null;
+                if (educationFields) {
+                    educationFields.style.display = e.target.checked ? 'block' : 'none';
+                }
+                if (!e.target.checked && studentRow) {
+                    var level = studentRow.querySelector('.dependant-education-level');
+                    var schoolName = studentRow.querySelector('.dependant-school-name');
+                    var ward = studentRow.querySelector('.dependant-school-ward');
+                    var street = studentRow.querySelector('.dependant-school-street');
+                    var schoolRegion = studentRow.querySelector('.dependant-school-region');
+                    var schoolDistrict = studentRow.querySelector('.dependant-school-district');
+                    if (level) level.value = '';
+                    if (schoolName) schoolName.value = '';
+                    if (ward) ward.value = '';
+                    if (street) street.value = '';
+                    if (schoolRegion) schoolRegion.value = '';
+                    if (schoolDistrict) {
+                        schoolDistrict.innerHTML = '<option value="">' + wizardI18n('locations.select_region_first', 'Select region first') + '</option>';
+                        schoolDistrict.disabled = true;
+                    }
+                } else if (studentRow && typeof window.bindDependantSchoolLocation === 'function') {
+                    window.bindDependantSchoolLocation(studentRow);
+                }
+            }
         });
     }
 
@@ -689,6 +908,12 @@
     if (memberBaptized) {
         memberBaptized.addEventListener('change', toggleMemberBaptismFields);
         toggleMemberBaptismFields();
+    }
+
+    var memberKipaimara = document.getElementById('is_kipaimara');
+    if (memberKipaimara) {
+        memberKipaimara.addEventListener('change', toggleMemberKipaimaraFields);
+        toggleMemberKipaimaraFields();
     }
 
     form.setAttribute('novalidate', 'novalidate');
@@ -738,7 +963,18 @@
     if (membershipType) membershipType.addEventListener('change', toggleMemberType);
 
     var memberType = document.getElementById('member_type');
-    if (memberType) memberType.addEventListener('change', suggestSpouseGender);
+    if (memberType) {
+        memberType.addEventListener('change', function () {
+            suggestSpouseGender();
+            toggleIndependentFamilySection();
+        });
+    }
+
+    var familyParentType = document.getElementById('family_parent_type');
+    if (familyParentType) familyParentType.addEventListener('change', toggleIndependentFamilyFields);
+
+    var familyMemberSelect = document.getElementById('family_member_id');
+    if (familyMemberSelect) familyMemberSelect.addEventListener('change', updateSecondaryFamilyHint);
 
     var envelopeNumber = document.getElementById('envelope_number');
     if (envelopeNumber) envelopeNumber.addEventListener('blur', checkEnvelope);

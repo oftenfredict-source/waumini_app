@@ -45,6 +45,10 @@ class Member extends Model
         'baptism_date',
         'baptism_place',
         'baptized_by',
+        'is_kipaimara',
+        'kipaimara_date',
+        'kipaimara_place',
+        'kipaimara_by',
         'profile_picture',
         'region',
         'district',
@@ -77,6 +81,11 @@ class Member extends Model
         'spouse_church_member',
         'spouse_member_id',
         'spouse_envelope_number',
+        'family_member_id',
+        'secondary_family_member_id',
+        'guardian_full_name',
+        'guardian_phone',
+        'guardian_relationship',
         'membership_date',
         'membership_expires_at',
         'status',
@@ -105,6 +114,8 @@ class Member extends Model
             'archived_at' => 'datetime',
             'is_baptized' => 'boolean',
             'baptism_date' => 'date',
+            'is_kipaimara' => 'boolean',
+            'kipaimara_date' => 'date',
         ];
     }
 
@@ -156,6 +167,21 @@ class Member extends Model
     public function spouseMember(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'spouse_member_id');
+    }
+
+    public function familyMember(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'family_member_id');
+    }
+
+    public function secondaryFamilyMember(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'secondary_family_member_id');
+    }
+
+    public function householdIndependents(): HasMany
+    {
+        return $this->hasMany(Member::class, 'family_member_id');
     }
 
     public function spouseOf(): HasOne
@@ -213,7 +239,7 @@ class Member extends Model
     public function departments(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Department::class, 'department_member')
-            ->withPivot('role')
+            ->withPivot(['role', 'auto_assigned'])
             ->withTimestamps();
     }
 

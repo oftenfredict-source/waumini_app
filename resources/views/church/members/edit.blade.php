@@ -38,6 +38,9 @@
         checkEnvelopeUrl: @json(route('church.members.check-envelope')),
         locationsUrl: @json(asset('data/tanzania-locations.json')),
         csrfToken: @json(csrf_token()),
+        labels: {
+            secondary_family_hint: @json(__('members.fields.secondary_family_hint')),
+        },
     };
 </script>
 @include('partials.member-wizard-script')

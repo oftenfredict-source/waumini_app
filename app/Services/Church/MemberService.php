@@ -21,10 +21,13 @@ use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class MemberService
 {
     private bool $spouseMemberCreated = false;
+
+    private ?MemberDependant $linkedExistingDependant = null;
 
     /** @var array<int, array{name: string, member_id: string, password: string}> */
     private array $registeredAccounts = [];
@@ -32,14 +35,21 @@ class MemberService
     public function __construct(
         private readonly ChurchSmsService $churchSmsService,
         private readonly CelebrationService $celebrationService,
+        private readonly DepartmentAssignmentService $departmentAssignmentService,
     ) {}
 
     public function create(Church $church, array $data, ?UploadedFile $profilePicture = null, array $dependants = []): Member
     {
         $this->spouseMemberCreated = false;
+        $this->linkedExistingDependant = null;
         $this->registeredAccounts = [];
 
         return DB::transaction(function () use ($church, $data, $profilePicture, $dependants) {
+            $this->assertNotAlreadyRegisteredMember($church, $data);
+
+            $matchingDependant = $this->findMatchingUnconvertedDependant($church, $data);
+            $data = $this->applyExistingDependantFamilyLink($data, $matchingDependant);
+
             $spouseInputMethod = $data['spouse_input_method'] ?? null;
             $selectedSpouseMemberId = $data['spouse_member_id'] ?? null;
 
@@ -83,11 +93,19 @@ class MemberService
 
             $data['spouse_phone_number'] = $this->normalizePhoneNumber($data['spouse_phone_number'] ?? null);
             $data = $this->normalizeBaptismFields($data);
+            $kipaimaraEnabled = app(ChurchSettingsService::class)->get($church, 'kipaimara_registration_enabled', false);
+            $data = $this->normalizeKipaimaraFields($data, (bool) $kipaimaraEnabled, forceClear: ! $kipaimaraEnabled);
+            $data = $this->normalizeFamilyLink($data);
 
-            unset($data['spouse_input_method'], $data['dependants']);
+            unset($data['spouse_input_method'], $data['dependants'], $data['family_parent_type']);
 
             $member = Member::create($data);
             $this->createMemberUserAccount($church, $member);
+
+            if ($matchingDependant) {
+                $this->linkDependantToMember($matchingDependant, $member);
+                $this->linkedExistingDependant = $matchingDependant->fresh(['member']);
+            }
 
             $spouseMember = $this->provisionSpouseMember(
                 $church,
@@ -105,24 +123,16 @@ class MemberService
             }
 
             foreach ($dependants as $dependant) {
-                if (empty($dependant['full_name'])) {
-                    continue;
-                }
-
-                MemberDependant::create([
-                    'church_id' => $church->id,
-                    'member_id' => $member->id,
-                    'full_name' => $dependant['full_name'],
-                    'gender' => $dependant['gender'],
-                    'date_of_birth' => $dependant['date_of_birth'] ?? null,
-                    ...$this->normalizeDependantBaptismFields($dependant),
-                    'relationship' => $dependant['relationship'],
-                    'relationship_note' => $dependant['relationship_note'] ?? null,
-                    'linked_member_id' => $dependant['linked_member_id'] ?? null,
-                ]);
+                $this->createDependantForMember($church, $member, $dependant);
             }
 
             $this->celebrationService->syncMember($member);
+
+            $this->departmentAssignmentService->assignIfApplicable($church, $member);
+
+            if ($this->spouseMemberCreated && $spouseMember) {
+                $this->departmentAssignmentService->assignIfApplicable($church, $spouseMember->fresh());
+            }
 
             return $member->fresh(['dependants', 'spouseMember', 'user']);
         });
@@ -137,7 +147,7 @@ class MemberService
             $selectedSpouseMemberId = $data['spouse_member_id'] ?? null;
             $hadLinkedSpouse = $member->spouse_member_id !== null;
 
-            unset($data['member_number'], $data['church_id'], $data['spouse_input_method'], $data['dependants']);
+            unset($data['member_number'], $data['church_id'], $data['spouse_input_method'], $data['dependants'], $data['family_parent_type']);
 
             $church = $member->church;
 
@@ -173,6 +183,10 @@ class MemberService
 
             $data['phone_number'] = $this->normalizePhoneNumber($data['phone_number'] ?? null);
             $data = $this->normalizeBaptismFields($data);
+            $kipaimaraEnabled = (bool) app(ChurchSettingsService::class)->get($church, 'kipaimara_registration_enabled', false);
+            $kipaimaraVisible = $kipaimaraEnabled || (bool) $member->is_kipaimara;
+            $data = $this->normalizeKipaimaraFields($data, $kipaimaraVisible, forceClear: false);
+            $data = $this->normalizeFamilyLink($data);
 
             if (array_key_exists('branch_id', $data)) {
                 $data['branch_id'] = $this->resolveBranchId($church, $data['branch_id'] ?? $member->branch_id);
@@ -216,12 +230,27 @@ class MemberService
 
     public function addChild(Church $church, array $data, ?Member $parent = null): MemberDependant
     {
+        $existingDependant = $this->findMatchingUnconvertedDependant($church, $data);
+
+        if ($existingDependant) {
+            if ($parent && (int) $existingDependant->member_id === (int) $parent->id) {
+                throw ValidationException::withMessages([
+                    'full_name' => 'This child is already registered under this parent.',
+                ]);
+            }
+
+            throw ValidationException::withMessages([
+                'full_name' => 'This child is already registered under '.$existingDependant->guardianDisplayName().'. One person cannot be registered twice.',
+            ]);
+        }
+
+        $existingMember = $this->findMatchingMember($church, $data);
         $guardianPhone = $data['guardian_phone'] ?? null;
         if ($guardianPhone) {
             $guardianPhone = $this->normalizePhoneNumber($guardianPhone) ?: $guardianPhone;
         }
 
-        return MemberDependant::create([
+        $child = MemberDependant::create([
             'church_id' => $church->id,
             'member_id' => $parent?->id,
             'guardian_full_name' => $parent ? null : ($data['guardian_full_name'] ?? null),
@@ -232,7 +261,18 @@ class MemberService
             'date_of_birth' => $data['date_of_birth'] ?? null,
             'relationship' => DependantRelationship::Child,
             'relationship_note' => $data['relationship_note'] ?? null,
+            'linked_member_id' => $existingMember?->id,
+            ...$this->normalizeDependantEducationFields(
+                $data,
+                (bool) app(ChurchSettingsService::class)->get($church, 'children_education_details_enabled', false)
+            ),
         ]);
+
+        if (! $existingMember) {
+            $this->departmentAssignmentService->assignDependantIfApplicable($church, $child);
+        }
+
+        return $child;
     }
 
     public function updateDependant(MemberDependant $dependant, array $data): MemberDependant
@@ -241,13 +281,34 @@ class MemberService
             throw new \RuntimeException('This dependant is already an independent member. Edit them from the member profile.');
         }
 
+        $church = $dependant->church ?? $dependant->member?->church;
+        $allowKipaimara = (bool) $dependant->is_kipaimara;
+        $allowEducation = (bool) $dependant->is_student || (bool) $dependant->education_level;
+
+        if ($church) {
+            $settings = app(ChurchSettingsService::class);
+            $allowKipaimara = $allowKipaimara
+                || (bool) $settings->get($church, 'kipaimara_registration_enabled', false);
+            $allowEducation = $allowEducation
+                || (bool) $settings->get($church, 'children_education_details_enabled', false);
+        }
+
         $dependant->update([
             'full_name' => $data['full_name'],
             'gender' => $data['gender'],
             'date_of_birth' => $data['date_of_birth'] ?? null,
             'relationship_note' => $data['relationship_note'] ?? null,
             ...$this->normalizeDependantBaptismFields($data),
+            ...$this->normalizeDependantKipaimaraFields($data, $allowKipaimara),
+            ...$this->normalizeDependantEducationFields($data, $allowEducation),
         ]);
+
+        $dependant = $dependant->fresh(['member', 'linkedMember', 'departments']);
+        $church = $dependant->church ?? $dependant->member?->church;
+
+        if ($church) {
+            $this->departmentAssignmentService->refreshDependantAssignment($church, $dependant);
+        }
 
         return $dependant->fresh(['member', 'linkedMember']);
     }
@@ -255,6 +316,11 @@ class MemberService
     public function spouseMemberWasCreated(): bool
     {
         return $this->spouseMemberCreated;
+    }
+
+    public function linkedExistingDependant(): ?MemberDependant
+    {
+        return $this->linkedExistingDependant;
     }
 
     /**
@@ -308,6 +374,18 @@ class MemberService
                 throw new \RuntimeException('This child has already been converted to an independent member.');
             }
 
+            $existingMember = $this->findMatchingMember($church, [
+                'full_name' => $dependant->full_name,
+                'date_of_birth' => $dependant->date_of_birth?->toDateString(),
+                'gender' => $dependant->gender,
+            ]);
+
+            if ($existingMember) {
+                $this->linkDependantToMember($dependant, $existingMember);
+
+                return $existingMember->fresh(['user']);
+            }
+
             if (! $dependant->isEligibleForIndependence()) {
                 throw new \RuntimeException(
                     'Child must be at least '.config('membership.child_independence_age', 21).' years old with a date of birth on file.'
@@ -339,6 +417,9 @@ class MemberService
 
             if ($parent) {
                 $memberData = array_merge($memberData, [
+                    'family_member_id' => $parent->id,
+                    'secondary_family_member_id' => $this->resolveSecondaryFamilyMemberId((int) $parent->id),
+                    'guardian_relationship' => 'Child',
                     'region' => $parent->region,
                     'district' => $parent->district,
                     'ward' => $parent->ward,
@@ -357,9 +438,10 @@ class MemberService
 
             $member = Member::create($memberData);
 
-            $dependant->update(['linked_member_id' => $member->id]);
+            $this->linkDependantToMember($dependant, $member);
 
             $this->createMemberUserAccount($church, $member);
+            $this->departmentAssignmentService->assignIfApplicable($church, $member);
 
             return $member->fresh(['user']);
         });
@@ -634,6 +716,209 @@ class MemberService
         return '+255'.$value;
     }
 
+    public function normalizePersonName(?string $name): string
+    {
+        $normalized = preg_replace('/\s+/u', ' ', trim((string) $name));
+
+        return mb_strtolower($normalized ?? '');
+    }
+
+    /**
+     * Match an existing full member by normalized name + date of birth (+ gender when both set).
+     *
+     * @param  array{full_name?: string, date_of_birth?: mixed, gender?: mixed}  $person
+     */
+    public function findMatchingMember(Church $church, array $person, ?int $exceptMemberId = null): ?Member
+    {
+        $name = $this->normalizePersonName($person['full_name'] ?? null);
+        $dob = $person['date_of_birth'] ?? null;
+
+        if ($name === '' || empty($dob)) {
+            return null;
+        }
+
+        try {
+            $dobDate = Carbon::parse($dob)->toDateString();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $query = Member::forChurch($church->id)
+            ->whereNotNull('date_of_birth')
+            ->whereDate('date_of_birth', $dobDate);
+
+        if ($exceptMemberId) {
+            $query->whereKeyNot($exceptMemberId);
+        }
+
+        $gender = $person['gender'] ?? null;
+
+        return $query->get()->first(function (Member $member) use ($name, $gender) {
+            if ($this->normalizePersonName($member->full_name) !== $name) {
+                return false;
+            }
+
+            if ($gender && $member->gender && (string) $member->gender !== (string) $gender) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Match an unconverted dependant (e.g. child under a parent) by name + DOB.
+     *
+     * @param  array{full_name?: string, date_of_birth?: mixed, gender?: mixed}  $person
+     */
+    public function findMatchingUnconvertedDependant(Church $church, array $person): ?MemberDependant
+    {
+        $name = $this->normalizePersonName($person['full_name'] ?? null);
+        $dob = $person['date_of_birth'] ?? null;
+
+        if ($name === '' || empty($dob)) {
+            return null;
+        }
+
+        try {
+            $dobDate = Carbon::parse($dob)->toDateString();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $gender = $person['gender'] ?? null;
+
+        return MemberDependant::forChurch($church->id)
+            ->whereNull('linked_member_id')
+            ->whereNotNull('date_of_birth')
+            ->whereDate('date_of_birth', $dobDate)
+            ->with('member')
+            ->get()
+            ->first(function (MemberDependant $dependant) use ($name, $gender) {
+                if ($this->normalizePersonName($dependant->full_name) !== $name) {
+                    return false;
+                }
+
+                if ($gender && $dependant->gender && (string) $dependant->gender !== (string) $gender) {
+                    return false;
+                }
+
+                return true;
+            });
+    }
+
+    public function assertNotAlreadyRegisteredMember(Church $church, array $person): void
+    {
+        $existing = $this->findMatchingMember($church, $person);
+
+        if (! $existing) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'full_name' => 'This person is already registered as a member ('.$existing->member_number.'). One person cannot be registered twice.',
+        ]);
+    }
+
+    private function applyExistingDependantFamilyLink(array $data, ?MemberDependant $matchingDependant): array
+    {
+        if (! $matchingDependant?->member_id) {
+            return $data;
+        }
+
+        $memberType = $data['member_type'] ?? null;
+        $isIndependent = $memberType === MemberType::Independent
+            || $memberType === MemberType::Independent->value;
+
+        if (! $isIndependent || ! empty($data['family_member_id'])) {
+            return $data;
+        }
+
+        $data['family_parent_type'] = 'member';
+        $data['family_member_id'] = $matchingDependant->member_id;
+
+        if (empty(trim((string) ($data['guardian_relationship'] ?? '')))) {
+            $data['guardian_relationship'] = 'Child';
+        }
+
+        return $data;
+    }
+
+    private function linkDependantToMember(MemberDependant $dependant, Member $member): void
+    {
+        $dependant->departments()->detach();
+        $dependant->update(['linked_member_id' => $member->id]);
+    }
+
+    /**
+     * @param  array{full_name?: string, gender?: mixed, date_of_birth?: mixed, relationship?: mixed, relationship_note?: mixed, linked_member_id?: mixed}  $dependant
+     */
+    private function createDependantForMember(Church $church, Member $member, array $dependant): ?MemberDependant
+    {
+        if (empty($dependant['full_name'])) {
+            return null;
+        }
+
+        $existingDependant = $this->findMatchingUnconvertedDependant($church, $dependant);
+
+        if ($existingDependant) {
+            if ((int) $existingDependant->member_id === (int) $member->id) {
+                return $existingDependant;
+            }
+
+            throw ValidationException::withMessages([
+                'dependants' => $dependant['full_name'].' is already registered as a child under '.$existingDependant->guardianDisplayName().'.',
+            ]);
+        }
+
+        $linkedMemberId = $dependant['linked_member_id'] ?? null;
+        $matchingMember = $this->findMatchingMember($church, $dependant);
+
+        if ($matchingMember) {
+            $linkedMemberId = $matchingMember->id;
+        }
+
+        $kipaimaraEnabled = (bool) app(ChurchSettingsService::class)->get($church, 'kipaimara_registration_enabled', false);
+        $educationEnabled = (bool) app(ChurchSettingsService::class)->get($church, 'children_education_details_enabled', false);
+
+        $createdDependant = MemberDependant::create([
+            'church_id' => $church->id,
+            'member_id' => $member->id,
+            'full_name' => $dependant['full_name'],
+            'gender' => $dependant['gender'],
+            'date_of_birth' => $dependant['date_of_birth'] ?? null,
+            ...$this->normalizeDependantBaptismFields($dependant),
+            ...($kipaimaraEnabled
+                ? $this->normalizeDependantKipaimaraFields($dependant, true)
+                : [
+                    'is_kipaimara' => false,
+                    'kipaimara_date' => null,
+                    'kipaimara_place' => null,
+                    'kipaimara_by' => null,
+                ]),
+            ...($educationEnabled
+                ? $this->normalizeDependantEducationFields($dependant, true)
+                : [
+                    'is_student' => false,
+                    'education_level' => null,
+                    'school_name' => null,
+                    'school_region' => null,
+                    'school_district' => null,
+                    'school_ward' => null,
+                    'school_street' => null,
+                ]),
+            'relationship' => $dependant['relationship'],
+            'relationship_note' => $dependant['relationship_note'] ?? null,
+            'linked_member_id' => $linkedMemberId,
+        ]);
+
+        if (! $linkedMemberId) {
+            $this->departmentAssignmentService->assignDependantIfApplicable($church, $createdDependant);
+        }
+
+        return $createdDependant;
+    }
+
     private function createMemberUserAccount(Church $church, Member $member): void
     {
         if ($member->user()->exists()) {
@@ -815,6 +1100,98 @@ class MemberService
         return $data;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeFamilyLink(array $data): array
+    {
+        $memberType = $data['member_type'] ?? null;
+        $isIndependent = $memberType === MemberType::Independent
+            || $memberType === MemberType::Independent->value;
+
+        $linkType = $data['family_parent_type'] ?? null;
+
+        if (! $isIndependent) {
+            $data['family_member_id'] = null;
+            $data['secondary_family_member_id'] = null;
+            $data['guardian_full_name'] = null;
+            $data['guardian_phone'] = null;
+            $data['guardian_relationship'] = null;
+
+            return $data;
+        }
+
+        // Independents are treated as unmarried in registration.
+        $data['marital_status'] = MaritalStatus::Single->value;
+        $data = $this->clearSpouseFields($data);
+        $data['wedding_type'] = null;
+        $data['wedding_date'] = null;
+
+        $relationship = trim((string) ($data['guardian_relationship'] ?? '')) ?: null;
+
+        if ($linkType === 'member') {
+            $familyMemberId = ! empty($data['family_member_id'])
+                ? (int) $data['family_member_id']
+                : null;
+
+            $data['family_member_id'] = $familyMemberId;
+            $data['secondary_family_member_id'] = $familyMemberId
+                ? $this->resolveSecondaryFamilyMemberId($familyMemberId)
+                : null;
+            $data['guardian_full_name'] = null;
+            $data['guardian_phone'] = null;
+            $data['guardian_relationship'] = $relationship;
+
+            return $data;
+        }
+
+        if ($linkType === 'guardian') {
+            $data['family_member_id'] = null;
+            $data['secondary_family_member_id'] = null;
+            $data['guardian_full_name'] = trim((string) ($data['guardian_full_name'] ?? '')) ?: null;
+            $data['guardian_relationship'] = $relationship;
+            $phone = $data['guardian_phone'] ?? null;
+            $data['guardian_phone'] = $phone
+                ? ($this->normalizePhoneNumber($phone) ?: $phone)
+                : null;
+
+            return $data;
+        }
+
+        // Keep existing DB values on update if the form did not send family_parent_type.
+        if ($linkType === null && ! array_key_exists('family_member_id', $data) && ! array_key_exists('guardian_full_name', $data)) {
+            return $data;
+        }
+
+        $data['family_member_id'] = null;
+        $data['secondary_family_member_id'] = null;
+        $data['guardian_full_name'] = null;
+        $data['guardian_phone'] = null;
+        $data['guardian_relationship'] = null;
+
+        return $data;
+    }
+
+    private function resolveSecondaryFamilyMemberId(int $familyMemberId): ?int
+    {
+        $familyMember = Member::query()
+            ->with(['spouseMember', 'spouseOf'])
+            ->find($familyMemberId);
+
+        if (! $familyMember) {
+            return null;
+        }
+
+        $spouse = $familyMember->resolvedSpouse();
+
+        if (! $spouse || (int) $spouse->id === $familyMemberId) {
+            return null;
+        }
+
+        return (int) $spouse->id;
+    }
+
     private function resolveBranchId(Church $church, ?int $branchId): ?int
     {
         if (! $church->branchesEnabled()) {
@@ -854,6 +1231,43 @@ class MemberService
     }
 
     /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeKipaimaraFields(array $data, bool $allow, bool $forceClear = false): array
+    {
+        if (! $allow) {
+            if ($forceClear) {
+                $data['is_kipaimara'] = false;
+                $data['kipaimara_date'] = null;
+                $data['kipaimara_place'] = null;
+                $data['kipaimara_by'] = null;
+
+                return $data;
+            }
+
+            unset(
+                $data['is_kipaimara'],
+                $data['kipaimara_date'],
+                $data['kipaimara_place'],
+                $data['kipaimara_by'],
+            );
+
+            return $data;
+        }
+
+        $data['is_kipaimara'] = filter_var($data['is_kipaimara'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (! $data['is_kipaimara']) {
+            $data['kipaimara_date'] = null;
+            $data['kipaimara_place'] = null;
+            $data['kipaimara_by'] = null;
+        }
+
+        return $data;
+    }
+
+    /**
      * @param  array<string, mixed>  $dependant
      * @return array<string, mixed>
      */
@@ -866,6 +1280,61 @@ class MemberService
             'baptism_date' => $isBaptized ? ($dependant['baptism_date'] ?? null) : null,
             'baptism_place' => $isBaptized ? ($dependant['baptism_place'] ?? null) : null,
             'baptized_by' => $isBaptized ? ($dependant['baptized_by'] ?? null) : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $dependant
+     * @return array<string, mixed>
+     */
+    private function normalizeDependantKipaimaraFields(array $dependant, bool $allow): array
+    {
+        if (! $allow) {
+            return [];
+        }
+
+        $isKipaimara = filter_var($dependant['is_kipaimara'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        return [
+            'is_kipaimara' => $isKipaimara,
+            'kipaimara_date' => $isKipaimara ? ($dependant['kipaimara_date'] ?? null) : null,
+            'kipaimara_place' => $isKipaimara ? ($dependant['kipaimara_place'] ?? null) : null,
+            'kipaimara_by' => $isKipaimara ? ($dependant['kipaimara_by'] ?? null) : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $dependant
+     * @return array<string, mixed>
+     */
+    private function normalizeDependantEducationFields(array $dependant, bool $allow): array
+    {
+        if (! $allow) {
+            return [];
+        }
+
+        $isStudent = filter_var($dependant['is_student'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (! $isStudent) {
+            return [
+                'is_student' => false,
+                'education_level' => null,
+                'school_name' => null,
+                'school_region' => null,
+                'school_district' => null,
+                'school_ward' => null,
+                'school_street' => null,
+            ];
+        }
+
+        return [
+            'is_student' => true,
+            'education_level' => $dependant['education_level'] ?? null,
+            'school_name' => trim((string) ($dependant['school_name'] ?? '')) ?: null,
+            'school_region' => trim((string) ($dependant['school_region'] ?? '')) ?: null,
+            'school_district' => trim((string) ($dependant['school_district'] ?? '')) ?: null,
+            'school_ward' => trim((string) ($dependant['school_ward'] ?? '')) ?: null,
+            'school_street' => trim((string) ($dependant['school_street'] ?? '')) ?: null,
         ];
     }
 }

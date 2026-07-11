@@ -133,6 +133,17 @@
             </div>
         </div>
 
+        @php
+            $childrenEducationEnabled = (bool) app(\App\Services\Church\ChurchSettingsService::class)->get(
+                auth()->user()->church,
+                'children_education_details_enabled',
+                false
+            );
+        @endphp
+        @if($childrenEducationEnabled)
+            @include('church.members.children._education-fields')
+        @endif
+
         <div class="tile-footer">
             <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.members_children.add_child') }}</button>
             <a href="{{ route('church.members.children.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
@@ -164,4 +175,5 @@
         }
     })();
 </script>
+@include('church.members.children._education-scripts')
 @endpush

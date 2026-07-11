@@ -97,7 +97,19 @@ class User extends Authenticatable
 
     public function isPastor(): bool
     {
-        return $this->user_type === UserType::Pastor
+        return in_array($this->user_type, [UserType::Pastor, UserType::AssistantPastor], true)
+            && $this->status === UserStatus::Active;
+    }
+
+    public function isAssistantPastor(): bool
+    {
+        return $this->user_type === UserType::AssistantPastor
+            && $this->status === UserStatus::Active;
+    }
+
+    public function isElder(): bool
+    {
+        return $this->user_type === UserType::Elder
             && $this->status === UserStatus::Active;
     }
 

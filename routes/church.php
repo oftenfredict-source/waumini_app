@@ -120,15 +120,19 @@ Route::middleware('church.maintenance')->group(function () {
     Route::post('departments/{department}/assign-head', [DepartmentController::class, 'assignHead'])->name('departments.assign-head');
     Route::post('departments/{department}/members', [DepartmentController::class, 'attachMembers'])->name('departments.members.attach');
     Route::delete('departments/{department}/members/{member}', [DepartmentController::class, 'removeMember'])->name('departments.members.remove');
+    Route::delete('departments/{department}/dependants/{dependant}', [DepartmentController::class, 'removeDependant'])->name('departments.dependants.remove');
     Route::resource('branches', BranchController::class)->except(['destroy']);
 
     Route::resource('announcements', AnnouncementController::class)->only(['index', 'create', 'store', 'show']);
 
+    Route::get('services/people-search', [ChurchServiceController::class, 'peopleSearch'])
+        ->name('services.people-search');
     Route::resource('services', ChurchServiceController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     Route::resource('special-events', SpecialEventController::class)
         ->parameters(['special-events' => 'special_event'])
         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('attendance/statistics', [AttendanceController::class, 'statistics'])->name('attendance.statistics');
     Route::get('attendance/record', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     Route::get('attendance/view', [AttendanceController::class, 'show'])->name('attendance.show');
@@ -218,6 +222,8 @@ Route::middleware('church.maintenance')->group(function () {
         Route::post('sms/send', [SmsStoreController::class, 'sendManual'])->name('sms.send');
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings/{tab}', [SettingsController::class, 'update'])->name('settings.update');
+        Route::post('settings/membership/sync-departments', [SettingsController::class, 'syncDepartmentAssignments'])
+            ->name('settings.membership.sync-departments');
         Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
         Route::post('subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
         Route::get('terms', [SubscriptionController::class, 'terms'])->name('subscription.terms');

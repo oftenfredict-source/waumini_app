@@ -6,6 +6,7 @@ use App\Enums\AttendanceSourceType;
 use App\Enums\SpecialEventCategory;
 use App\Enums\SpecialEventStatus;
 use App\Traits\BelongsToChurch;
+use App\Traits\HasSchedulableAttendance;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpecialEvent extends Model
 {
-    use BelongsToChurch, HasFactory, HasUuid, SoftDeletes;
+    use BelongsToChurch, HasFactory, HasSchedulableAttendance, HasUuid, SoftDeletes;
 
     protected $fillable = [
         'church_id',

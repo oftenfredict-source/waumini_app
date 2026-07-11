@@ -52,6 +52,9 @@
         </form>
     </div>
     <div class="col-md-4 text-md-right">
+        <a href="{{ route('church.attendance.statistics') }}" class="btn btn-info mb-2">
+            <i class="fa fa-bar-chart"></i> {{ __('pages.attendance.statistics_title') }}
+        </a>
         @can('create', \App\Models\AttendanceRecord::class)
             <a href="{{ route('church.attendance.create') }}" class="btn btn-primary mb-2">
                 <i class="fa fa-plus"></i> {{ __('pages.attendance.record_attendance') }}
@@ -99,10 +102,19 @@
                                         </a>
                                     @endif
                                     @can('create', \App\Models\AttendanceRecord::class)
-                                        <a href="{{ route('church.attendance.create', ['source_type' => $session['source_type'], 'source_id' => $session['source_id']]) }}"
-                                            class="btn btn-sm btn-primary" title="{{ $session['has_attendance'] ? __('common.edit') : __('pages.shared.record') }}">
-                                            <i class="fa fa-{{ $session['has_attendance'] ? 'pencil' : 'plus' }}"></i>
-                                        </a>
+                                        @if($session['can_record'])
+                                            <a href="{{ route('church.attendance.create', ['source_type' => $session['source_type'], 'source_id' => $session['source_id']]) }}"
+                                                class="btn btn-sm btn-primary" title="{{ $session['has_attendance'] ? __('common.edit') : __('pages.shared.record') }}">
+                                                <i class="fa fa-{{ $session['has_attendance'] ? 'pencil' : 'plus' }}"></i>
+                                            </a>
+                                        @else
+                                            <button type="button" class="btn btn-sm btn-secondary" disabled
+                                                title="{{ __('pages.attendance.not_yet_open', [
+                                                    'when' => $session['opens_at']?->format('M d, Y H:i') ?? __('pages.attendance.scheduled_start'),
+                                                ]) }}">
+                                                <i class="fa fa-clock-o"></i>
+                                            </button>
+                                        @endif
                                     @endcan
                                 </div>
                             </td>

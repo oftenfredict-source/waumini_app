@@ -10,6 +10,7 @@ use App\Http\Requests\Church\SyncDepartmentMembersRequest;
 use App\Http\Requests\Church\UpdateDepartmentRequest;
 use App\Models\Department;
 use App\Models\Member;
+use App\Models\MemberDependant;
 use App\Services\Church\DepartmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class DepartmentController extends Controller
 
         $query = Department::forChurch($church->id)
             ->with('head')
-            ->withCount('members')
+            ->withCount(['members', 'dependants'])
             ->orderBy('name');
 
         if ($search = $request->string('search')->trim()->toString()) {
@@ -74,7 +75,7 @@ class DepartmentController extends Controller
 
     public function show(Department $department): View
     {
-        $department->load(['head', 'members']);
+        $department->load(['head', 'members', 'dependants.member']);
         $church = auth()->user()->church;
 
         $availableMembers = Member::forChurch($church->id)
@@ -158,6 +159,18 @@ class DepartmentController extends Controller
         $this->departmentService->removeMember($department, $member);
 
         return back()->with('success', "{$member->full_name} removed from {$department->name}.");
+    }
+
+    public function removeDependant(Department $department, MemberDependant $dependant): RedirectResponse
+    {
+        $this->authorize('update', $department);
+
+        abort_unless($dependant->church_id === $department->church_id, 404);
+        abort_unless($department->dependants()->where('member_dependant_id', $dependant->id)->exists(), 404);
+
+        $this->departmentService->removeDependant($department, $dependant);
+
+        return back()->with('success', "{$dependant->full_name} removed from {$department->name}.");
     }
 
     /** @return array<string, mixed> */
