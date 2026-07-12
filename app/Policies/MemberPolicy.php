@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Member;
 use App\Models\User;
+use App\Services\Church\BranchAccessService;
 
 class MemberPolicy
 {
@@ -23,7 +24,9 @@ class MemberPolicy
                 || $user->member?->spouse_member_id === $member->id;
         }
 
-        return $user->isChurchUser() && $user->can('members.view');
+        return $user->isChurchUser()
+            && $user->can('members.view')
+            && app(BranchAccessService::class)->canAccessBranchId($user, $member->branch_id);
     }
 
     public function create(User $user): bool
@@ -35,14 +38,16 @@ class MemberPolicy
     {
         return $user->isChurchUser()
             && $user->can('members.update')
-            && $member->church_id === $user->church_id;
+            && $member->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $member->branch_id);
     }
 
     public function delete(User $user, Member $member): bool
     {
         return $user->isChurchUser()
             && $user->can('members.delete')
-            && $member->church_id === $user->church_id;
+            && $member->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $member->branch_id);
     }
 
     public function archive(User $user, Member $member): bool
@@ -58,7 +63,8 @@ class MemberPolicy
     public function resetPassword(User $user, Member $member): bool
     {
         return $member->church_id === $user->church_id
-            && $user->canManageMemberPasswords();
+            && $user->canManageMemberPasswords()
+            && app(BranchAccessService::class)->canAccessBranchId($user, $member->branch_id);
     }
 
     public function updateOwnProfile(User $user, Member $member): bool

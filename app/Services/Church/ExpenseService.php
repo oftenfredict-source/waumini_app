@@ -23,6 +23,20 @@ class ExpenseService
         $data['status'] = ExpenseStatus::Pending;
         $data['approval_status'] = FinancialApprovalStatus::Pending;
 
+        if ($recorder) {
+            $branchAccess = app(BranchAccessService::class);
+            $data['branch_id'] = $branchAccess->resolveBranchIdForCreate(
+                $recorder,
+                isset($data['branch_id']) ? (int) $data['branch_id'] : null,
+            );
+
+            if (! $data['branch_id'] && $branchAccess->branchesFeatureEnabled($recorder)) {
+                $data['branch_id'] = \App\Models\ChurchBranch::forChurch($church->id)
+                    ->where('is_headquarters', true)
+                    ->value('id');
+            }
+        }
+
         return Expense::create($data);
     }
 

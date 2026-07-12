@@ -20,6 +20,7 @@ class SpecialEvent extends Model
 
     protected $fillable = [
         'church_id',
+        'branch_id',
         'title',
         'category',
         'category_other',
@@ -50,6 +51,11 @@ class SpecialEvent extends Model
     public function church(): BelongsTo
     {
         return $this->belongsTo(Church::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(ChurchBranch::class, 'branch_id');
     }
 
     public function creator(): BelongsTo

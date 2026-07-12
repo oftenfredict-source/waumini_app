@@ -16,7 +16,11 @@ class StoreSpecialEventRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $churchId = $this->user()->church_id;
+        $branchAccess = app(\App\Services\Church\BranchAccessService::class);
+        $user = $this->user();
+
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'category' => ['required', Rule::enum(SpecialEventCategory::class)],
             'category_other' => ['nullable', 'required_if:category,other', 'string', 'max:100'],
@@ -30,7 +34,25 @@ class StoreSpecialEventRequest extends FormRequest
             'status' => ['required', Rule::enum(SpecialEventStatus::class)],
             'description' => ['nullable', 'string', 'max:5000'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'branch_id' => ['nullable', 'integer'],
         ];
+
+        if (
+            $branchAccess->branchesFeatureEnabled($user)
+            && $branchAccess->managesAllBranches($user)
+            && ! $branchAccess->sessionBranchId($user)
+        ) {
+            $rules['branch_id'] = [
+                'required',
+                'integer',
+                Rule::exists('church_branches', 'id')->where(fn ($q) => $q
+                    ->where('church_id', $churchId)
+                    ->where('is_active', true)
+                    ->whereNull('deleted_at')),
+            ];
+        }
+
+        return $rules;
     }
 
     public function messages(): array

@@ -88,7 +88,8 @@ class MemberController extends Controller
             'filters' => $request->only(['search', 'membership_type', 'branch_id']),
             'branches' => $this->branchAccessService->selectableBranches($user),
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
-                && $this->branchAccessService->managesAllBranches($user),
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
             'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
             'registrationUrl' => $user->can('member_registrations.view') || $user->can('members.create')
                 ? $this->churchContextService->registrationUrl($church)
@@ -104,15 +105,20 @@ class MemberController extends Controller
         $user = auth()->user();
         $church = $user->church;
 
-        $churchMembers = Member::forChurch($church->id)
+        $churchMembersQuery = Member::forChurch($church->id)
             ->activeMembers()
             ->with(['spouseMember:id,full_name,member_number', 'spouseOf:id,full_name,member_number,spouse_member_id'])
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email', 'spouse_member_id']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($churchMembersQuery, $user);
+
+        $branches = $this->branchAccessService->selectableBranches($user);
+        if ($effective = $this->branchAccessService->effectiveBranchId($user)) {
+            $branches = $branches->where('id', $effective)->values();
+        }
 
         return view('church.members.create', [
-            'churchMembers' => $churchMembers,
-            'branches' => $this->branchAccessService->selectableBranches($user),
+            'churchMembers' => $churchMembersQuery->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email', 'spouse_member_id']),
+            'branches' => $branches,
             'defaultBranchId' => $this->branchAccessService->resolveBranchIdForCreate($user, null),
             'membershipTypes' => MembershipType::cases(),
             'memberTypes' => MemberType::cases(),
@@ -189,7 +195,8 @@ class MemberController extends Controller
             'filters' => $request->only(['search', 'branch_id']),
             'branches' => $this->branchAccessService->selectableBranches($user),
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
-                && $this->branchAccessService->managesAllBranches($user),
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
             'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }

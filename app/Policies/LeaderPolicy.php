@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Leader;
 use App\Models\User;
+use App\Services\Church\BranchAccessService;
 
 class LeaderPolicy
 {
@@ -16,7 +17,8 @@ class LeaderPolicy
     {
         return $user->isChurchUser()
             && $user->can('leadership.view')
-            && $leader->church_id === $user->church_id;
+            && $leader->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $leader->branch_id);
     }
 
     public function create(User $user): bool
@@ -28,7 +30,8 @@ class LeaderPolicy
     {
         return $user->isChurchUser()
             && $user->can('leadership.manage')
-            && $leader->church_id === $user->church_id;
+            && $leader->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $leader->branch_id);
     }
 
     public function deactivate(User $user, Leader $leader): bool

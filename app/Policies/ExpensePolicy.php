@@ -18,7 +18,8 @@ class ExpensePolicy
     {
         return $user->isChurchUser()
             && $user->can('finance.view')
-            && $expense->church_id === $user->church_id;
+            && $expense->church_id === $user->church_id
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $expense->branch_id);
     }
 
     public function create(User $user): bool
@@ -32,7 +33,8 @@ class ExpensePolicy
             && $user->can('finance.manage')
             && $expense->church_id === $user->church_id
             && $expense->approval_status === FinancialApprovalStatus::Pending
-            && ! $expense->isPaid();
+            && ! $expense->isPaid()
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $expense->branch_id);
     }
 
     public function delete(User $user, Expense $expense): bool
@@ -45,6 +47,7 @@ class ExpensePolicy
         return $user->isChurchUser()
             && $user->can('finance.manage')
             && $expense->church_id === $user->church_id
-            && $expense->canBeMarkedPaid();
+            && $expense->canBeMarkedPaid()
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $expense->branch_id);
     }
 }

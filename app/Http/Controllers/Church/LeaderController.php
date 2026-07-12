@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreLeaderRequest;
 use App\Models\Leader;
 use App\Models\Member;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\LeaderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,17 +17,21 @@ class LeaderController extends Controller
 {
     public function __construct(
         private readonly LeaderService $leaderService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(Leader::class, 'leader');
     }
 
     public function index(Request $request): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
         $query = Leader::forChurch($church->id)
             ->with('member')
             ->latest('appointment_date');
+
+        $this->branchAccessService->applyBranchScope($query, $user);
 
         if ($position = $request->string('position')->trim()->toString()) {
             $query->where('position', $position);
@@ -57,12 +62,15 @@ class LeaderController extends Controller
 
     public function create(): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
-        $members = Member::forChurch($church->id)
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+
+        $members = $membersQuery->get(['id', 'full_name', 'member_number']);
 
         return view('church.leadership.create', [
             'members' => $members,

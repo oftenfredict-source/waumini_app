@@ -10,7 +10,7 @@
     @include('partials.brand-styles')
     @stack('styles')
 </head>
-<body class="app sidebar-mini">
+<body class="app sidebar-mini{{ ($isInBranchContext ?? false) ? ' has-branch-context' : '' }}">
     @include('church.partials.owner-impersonation-banner')
     <header class="app-header">
         @php $churchLogoUrl = auth()->user()->church?->logoUrl(); @endphp
@@ -24,6 +24,7 @@
         </a>
         <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="{{ __('common.hide_sidebar') }}"></a>
         <ul class="app-nav">
+            @include('church.partials.branch-switcher')
             @include('church.partials.header-notifications')
             @include('partials.locale-switcher')
             <li class="dropdown">
@@ -44,6 +45,7 @@
             </li>
         </ul>
     </header>
+    @include('church.partials.branch-context-banner')
 
     <div class="app-sidebar__overlay" data-toggle="sidebar"></div>
     <aside class="app-sidebar">

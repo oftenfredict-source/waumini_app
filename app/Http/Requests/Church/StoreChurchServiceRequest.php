@@ -21,8 +21,10 @@ class StoreChurchServiceRequest extends FormRequest
         $churchId = $this->user()->church_id;
         $preacherType = $this->input('preacher_type');
         $coordinatorType = $this->input('coordinator_type');
+        $branchAccess = app(\App\Services\Church\BranchAccessService::class);
+        $user = $this->user();
 
-        return [
+        $rules = [
             'service_type' => ['required', Rule::enum(ChurchServiceType::class)],
             'title' => [
                 'nullable',
@@ -83,7 +85,25 @@ class StoreChurchServiceRequest extends FormRequest
             'venue' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::enum(ChurchServiceStatus::class)],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'branch_id' => ['nullable', 'integer'],
         ];
+
+        if (
+            $branchAccess->branchesFeatureEnabled($user)
+            && $branchAccess->managesAllBranches($user)
+            && ! $branchAccess->sessionBranchId($user)
+        ) {
+            $rules['branch_id'] = [
+                'required',
+                'integer',
+                Rule::exists('church_branches', 'id')->where(fn ($q) => $q
+                    ->where('church_id', $churchId)
+                    ->where('is_active', true)
+                    ->whereNull('deleted_at')),
+            ];
+        }
+
+        return $rules;
     }
 
     public function messages(): array

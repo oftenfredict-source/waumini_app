@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreSpecialEventRequest;
 use App\Http\Requests\Church\UpdateSpecialEventRequest;
 use App\Models\SpecialEvent;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\SpecialEventService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,18 +18,22 @@ class SpecialEventController extends Controller
 {
     public function __construct(
         private readonly SpecialEventService $specialEventService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(SpecialEvent::class, 'special_event');
     }
 
     public function index(Request $request): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
         $query = SpecialEvent::forChurch($church->id)
-            ->with('creator')
+            ->with(['creator', 'branch'])
             ->latest('event_date')
             ->latest('start_time');
+
+        $this->branchAccessService->applyBranchScope($query, $user);
 
         if ($category = $request->string('category')->trim()->toString()) {
             $query->where('category', $category);
@@ -67,9 +72,17 @@ class SpecialEventController extends Controller
 
     public function create(): View
     {
+        $user = auth()->user();
+
         return view('church.special-events.create', [
             'categories' => SpecialEventCategory::cases(),
             'statuses' => SpecialEventStatus::cases(),
+            'branches' => $this->branchAccessService->selectableBranches($user),
+            'defaultBranchId' => $this->branchAccessService->effectiveBranchId($user),
+            'canSelectBranch' => $this->branchAccessService->branchesFeatureEnabled($user)
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 
@@ -96,16 +109,24 @@ class SpecialEventController extends Controller
 
     public function edit(SpecialEvent $specialEvent): View
     {
+        $user = auth()->user();
+
         return view('church.special-events.edit', [
             'event' => $specialEvent,
             'categories' => SpecialEventCategory::cases(),
             'statuses' => SpecialEventStatus::cases(),
+            'branches' => $this->branchAccessService->selectableBranches($user),
+            'defaultBranchId' => $specialEvent->branch_id,
+            'canSelectBranch' => $this->branchAccessService->branchesFeatureEnabled($user)
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 
     public function update(UpdateSpecialEventRequest $request, SpecialEvent $specialEvent): RedirectResponse
     {
-        $this->specialEventService->update($specialEvent, $request->validated());
+        $this->specialEventService->update($specialEvent, $request->validated(), auth()->user());
 
         return redirect()
             ->route('church.special-events.show', $specialEvent)

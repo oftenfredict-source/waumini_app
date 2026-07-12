@@ -130,10 +130,12 @@ class AttendanceService
             }
 
             $now = now();
+            $branchId = $source->branch_id;
 
             foreach ($memberIds as $memberId) {
                 AttendanceRecord::create([
                     'church_id' => $church->id,
+                    'branch_id' => $branchId,
                     'source_type' => $enumType,
                     'source_id' => $sourceId,
                     'member_id' => $memberId,
@@ -146,6 +148,7 @@ class AttendanceService
             foreach ($dependantIds as $dependantId) {
                 AttendanceRecord::create([
                     'church_id' => $church->id,
+                    'branch_id' => $branchId,
                     'source_type' => $enumType,
                     'source_id' => $sourceId,
                     'dependant_id' => $dependantId,

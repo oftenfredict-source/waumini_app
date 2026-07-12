@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreChurchServiceRequest;
 use App\Http\Requests\Church\UpdateChurchServiceRequest;
 use App\Models\ChurchService;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\ChurchServiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,18 +19,22 @@ class ChurchServiceController extends Controller
 {
     public function __construct(
         private readonly ChurchServiceService $churchServiceService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(ChurchService::class, 'service');
     }
 
     public function index(Request $request): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
         $query = ChurchService::forChurch($church->id)
-            ->with('creator')
+            ->with(['creator', 'branch'])
             ->latest('service_date')
             ->latest('start_time');
+
+        $this->branchAccessService->applyBranchScope($query, $user);
 
         if ($type = $request->string('service_type')->trim()->toString()) {
             $query->where('service_type', $type);
@@ -61,13 +66,20 @@ class ChurchServiceController extends Controller
 
     public function create(): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
         return view('church.services.create', [
             'serviceTypes' => ChurchServiceType::cases(),
             'statuses' => ChurchServiceStatus::cases(),
             'pastors' => $this->churchServiceService->pastorsForChurch($church),
             'leaders' => $this->churchServiceService->leadersForChurch($church),
+            'branches' => $this->branchAccessService->selectableBranches($user),
+            'defaultBranchId' => $this->branchAccessService->effectiveBranchId($user),
+            'canSelectBranch' => $this->branchAccessService->branchesFeatureEnabled($user)
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 
@@ -94,7 +106,8 @@ class ChurchServiceController extends Controller
 
     public function edit(ChurchService $service): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
         $service->load(['preacherMember', 'coordinatorMember']);
 
         return view('church.services.edit', [
@@ -103,12 +116,18 @@ class ChurchServiceController extends Controller
             'statuses' => ChurchServiceStatus::cases(),
             'pastors' => $this->churchServiceService->pastorsForChurch($church),
             'leaders' => $this->churchServiceService->leadersForChurch($church),
+            'branches' => $this->branchAccessService->selectableBranches($user),
+            'defaultBranchId' => $service->branch_id,
+            'canSelectBranch' => $this->branchAccessService->branchesFeatureEnabled($user)
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 
     public function update(UpdateChurchServiceRequest $request, ChurchService $service): RedirectResponse
     {
-        $this->churchServiceService->update($service, $request->validated());
+        $this->churchServiceService->update($service, $request->validated(), auth()->user());
 
         return redirect()
             ->route('church.services.show', $service)

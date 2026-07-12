@@ -20,6 +20,10 @@
         @include('church.special-events._form', [
             'categories' => $categories,
             'statuses' => $statuses,
+            'branches' => $branches ?? collect(),
+            'defaultBranchId' => $defaultBranchId ?? null,
+            'canSelectBranch' => $canSelectBranch ?? false,
+            'branchesEnabled' => $branchesEnabled ?? false,
         ])
         <div class="tile-footer">
             <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('pages.shared.save_item', ['item' => __('pages.special_events.item')]) }}</button>

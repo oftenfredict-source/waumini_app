@@ -68,9 +68,17 @@
                             </span>
                         </td>
                         <td class="text-nowrap">
-                            <a href="{{ route('church.branches.show', $branch) }}" class="btn btn-sm btn-info"><i class="fa fa-eye"></i></a>
+                            <a href="{{ route('church.branches.show', $branch) }}" class="btn btn-sm btn-info" title="{{ __('common.view') }}"><i class="fa fa-eye"></i></a>
+                            @if($canManageAll && $branch->is_active)
+                                <form action="{{ route('church.branches.enter', $branch) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-primary" title="{{ __('pages.branches.enter') }}">
+                                        <i class="fa fa-sign-in"></i>
+                                    </button>
+                                </form>
+                            @endif
                             @can('update', $branch)
-                                <a href="{{ route('church.branches.edit', $branch) }}" class="btn btn-sm btn-warning"><i class="fa fa-pencil"></i></a>
+                                <a href="{{ route('church.branches.edit', $branch) }}" class="btn btn-sm btn-warning" title="{{ __('common.edit') }}"><i class="fa fa-pencil"></i></a>
                             @endcan
                         </td>
                     </tr>

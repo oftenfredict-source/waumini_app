@@ -17,7 +17,8 @@ class TithePolicy
     {
         return $user->isChurchUser()
             && $user->can('finance.view')
-            && $tithe->church_id === $user->church_id;
+            && $tithe->church_id === $user->church_id
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $tithe->branch_id);
     }
 
     public function create(User $user): bool
@@ -30,7 +31,8 @@ class TithePolicy
         return $user->isChurchUser()
             && $user->can('finance.manage')
             && $tithe->church_id === $user->church_id
-            && $tithe->approval_status === FinancialApprovalStatus::Pending;
+            && $tithe->approval_status === FinancialApprovalStatus::Pending
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $tithe->branch_id);
     }
 
     public function delete(User $user, Tithe $tithe): bool

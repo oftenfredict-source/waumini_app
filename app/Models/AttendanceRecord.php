@@ -14,6 +14,7 @@ class AttendanceRecord extends Model
 
     protected $fillable = [
         'church_id',
+        'branch_id',
         'source_type',
         'source_id',
         'member_id',
@@ -34,6 +35,11 @@ class AttendanceRecord extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(ChurchBranch::class, 'branch_id');
     }
 
     public function dependant(): BelongsTo

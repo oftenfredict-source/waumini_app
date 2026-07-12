@@ -10,6 +10,8 @@ use Illuminate\Support\Collection;
 
 class BranchAccessService
 {
+    public const SESSION_KEY = 'church_active_branch_id';
+
     public function branchesFeatureEnabled(?User $user): bool
     {
         return (bool) ($user?->church?->branches_enabled);
@@ -28,13 +30,78 @@ class BranchAccessService
         return $user->branch_id === null;
     }
 
-    public function effectiveBranchId(User $user): ?int
+    /**
+     * Staff assignment or member's branch (ignores session).
+     */
+    public function assignedBranchId(User $user): ?int
     {
-        if ($this->managesAllBranches($user)) {
+        return $user->branch_id ?? $user->member?->branch_id;
+    }
+
+    /**
+     * Validated session branch for HQ/admin "enter branch" context.
+     */
+    public function sessionBranchId(User $user): ?int
+    {
+        if (! $this->branchesFeatureEnabled($user) || ! $this->managesAllBranches($user)) {
             return null;
         }
 
-        return $user->branch_id ?? $user->member?->branch_id;
+        $branchId = session(self::SESSION_KEY);
+
+        if (! $branchId) {
+            return null;
+        }
+
+        $branch = ChurchBranch::forChurch($user->church_id)
+            ->whereKey($branchId)
+            ->first();
+
+        if (! $branch || ! $branch->is_active) {
+            $this->exitBranch();
+
+            return null;
+        }
+
+        return (int) $branch->id;
+    }
+
+    /**
+     * Branch used for scoping lists and creates.
+     * Assigned staff: their branch. HQ/admin: session when entered, else null (all branches).
+     */
+    public function effectiveBranchId(User $user): ?int
+    {
+        if (! $this->managesAllBranches($user)) {
+            return $this->assignedBranchId($user);
+        }
+
+        return $this->sessionBranchId($user);
+    }
+
+    public function activeBranch(User $user): ?ChurchBranch
+    {
+        $branchId = $this->effectiveBranchId($user);
+
+        if (! $branchId) {
+            return null;
+        }
+
+        return ChurchBranch::forChurch($user->church_id)->whereKey($branchId)->first();
+    }
+
+    public function enterBranch(User $user, ChurchBranch $branch): void
+    {
+        abort_unless($this->canAccessBranch($user, $branch), 403);
+        abort_unless($this->managesAllBranches($user), 403);
+        abort_unless($branch->is_active, 422);
+
+        session([self::SESSION_KEY => $branch->id]);
+    }
+
+    public function exitBranch(): void
+    {
+        session()->forget(self::SESSION_KEY);
     }
 
     /**
@@ -50,7 +117,7 @@ class BranchAccessService
         $branchId = $this->effectiveBranchId($user);
 
         if ($branchId) {
-            $query->where($column, $branchId);
+            $this->constrainToBranch($query, $user, $branchId, $column);
         }
 
         return $query;
@@ -64,13 +131,21 @@ class BranchAccessService
     {
         $this->applyBranchScope($query, $user, $column);
 
-        if ($this->managesAllBranches($user) && $requestedBranchId) {
-            $query->where($column, $requestedBranchId);
+        // Query-string filter only when viewing All branches (no session context).
+        if (
+            $this->managesAllBranches($user)
+            && ! $this->sessionBranchId($user)
+            && $requestedBranchId
+        ) {
+            $this->constrainToBranch($query, $user, $requestedBranchId, $column);
         }
 
         return $query;
     }
 
+    /**
+     * Whether the user may view/manage a record belonging to this branch.
+     */
     public function canAccessBranch(User $user, ?ChurchBranch $branch): bool
     {
         if (! $branch || $branch->church_id !== $user->church_id) {
@@ -81,7 +156,34 @@ class BranchAccessService
             return true;
         }
 
-        return $this->effectiveBranchId($user) === $branch->id;
+        return $this->assignedBranchId($user) === $branch->id;
+    }
+
+    /**
+     * Whether a record's branch_id is within the user's current scope.
+     * HQ/admin in All branches: any. Entered/assigned: match (HQ also allows null).
+     */
+    public function canAccessBranchId(User $user, ?int $recordBranchId): bool
+    {
+        if (! $this->branchesFeatureEnabled($user)) {
+            return true;
+        }
+
+        $effective = $this->effectiveBranchId($user);
+
+        if (! $effective) {
+            return true;
+        }
+
+        if ($recordBranchId === null) {
+            $headquartersId = ChurchBranch::forChurch($user->church_id)
+                ->where('is_headquarters', true)
+                ->value('id');
+
+            return $headquartersId && (int) $effective === (int) $headquartersId;
+        }
+
+        return (int) $recordBranchId === (int) $effective;
     }
 
     /**
@@ -99,7 +201,7 @@ class BranchAccessService
             ->orderBy('name');
 
         if (! $this->managesAllBranches($user)) {
-            $branchId = $this->effectiveBranchId($user);
+            $branchId = $this->assignedBranchId($user);
 
             if ($branchId) {
                 $query->whereKey($branchId);
@@ -111,10 +213,35 @@ class BranchAccessService
 
     public function resolveBranchIdForCreate(User $user, ?int $requestedBranchId): ?int
     {
-        if ($this->managesAllBranches($user)) {
-            return $requestedBranchId;
+        if (! $this->managesAllBranches($user)) {
+            return $this->assignedBranchId($user);
         }
 
-        return $this->effectiveBranchId($user);
+        $sessionBranchId = $this->sessionBranchId($user);
+
+        if ($sessionBranchId) {
+            return $sessionBranchId;
+        }
+
+        return $requestedBranchId;
+    }
+
+    /**
+     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
+     */
+    private function constrainToBranch(Builder $query, User $user, int $branchId, string $column): void
+    {
+        $headquartersId = ChurchBranch::forChurch($user->church_id)
+            ->where('is_headquarters', true)
+            ->value('id');
+
+        if ($headquartersId && (int) $branchId === (int) $headquartersId) {
+            $query->where(function (Builder $q) use ($column, $branchId) {
+                $q->where($column, $branchId)
+                    ->orWhereNull($column);
+            });
+        } else {
+            $query->where($column, $branchId);
+        }
     }
 }

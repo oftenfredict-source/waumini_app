@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\SpecialEvent;
 use App\Models\User;
+use App\Services\Church\BranchAccessService;
 
 class SpecialEventPolicy
 {
@@ -16,7 +17,8 @@ class SpecialEventPolicy
     {
         return $user->isChurchUser()
             && $user->can('special_events.view')
-            && $specialEvent->church_id === $user->church_id;
+            && $specialEvent->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $specialEvent->branch_id);
     }
 
     public function create(User $user): bool
@@ -28,7 +30,8 @@ class SpecialEventPolicy
     {
         return $user->isChurchUser()
             && $user->can('special_events.manage')
-            && $specialEvent->church_id === $user->church_id;
+            && $specialEvent->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $specialEvent->branch_id);
     }
 
     public function delete(User $user, SpecialEvent $specialEvent): bool

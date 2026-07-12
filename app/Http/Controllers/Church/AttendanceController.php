@@ -11,6 +11,7 @@ use App\Models\Member;
 use App\Models\MemberDependant;
 use App\Models\SpecialEvent;
 use App\Services\Church\AttendanceService;
+use App\Services\Church\BranchAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,16 +20,20 @@ class AttendanceController extends Controller
 {
     public function __construct(
         private readonly AttendanceService $attendanceService,
+        private readonly BranchAccessService $branchAccessService,
     ) {}
 
     public function index(Request $request): View
     {
         $this->authorize('viewAny', AttendanceRecord::class);
 
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
         $serviceQuery = ChurchService::forChurch($church->id)->latest('service_date');
         $eventQuery = SpecialEvent::forChurch($church->id)->latest('event_date');
+        $this->branchAccessService->applyBranchScope($serviceQuery, $user);
+        $this->branchAccessService->applyBranchScope($eventQuery, $user);
 
         if ($search = $request->string('search')->trim()->toString()) {
             $serviceQuery->where(function ($q) use ($search) {
@@ -90,10 +95,15 @@ class AttendanceController extends Controller
 
         $sessions = $services->concat($events)->sortByDesc('date')->values();
 
+        $membersMarked = AttendanceRecord::forChurch($church->id)->membersOnly();
+        $childrenMarked = AttendanceRecord::forChurch($church->id)->childrenOnly();
+        $this->branchAccessService->applyBranchScope($membersMarked, $user);
+        $this->branchAccessService->applyBranchScope($childrenMarked, $user);
+
         $stats = [
             'recorded_sessions' => $sessions->where('has_attendance', true)->count(),
-            'total_members_marked' => AttendanceRecord::forChurch($church->id)->membersOnly()->count(),
-            'total_children_marked' => AttendanceRecord::forChurch($church->id)->childrenOnly()->count(),
+            'total_members_marked' => $membersMarked->count(),
+            'total_children_marked' => $childrenMarked->count(),
         ];
 
         return view('church.attendance.index', [
@@ -134,20 +144,21 @@ class AttendanceController extends Controller
     {
         $this->authorize('create', AttendanceRecord::class);
 
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
         $sourceType = $request->string('source_type')->toString();
         $sourceId = $request->integer('source_id');
 
-        $churchServices = ChurchService::forChurch($church->id)
-            ->orderByDesc('service_date')
-            ->get();
+        $churchServicesQuery = ChurchService::forChurch($church->id)->orderByDesc('service_date');
+        $this->branchAccessService->applyBranchScope($churchServicesQuery, $user);
+        $churchServices = $churchServicesQuery->get();
 
         $memberServices = $churchServices->filter(fn (ChurchService $service) => ! $service->isSundaySchool());
         $sundaySchoolServices = $churchServices->filter(fn (ChurchService $service) => $service->isSundaySchool());
 
-        $specialEvents = SpecialEvent::forChurch($church->id)
-            ->orderByDesc('event_date')
-            ->get();
+        $specialEventsQuery = SpecialEvent::forChurch($church->id)->orderByDesc('event_date');
+        $this->branchAccessService->applyBranchScope($specialEventsQuery, $user);
+        $specialEvents = $specialEventsQuery->get();
 
         $selectedSource = null;
         $attendedMemberIds = [];
@@ -161,6 +172,10 @@ class AttendanceController extends Controller
 
         if ($sourceType && $sourceId) {
             $selectedSource = $this->attendanceService->resolveSource($church, $sourceType, $sourceId);
+            abort_unless(
+                $this->branchAccessService->canAccessBranchId($user, $selectedSource->branch_id),
+                403
+            );
             $attendanceMode = $this->attendanceService->attendanceMode($selectedSource);
             $canRecordAttendance = $selectedSource->canRecordAttendance();
             $attendanceOpensAt = $selectedSource->attendanceOpensAt();
@@ -171,12 +186,13 @@ class AttendanceController extends Controller
             $notes = $summary['records']->first()?->notes ?? '';
         }
 
-        $members = Member::forChurch($church->id)
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
             ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
             ->orderBy('envelope_number')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'member_number', 'envelope_number']);
 
         $sundaySchoolChildren = MemberDependant::forChurch($church->id)
             ->forSundaySchool()
@@ -218,23 +234,32 @@ class AttendanceController extends Controller
 
     public function store(StoreAttendanceRequest $request): RedirectResponse
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
+        $sourceType = $request->validated('source_type');
+        $sourceId = (int) $request->validated('source_id');
+
+        $source = $this->attendanceService->resolveSource($church, $sourceType, $sourceId);
+        abort_unless(
+            $this->branchAccessService->canAccessBranchId($user, $source->branch_id),
+            403
+        );
 
         $result = $this->attendanceService->sync(
             $church,
-            $request->validated('source_type'),
-            (int) $request->validated('source_id'),
+            $sourceType,
+            $sourceId,
             $request->input('member_ids', []),
             $request->input('dependant_ids', []),
             (int) $request->input('guests_count', 0),
             $request->validated('notes'),
-            auth()->user(),
+            $user,
         );
 
         return redirect()
             ->route('church.attendance.show', [
-                'source_type' => $request->validated('source_type'),
-                'source_id' => $request->validated('source_id'),
+                'source_type' => $sourceType,
+                'source_id' => $sourceId,
             ])
             ->with('success', "Attendance saved: {$result['total_count']} total ({$result['members_count']} members, {$result['children_count']} children, {$result['guests_count']} guests).");
     }
@@ -243,13 +268,18 @@ class AttendanceController extends Controller
     {
         $this->authorize('viewAny', AttendanceRecord::class);
 
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
         $sourceType = $request->string('source_type')->toString();
         $sourceId = $request->integer('source_id');
 
         abort_unless($sourceType && $sourceId, 404);
 
         $summary = $this->attendanceService->summary($church, $sourceType, $sourceId);
+        abort_unless(
+            $this->branchAccessService->canAccessBranchId($user, $summary['source']->branch_id),
+            403
+        );
 
         return view('church.attendance.show', [
             'sourceType' => AttendanceSourceType::from($sourceType),

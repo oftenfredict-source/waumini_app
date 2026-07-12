@@ -12,6 +12,7 @@ use App\Http\Requests\Church\StoreExpenseRequest;
 use App\Http\Requests\Church\UpdateExpenseRequest;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,17 +22,21 @@ class ExpenseController extends Controller
 {
     public function __construct(
         private readonly ExpenseService $expenseService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(Expense::class, 'expense');
     }
 
     public function index(Request $request): View
     {
-        $church = $request->user()->church;
+        $user = $request->user();
+        $church = $user->church;
 
         $query = Expense::forChurch($church->id)
             ->with(['budget', 'recorder', 'approver'])
             ->latest('expense_date');
+
+        $this->branchAccessService->applyBranchScope($query, $user);
 
         if ($budgetId = $request->integer('budget_id')) {
             $query->where('budget_id', $budgetId);

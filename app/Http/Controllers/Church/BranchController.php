@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Church;
 
+use App\Enums\MembershipType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreBranchRequest;
 use App\Http\Requests\Church\UpdateBranchRequest;
@@ -26,17 +27,22 @@ class BranchController extends Controller
         $user = auth()->user();
         $church = $user->church;
 
+        $this->branchService->assignUnassignedMembersToHeadquarters($church);
+
         $query = ChurchBranch::forChurch($church->id)
-            ->withCount('members')
+            ->withCount(['members as members_count' => function ($q) {
+                $q->whereIn('membership_type', [
+                    MembershipType::Permanent->value,
+                    MembershipType::Temporary->value,
+                ]);
+            }])
             ->orderByDesc('is_headquarters')
             ->orderBy('name');
 
-        $this->branchAccessService->applyBranchFilter(
-            $query,
-            $user,
-            $request->integer('branch_id') ?: null,
-            'id',
-        );
+        // Branch directory stays church-wide for HQ/admin; assigned staff still see only their branch.
+        if (! $this->branchAccessService->managesAllBranches($user)) {
+            $this->branchAccessService->applyBranchScope($query, $user, 'id');
+        }
 
         if ($search = $request->string('search')->trim()->toString()) {
             $query->where(function ($q) use ($search) {
@@ -79,9 +85,54 @@ class BranchController extends Controller
 
     public function show(ChurchBranch $branch): View
     {
-        $branch->loadCount(['members', 'leaders']);
+        $user = auth()->user();
+        $this->branchService->assignUnassignedMembersToHeadquarters($branch->church);
 
-        return view('church.branches.show', compact('branch'));
+        $branch->loadCount([
+            'members as members_count' => function ($q) {
+                $q->whereIn('membership_type', [
+                    MembershipType::Permanent->value,
+                    MembershipType::Temporary->value,
+                ]);
+            },
+            'leaders',
+        ]);
+
+        return view('church.branches.show', [
+            'branch' => $branch,
+            'canEnterBranch' => $this->branchAccessService->managesAllBranches($user)
+                && $this->branchAccessService->branchesFeatureEnabled($user)
+                && $branch->is_active,
+            'isEntered' => $this->branchAccessService->sessionBranchId($user) === $branch->id,
+        ]);
+    }
+
+    public function enter(ChurchBranch $branch): RedirectResponse
+    {
+        $user = auth()->user();
+        $this->authorize('view', $branch);
+
+        $this->branchAccessService->enterBranch($user, $branch);
+
+        return redirect()
+            ->route('church.dashboard')
+            ->with('success', __('pages.branches.entered', ['branch' => $branch->displayLabel()]));
+    }
+
+    public function exit(): RedirectResponse
+    {
+        $user = auth()->user();
+        abort_unless(
+            $this->branchAccessService->managesAllBranches($user)
+                && $this->branchAccessService->branchesFeatureEnabled($user),
+            403
+        );
+
+        $this->branchAccessService->exitBranch();
+
+        return redirect()
+            ->route('church.branches.index')
+            ->with('success', __('pages.branches.exited'));
     }
 
     public function edit(ChurchBranch $branch): View

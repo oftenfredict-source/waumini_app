@@ -62,7 +62,8 @@ class MemberRequestController extends Controller
             'statuses' => \App\Enums\MemberRequestStatus::cases(),
             'branches' => $this->branchAccessService->selectableBranches($user),
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
-                && $this->branchAccessService->managesAllBranches($user),
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
         ]);
     }
 

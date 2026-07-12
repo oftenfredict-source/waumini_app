@@ -17,7 +17,8 @@ class OfferingPolicy
     {
         return $user->isChurchUser()
             && $user->can('finance.view')
-            && $offering->church_id === $user->church_id;
+            && $offering->church_id === $user->church_id
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $offering->branch_id);
     }
 
     public function create(User $user): bool
@@ -30,7 +31,8 @@ class OfferingPolicy
         return $user->isChurchUser()
             && $user->can('finance.manage')
             && $offering->church_id === $user->church_id
-            && $offering->approval_status === FinancialApprovalStatus::Pending;
+            && $offering->approval_status === FinancialApprovalStatus::Pending
+            && app(\App\Services\Church\BranchAccessService::class)->canAccessBranchId($user, $offering->branch_id);
     }
 
     public function delete(User $user, Offering $offering): bool

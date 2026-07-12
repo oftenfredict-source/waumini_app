@@ -12,6 +12,7 @@ use App\Http\Requests\Church\UpdateOfferingRequest;
 use App\Models\ChurchService;
 use App\Models\Member;
 use App\Models\Offering;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\ChurchSettingsService;
 use App\Services\Church\OfferingService;
 use Illuminate\Http\RedirectResponse;
@@ -23,18 +24,22 @@ class OfferingController extends Controller
     public function __construct(
         private readonly OfferingService $offeringService,
         private readonly ChurchSettingsService $churchSettings,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(Offering::class, 'offering');
     }
 
     public function index(Request $request): View
     {
-        $church = $request->user()->church;
+        $user = $request->user();
+        $church = $user->church;
 
         $query = Offering::forChurch($church->id)
             ->with(['member', 'churchService', 'recorder', 'approver'])
             ->latest('offering_date')
             ->latest('id');
+
+        $this->branchAccessService->applyBranchScope($query, $user);
 
         if ($memberId = $request->integer('member_id')) {
             $query->where('member_id', $memberId);
@@ -77,14 +82,16 @@ class OfferingController extends Controller
 
         $offerings = $query->paginate(20)->withQueryString();
 
-        $members = Member::forChurch($church->id)
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
             ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
             ->orderBy('envelope_number')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
 
         $statsQuery = Offering::forChurch($church->id);
+        $this->branchAccessService->applyBranchScope($statsQuery, $user);
 
         return view('church.offerings.index', [
             'offerings' => $offerings,
@@ -108,13 +115,15 @@ class OfferingController extends Controller
 
     public function create(): View
     {
-        $church = auth()->user()->church;
-        $members = Member::forChurch($church->id)
+        $user = auth()->user();
+        $church = $user->church;
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
             ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
             ->orderBy('envelope_number')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
 
         return view('church.offerings.create', [
             'members' => $members,
@@ -149,13 +158,15 @@ class OfferingController extends Controller
 
     public function edit(Offering $offering): View
     {
-        $church = auth()->user()->church;
-        $members = Member::forChurch($church->id)
+        $user = auth()->user();
+        $church = $user->church;
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
             ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = "" THEN 1 ELSE 0 END')
             ->orderBy('envelope_number')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
 
         return view('church.offerings.edit', [
             'offering' => $offering,
@@ -193,9 +204,14 @@ class OfferingController extends Controller
      */
     private function selectableServices(int $churchId, ?int $includeServiceId = null)
     {
-        return ChurchService::query()
-            ->forOfferingSelection($churchId)
-            ->get(['id', 'service_type', 'title', 'service_date', 'start_time', 'end_time', 'status'])
+        $user = auth()->user();
+        $query = ChurchService::query()->forOfferingSelection($churchId);
+        if ($user) {
+            $this->branchAccessService->applyBranchScope($query, $user);
+        }
+
+        return $query
+            ->get(['id', 'service_type', 'title', 'service_date', 'start_time', 'end_time', 'status', 'branch_id'])
             ->filter(function (ChurchService $service) use ($includeServiceId) {
                 if ($includeServiceId && $service->id === $includeServiceId) {
                     return true;

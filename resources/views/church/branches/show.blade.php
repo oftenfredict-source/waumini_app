@@ -42,6 +42,23 @@
     </div>
     <div class="col-lg-4">
         <div class="tile">
+            @if($canEnterBranch ?? false)
+                @if($isEntered ?? false)
+                    <form action="{{ route('church.branches.exit') }}" method="POST" class="mb-2">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary btn-block">
+                            <i class="fa fa-sign-out"></i> {{ __('pages.branches.exit_all') }}
+                        </button>
+                    </form>
+                @else
+                    <form action="{{ route('church.branches.enter', $branch) }}" method="POST" class="mb-2">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fa fa-sign-in"></i> {{ __('pages.branches.enter') }}
+                        </button>
+                    </form>
+                @endif
+            @endif
             @can('update', $branch)
                 <a href="{{ route('church.branches.edit', $branch) }}" class="btn btn-warning btn-block mb-2">
                     <i class="fa fa-pencil"></i> {{ __('pages.shared.edit_item', ['item' => __('pages.branches.item')]) }}

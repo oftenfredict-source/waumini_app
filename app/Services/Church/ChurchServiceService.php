@@ -6,6 +6,7 @@ use App\Enums\LeadershipPosition;
 use App\Enums\ServiceCoordinatorType;
 use App\Enums\ServicePreacherType;
 use App\Models\Church;
+use App\Models\ChurchBranch;
 use App\Models\ChurchService;
 use App\Models\Leader;
 use App\Models\Member;
@@ -14,18 +15,34 @@ use Illuminate\Support\Collection;
 
 class ChurchServiceService
 {
+    public function __construct(
+        private readonly BranchAccessService $branchAccessService,
+    ) {}
+
     public function create(Church $church, array $data, ?User $creator = null): ChurchService
     {
         $data = $this->normalizeServiceData($church, $data);
         $data['church_id'] = $church->id;
         $data['created_by'] = $creator?->id;
+        $data['branch_id'] = $this->resolveBranchId($church, $creator, $data['branch_id'] ?? null);
 
         return ChurchService::create($data);
     }
 
-    public function update(ChurchService $service, array $data): ChurchService
+    public function update(ChurchService $service, array $data, ?User $actor = null): ChurchService
     {
         $data = $this->normalizeServiceData($service->church, $data);
+        $actor ??= auth()->user();
+
+        if ($actor && array_key_exists('branch_id', $data)) {
+            if ($this->branchAccessService->managesAllBranches($actor)
+                && ! $this->branchAccessService->sessionBranchId($actor)) {
+                $data['branch_id'] = $this->resolveBranchId($service->church, $actor, $data['branch_id'] ?? null);
+            } else {
+                unset($data['branch_id']);
+            }
+        }
+
         $service->update($data);
 
         return $service->fresh(['preacherMember', 'coordinatorMember']);
@@ -159,5 +176,25 @@ class ChurchServiceService
         );
 
         return $data;
+    }
+
+    private function resolveBranchId(Church $church, ?User $user, mixed $requestedBranchId): ?int
+    {
+        if (! $user || ! $this->branchAccessService->branchesFeatureEnabled($user)) {
+            return $requestedBranchId ? (int) $requestedBranchId : null;
+        }
+
+        $branchId = $this->branchAccessService->resolveBranchIdForCreate(
+            $user,
+            $requestedBranchId ? (int) $requestedBranchId : null,
+        );
+
+        if ($branchId) {
+            return $branchId;
+        }
+
+        return ChurchBranch::forChurch($church->id)
+            ->where('is_headquarters', true)
+            ->value('id');
     }
 }

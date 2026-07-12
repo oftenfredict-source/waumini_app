@@ -9,6 +9,7 @@ use App\Http\Requests\Church\StoreTitheRequest;
 use App\Http\Requests\Church\UpdateTitheRequest;
 use App\Models\Member;
 use App\Models\Tithe;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\TitheService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,18 +19,22 @@ class TitheController extends Controller
 {
     public function __construct(
         private readonly TitheService $titheService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(Tithe::class, 'tithe');
     }
 
     public function index(Request $request): View
     {
-        $church = $request->user()->church;
+        $user = $request->user();
+        $church = $user->church;
 
         $query = Tithe::forChurch($church->id)
             ->with(['member', 'recorder', 'approver'])
             ->latest('tithe_date')
             ->latest('id');
+
+        $this->branchAccessService->applyBranchScope($query, $user);
 
         if ($memberId = $request->integer('member_id')) {
             $query->where('member_id', $memberId);
@@ -60,12 +65,14 @@ class TitheController extends Controller
 
         $tithes = $query->paginate(20)->withQueryString();
 
-        $members = Member::forChurch($church->id)
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
 
         $statsQuery = Tithe::forChurch($church->id);
+        $this->branchAccessService->applyBranchScope($statsQuery, $user);
 
         return view('church.tithes.index', [
             'tithes' => $tithes,
@@ -87,11 +94,13 @@ class TitheController extends Controller
 
     public function create(): View
     {
-        $church = auth()->user()->church;
-        $members = Member::forChurch($church->id)
+        $user = auth()->user();
+        $church = $user->church;
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
 
         return view('church.tithes.create', [
             'members' => $members,
@@ -122,11 +131,13 @@ class TitheController extends Controller
 
     public function edit(Tithe $tithe): View
     {
-        $church = auth()->user()->church;
-        $members = Member::forChurch($church->id)
+        $user = auth()->user();
+        $church = $user->church;
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'envelope_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
 
         return view('church.tithes.edit', [
             'tithe' => $tithe,

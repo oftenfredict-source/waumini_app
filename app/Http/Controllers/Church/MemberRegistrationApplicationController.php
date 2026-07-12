@@ -62,7 +62,8 @@ class MemberRegistrationApplicationController extends Controller
             'statuses' => MemberRegistrationStatus::cases(),
             'branches' => $this->branchAccessService->selectableBranches($user),
             'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
-                && $this->branchAccessService->managesAllBranches($user),
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
             'pendingCount' => MemberRegistrationApplication::forChurch($church->id)
                 ->where('status', MemberRegistrationStatus::Pending)
                 ->count(),

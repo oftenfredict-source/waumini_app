@@ -10,6 +10,7 @@
             @error('title')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
     </div>
+    @include('church.partials.branch-field')
     <div class="col-md-4">
         <div class="form-group">
             <label>{{ __('common.category') }} *</label>

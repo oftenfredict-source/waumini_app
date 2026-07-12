@@ -75,6 +75,8 @@
 
             @include('church.services._people-fields')
 
+            @include('church.partials.branch-field')
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>{{ __('common.venue') }}</label>

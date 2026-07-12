@@ -4,6 +4,7 @@ namespace App\Services\Church;
 
 use App\Models\Church;
 use App\Models\ChurchBranch;
+use App\Models\Member;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +34,22 @@ class BranchService
             'logo_path' => $church->logo_path,
             'is_active' => true,
         ]);
+    }
+
+    /**
+     * Assign members with no branch to headquarters so branch counts stay accurate.
+     */
+    public function assignUnassignedMembersToHeadquarters(Church $church): int
+    {
+        if (! $church->branchesEnabled()) {
+            return 0;
+        }
+
+        $headquarters = $this->ensureHeadquartersBranch($church);
+
+        return Member::forChurch($church->id)
+            ->whereNull('branch_id')
+            ->update(['branch_id' => $headquarters->id]);
     }
 
     public function create(Church $church, array $data, ?UploadedFile $logo = null): ChurchBranch

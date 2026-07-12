@@ -121,6 +121,8 @@ Route::middleware('church.maintenance')->group(function () {
     Route::post('departments/{department}/members', [DepartmentController::class, 'attachMembers'])->name('departments.members.attach');
     Route::delete('departments/{department}/members/{member}', [DepartmentController::class, 'removeMember'])->name('departments.members.remove');
     Route::delete('departments/{department}/dependants/{dependant}', [DepartmentController::class, 'removeDependant'])->name('departments.dependants.remove');
+    Route::post('branches/{branch}/enter', [BranchController::class, 'enter'])->name('branches.enter');
+    Route::post('branches/exit', [BranchController::class, 'exit'])->name('branches.exit');
     Route::resource('branches', BranchController::class)->except(['destroy']);
 
     Route::resource('announcements', AnnouncementController::class)->only(['index', 'create', 'store', 'show']);

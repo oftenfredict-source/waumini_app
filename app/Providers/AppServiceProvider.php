@@ -54,6 +54,7 @@ use App\Policies\SubscriptionPackagePolicy;
 use App\Policies\SupportTicketPolicy;
 use App\Policies\SystemSettingPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\ChurchRolePermissionService;
 use App\Services\Church\HeaderNotificationService;
 use Illuminate\Pagination\Paginator;
@@ -130,6 +131,21 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('headerNotifications', app(HeaderNotificationService::class)->forUser($user));
+
+            $branchAccess = app(BranchAccessService::class);
+            $canSwitchBranches = $branchAccess->branchesFeatureEnabled($user)
+                && $branchAccess->managesAllBranches($user)
+                && ! $user->isChurchMember();
+
+            $view->with('canSwitchBranches', $canSwitchBranches);
+            $view->with('branchSwitcherBranches', $canSwitchBranches
+                ? $branchAccess->selectableBranches($user)
+                : collect());
+            $view->with('activeBranchContext', $canSwitchBranches
+                ? $branchAccess->activeBranch($user)
+                : null);
+            $view->with('isInBranchContext', $canSwitchBranches
+                && $branchAccess->sessionBranchId($user) !== null);
         });
 
         Route::bind('member', function (string $value) {
