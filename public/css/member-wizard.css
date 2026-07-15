@@ -49,6 +49,14 @@
     display: block;
 }
 
+.independent-family-section[hidden] {
+    display: none !important;
+}
+
+.independent-family-section.is-visible {
+    display: block !important;
+}
+
 .profile-preview {
     width: 120px;
     height: 120px;

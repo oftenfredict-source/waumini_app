@@ -3,7 +3,7 @@
 @section('title', __('members.edit_member'))
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/member-wizard.css') }}">
+<link rel="stylesheet" href="{{ asset('css/member-wizard.css') }}?v=independent-family-2">
 @endpush
 
 @section('content')

@@ -24,6 +24,9 @@
         prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
         nextBtn.style.display = step < totalSteps ? 'inline-block' : 'none';
         submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+        if (step === 4) {
+            toggleIndependentFamilySection();
+        }
         if (step === totalSteps) buildSummary();
         updateRegisterProgress(step);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -473,7 +476,17 @@
         var maritalStatus = document.getElementById('marital_status');
         var show = getField('membership_type') === 'permanent' && getField('member_type') === 'independent';
 
-        if (section) section.style.display = show ? 'block' : 'none';
+        if (section) {
+            if (show) {
+                section.hidden = false;
+                section.style.display = 'block';
+                section.classList.add('is-visible');
+            } else {
+                section.hidden = true;
+                section.style.display = 'none';
+                section.classList.remove('is-visible');
+            }
+        }
         if (maritalSection) maritalSection.style.display = show ? 'none' : 'flex';
         if (independentNote) independentNote.style.display = show ? 'block' : 'none';
 
@@ -497,8 +510,9 @@
         var guardianName = document.getElementById('guardian_full_name');
         var relationship = document.getElementById('guardian_relationship');
         var secondaryHint = document.getElementById('secondaryFamilyMemberHint');
+        var sectionHidden = !section || section.hidden || section.style.display === 'none';
 
-        if (!section || section.style.display === 'none') {
+        if (sectionHidden) {
             if (familyType) familyType.removeAttribute('required');
             if (familyMember) familyMember.removeAttribute('required');
             if (guardianName) guardianName.removeAttribute('required');
