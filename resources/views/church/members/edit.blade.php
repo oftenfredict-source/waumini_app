@@ -3,7 +3,10 @@
 @section('title', __('members.edit_member'))
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/member-wizard.css') }}?v=independent-family-3">
+@php
+    $wizardCssVersion = @filemtime(public_path('css/member-wizard.css')) ?: time();
+@endphp
+<link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/member-wizard.css') }}?v={{ $wizardCssVersion }}">
 @endpush
 
 @section('content')

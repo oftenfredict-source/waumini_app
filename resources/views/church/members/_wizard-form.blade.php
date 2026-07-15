@@ -81,7 +81,7 @@
         @endforeach
     </div>
 
-    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate data-wizard-build="independent-family-3">
+    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate data-wizard-build="independent-family-4">
         @csrf
         @if($isEdit)
             @method('PUT')
@@ -445,7 +445,7 @@
                 {{ __('members.fields.independent_single_note') }}
             </div>
 
-            <div id="independentFamilySection" class="independent-family-section" hidden>
+            <div id="independentFamilySection" class="independent-family-section">
                 <h4 class="mt-3 mb-3">{{ __('members.fields.family_guardian_title') }}</h4>
                 <p class="text-muted">{{ __('members.fields.family_guardian_hint') }}</p>
                 <div class="row">

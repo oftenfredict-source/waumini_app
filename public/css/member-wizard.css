@@ -49,22 +49,32 @@
     display: block;
 }
 
-.independent-family-section[hidden] {
-    display: none !important;
+/* Default: hide Independent-only blocks until member type is Independent. */
+#independentFamilySection,
+#independentMaritalNote {
+    display: none;
 }
 
-.independent-family-section.is-visible,
-#memberWizardForm.wizard-is-independent #independentFamilySection {
+/*
+ * Pure CSS fallback (works even if cached JS is old):
+ * show Family/Guardian when Step 1 = Permanent + Independent.
+ */
+#memberWizardForm:has(#membership_type option[value="permanent"]:checked):has(#member_type option[value="independent"]:checked) #independentFamilySection,
+#memberWizardForm.wizard-is-independent #independentFamilySection,
+.independent-family-section.is-visible {
     display: block !important;
 }
 
+#memberWizardForm:has(#membership_type option[value="permanent"]:checked):has(#member_type option[value="independent"]:checked) #independentMaritalNote,
+#memberWizardForm.wizard-is-independent #independentMaritalNote {
+    display: block !important;
+}
+
+#memberWizardForm:has(#membership_type option[value="permanent"]:checked):has(#member_type option[value="independent"]:checked) #maritalStatusSection,
+#memberWizardForm:has(#membership_type option[value="permanent"]:checked):has(#member_type option[value="independent"]:checked) #dependantsSection,
 #memberWizardForm.wizard-is-independent #maritalStatusSection,
 #memberWizardForm.wizard-is-independent #dependantsSection {
     display: none !important;
-}
-
-#memberWizardForm.wizard-is-independent #independentMaritalNote {
-    display: block !important;
 }
 
 .profile-preview {

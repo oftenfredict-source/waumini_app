@@ -489,20 +489,17 @@
 
         if (section) {
             if (show) {
-                section.hidden = false;
                 section.removeAttribute('hidden');
-                section.style.display = 'block';
                 section.classList.add('is-visible');
             } else {
-                section.hidden = true;
                 section.setAttribute('hidden', 'hidden');
-                section.style.display = 'none';
                 section.classList.remove('is-visible');
             }
+            section.style.display = '';
         }
-        if (maritalSection) maritalSection.style.display = show ? 'none' : '';
-        if (independentNote) independentNote.style.display = show ? 'block' : 'none';
-        if (dependantsSection) dependantsSection.style.display = show ? 'none' : '';
+        if (maritalSection) maritalSection.style.display = '';
+        if (independentNote) independentNote.style.display = '';
+        if (dependantsSection) dependantsSection.style.display = '';
 
         if (show && maritalStatus) {
             maritalStatus.value = 'single';
