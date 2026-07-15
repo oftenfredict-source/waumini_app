@@ -60,7 +60,10 @@
                             </td>
                             <td>{{ $department->head?->full_name ?? '—' }}</td>
                             <td>
-                                <strong>{{ ($department->members_count ?? 0) + ($department->dependants_count ?? 0) }}</strong>
+                                <strong>{{ $department->members_count ?? 0 }}</strong>
+                                @if(($department->dependants_count ?? 0) > 0)
+                                    <br><small class="text-muted">+ {{ $department->dependants_count }} {{ __('pages.shared.children') }}</small>
+                                @endif
                             </td>
                             <td>
                                 <span class="badge badge-{{ $department->status->value === 'active' ? 'success' : 'secondary' }}">

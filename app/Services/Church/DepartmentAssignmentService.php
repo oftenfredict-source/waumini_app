@@ -21,7 +21,8 @@ class DepartmentAssignmentService
     ) {}
 
     /**
-     * Attach the member to every department whose rules they currently match.
+     * Attach the member to departments they match, and remove rule-based
+     * memberships they no longer qualify for (e.g. after leadership ends).
      *
      * @return int Number of departments the member was newly attached to
      */
@@ -37,7 +38,12 @@ class DepartmentAssignmentService
             return 0;
         }
 
-        return $this->attachMatchingMemberDepartments($church, $member, $rules);
+        $member->loadMissing([
+            'leaders' => fn ($query) => $query->where('is_active', true),
+            'departments',
+        ]);
+
+        return $this->syncMemberDepartments($church, $member, $rules)['attached'];
     }
 
     /**
@@ -136,6 +142,20 @@ class DepartmentAssignmentService
                 }
             });
 
+        // Inactive/archived members never match active rules — drop rule-based seats.
+        Member::forChurch($church->id)
+            ->archived()
+            ->whereHas('departments')
+            ->with('departments')
+            ->orderBy('id')
+            ->chunkById(100, function (Collection $members) use ($church, $rules, &$scanned, &$removed) {
+                foreach ($members as $member) {
+                    $scanned++;
+                    $result = $this->syncMemberDepartments($church, $member, $rules);
+                    $removed += $result['removed'];
+                }
+            });
+
         $ageRules = $this->ageOnlyRules($rules);
 
         if ($ageRules !== []) {
@@ -199,22 +219,6 @@ class DepartmentAssignmentService
             'removed' => $removed,
             'matched' => $matchingIds !== [],
         ];
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $rules
-     */
-    private function attachMatchingMemberDepartments(Church $church, Member $member, array $rules): int
-    {
-        $matchingIds = $this->matchingDepartmentIds(
-            $member,
-            $rules,
-            $this->memberAge($member),
-            $this->personGender($member),
-            $this->activeLeadershipPositions($member),
-        );
-
-        return $this->attachMemberToDepartments($church, $member, $matchingIds, autoAssigned: true);
     }
 
     /**
@@ -318,7 +322,7 @@ class DepartmentAssignmentService
     }
 
     /**
-     * Remove members who no longer qualify for age-based departments,
+     * Remove members who no longer qualify for age/leadership-based departments,
      * and remove auto-assigned memberships that no longer match.
      *
      * @param  list<array<string, mixed>>  $rules
@@ -328,6 +332,7 @@ class DepartmentAssignmentService
     {
         $removed = 0;
         $childCapableDepartmentIds = $this->departmentIdsForDependantEligibleRules($rules);
+        $leadershipDepartmentIds = $this->departmentIdsForLeadershipRules($rules);
 
         $current = $member->relationLoaded('departments')
             ? $member->departments
@@ -343,12 +348,17 @@ class DepartmentAssignmentService
             }
 
             $isChildCapableDepartment = isset($childCapableDepartmentIds[$departmentId]);
+            $isLeadershipDepartment = isset($leadershipDepartmentIds[$departmentId]);
 
-            // Age-based child departments (e.g. Idara ya watoto): always remove non-matching people.
+            // Age/leadership departments must mirror current eligibility (not leftover manual seats).
             // Other departments: only remove auto-assigned rows.
-            if ($isChildCapableDepartment || $autoAssigned) {
+            if ($isChildCapableDepartment || $isLeadershipDepartment || $autoAssigned) {
                 $department->members()->detach($member->id);
                 $removed++;
+
+                if ((int) $department->head_id === (int) $member->id) {
+                    $department->update(['head_id' => null]);
+                }
             }
         }
 
@@ -427,6 +437,28 @@ class DepartmentAssignmentService
         $ids = [];
 
         foreach ($this->ageOnlyRules($rules) as $rule) {
+            $id = (int) ($rule['department_id'] ?? 0);
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rules
+     * @return array<int, int>
+     */
+    private function departmentIdsForLeadershipRules(array $rules): array
+    {
+        $ids = [];
+
+        foreach ($rules as $rule) {
+            if (! is_array($rule) || $this->rulePositions($rule) === []) {
+                continue;
+            }
+
             $id = (int) ($rule['department_id'] ?? 0);
             if ($id > 0) {
                 $ids[$id] = $id;

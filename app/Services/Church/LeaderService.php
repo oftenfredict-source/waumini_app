@@ -52,9 +52,16 @@ class LeaderService
             'end_date' => $leader->end_date ?? now()->toDateString(),
         ]);
 
-        $leader = $leader->fresh(['member']);
+        $leader = $leader->fresh(['member', 'church']);
 
         $this->leadershipStaffAccessService->refreshForLeader($leader);
+
+        if ($leader->member && $leader->church) {
+            $this->departmentAssignmentService->assignIfApplicable(
+                $leader->church,
+                $leader->member,
+            );
+        }
 
         return $leader;
     }

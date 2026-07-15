@@ -30,7 +30,10 @@ class DepartmentController extends Controller
 
         $query = Department::forChurch($church->id)
             ->with('head')
-            ->withCount(['members', 'dependants'])
+            ->withCount([
+                'members as members_count' => fn ($q) => $q->activeMembers(),
+                'dependants',
+            ])
             ->orderBy('name');
 
         if ($search = $request->string('search')->trim()->toString()) {
@@ -75,7 +78,11 @@ class DepartmentController extends Controller
 
     public function show(Department $department): View
     {
-        $department->load(['head', 'members', 'dependants.member']);
+        $department->load([
+            'head',
+            'members' => fn ($q) => $q->activeMembers(),
+            'dependants.member',
+        ]);
         $church = auth()->user()->church;
 
         $availableMembers = Member::forChurch($church->id)

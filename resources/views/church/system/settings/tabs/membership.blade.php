@@ -89,7 +89,7 @@
             <li><strong>Women department</strong> — Gender: Female only</li>
             <li><strong>Idara ya watoto</strong> — Ages 0–12 (applies to children list + members in that age)</li>
             <li><strong>Idara ya vijana</strong> — Ages 13–40</li>
-            <li><strong>Elders department</strong> — Leadership: Church Elder</li>
+            <li><strong>Elders department</strong> — Leadership: Church Elder (roster stays in sync with active elders only)</li>
             <li><strong>Female youth</strong> — Gender: Female + ages 13–40</li>
         </ul>
     </div>
@@ -139,8 +139,8 @@
             </div>
             <small class="form-text text-muted">
                 Checks everyone against these rules. New matches are added.
-                People who no longer match age-based child departments are removed.
-                Auto-assigned memberships that no longer match (including gender/leadership) are also removed.
+                People who no longer match age-based or leadership-based departments are removed
+                (including former leaders). Auto-assigned seats for other rules are also cleaned up.
             </small>
         </div>
     </div>
