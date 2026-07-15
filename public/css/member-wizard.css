@@ -77,6 +77,26 @@
     display: none !important;
 }
 
+/* Custom guardian vs church member — CSS fallback if JS is stale. */
+#independentGuardianSection {
+    display: none;
+}
+
+#memberWizardForm:has(#family_parent_type option[value="guardian"]:checked) #independentGuardianSection,
+#memberWizardForm.wizard-family-guardian #independentGuardianSection {
+    display: flex !important;
+}
+
+#memberWizardForm:has(#family_parent_type option[value="guardian"]:checked) #independentFamilyMemberSection,
+#memberWizardForm.wizard-family-guardian #independentFamilyMemberSection {
+    display: none !important;
+}
+
+#memberWizardForm:has(#family_parent_type option[value="member"]:checked) #independentFamilyMemberSection,
+#memberWizardForm.wizard-family-member #independentFamilyMemberSection {
+    display: flex !important;
+}
+
 .profile-preview {
     width: 120px;
     height: 120px;

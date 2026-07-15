@@ -521,22 +521,35 @@
         var guardianName = document.getElementById('guardian_full_name');
         var relationship = document.getElementById('guardian_relationship');
         var secondaryHint = document.getElementById('secondaryFamilyMemberHint');
-        var sectionHidden = !section || section.hidden || section.style.display === 'none';
+        var membershipType = (getField('membership_type') || '').toLowerCase().trim();
+        var memberType = (getField('member_type') || '').toLowerCase().trim();
+        var independentActive = membershipType === 'permanent' && memberType === 'independent';
 
-        if (sectionHidden) {
+        if (!independentActive) {
             if (familyType) familyType.removeAttribute('required');
             if (familyMember) familyMember.removeAttribute('required');
             if (guardianName) guardianName.removeAttribute('required');
             if (relationship) relationship.removeAttribute('required');
             if (secondaryHint) secondaryHint.style.display = 'none';
+            if (form) form.classList.remove('wizard-family-guardian', 'wizard-family-member');
             return;
         }
 
-        var type = getField('family_parent_type') || 'member';
+        var type = (getField('family_parent_type') || 'member').toLowerCase().trim();
+        if (form) {
+            form.classList.toggle('wizard-family-guardian', type === 'guardian');
+            form.classList.toggle('wizard-family-member', type !== 'guardian');
+        }
         if (familyType) familyType.required = true;
         if (relationship) relationship.required = true;
-        if (memberSection) memberSection.style.display = type === 'member' ? 'flex' : 'none';
-        if (guardianSection) guardianSection.style.display = type === 'guardian' ? 'flex' : 'none';
+        if (memberSection) {
+            memberSection.style.display = type === 'member' ? '' : 'none';
+            memberSection.hidden = type !== 'member';
+        }
+        if (guardianSection) {
+            guardianSection.style.display = type === 'guardian' ? '' : 'none';
+            guardianSection.hidden = type !== 'guardian';
+        }
 
         if (familyMember) {
             if (type === 'member') {
@@ -550,8 +563,9 @@
         }
 
         if (guardianName) {
-            if (type === 'guardian') guardianName.required = true;
-            else {
+            if (type === 'guardian') {
+                guardianName.required = true;
+            } else {
                 guardianName.removeAttribute('required');
                 guardianName.value = '';
                 var phone = document.getElementById('guardian_phone');
