@@ -473,22 +473,36 @@
         var section = document.getElementById('independentFamilySection');
         var maritalSection = document.getElementById('maritalStatusSection');
         var independentNote = document.getElementById('independentMaritalNote');
+        var dependantsSection = document.getElementById('dependantsSection');
+        var typeHint = document.getElementById('independentMemberTypeHint');
         var maritalStatus = document.getElementById('marital_status');
-        var show = getField('membership_type') === 'permanent' && getField('member_type') === 'independent';
+        var membershipType = (getField('membership_type') || '').toLowerCase().trim();
+        var memberType = (getField('member_type') || '').toLowerCase().trim();
+        var show = membershipType === 'permanent' && memberType === 'independent';
+
+        if (form) {
+            form.classList.toggle('wizard-is-independent', show);
+        }
+        if (typeHint) {
+            typeHint.style.display = membershipType === 'permanent' ? 'block' : 'none';
+        }
 
         if (section) {
             if (show) {
                 section.hidden = false;
+                section.removeAttribute('hidden');
                 section.style.display = 'block';
                 section.classList.add('is-visible');
             } else {
                 section.hidden = true;
+                section.setAttribute('hidden', 'hidden');
                 section.style.display = 'none';
                 section.classList.remove('is-visible');
             }
         }
-        if (maritalSection) maritalSection.style.display = show ? 'none' : 'flex';
+        if (maritalSection) maritalSection.style.display = show ? 'none' : '';
         if (independentNote) independentNote.style.display = show ? 'block' : 'none';
+        if (dependantsSection) dependantsSection.style.display = show ? 'none' : '';
 
         if (show && maritalStatus) {
             maritalStatus.value = 'single';

@@ -101,6 +101,7 @@ return [
         'secondary_family_hint' => 'Pia tunaunganisha mwenza/mzazi wake ikiwa yupo: :name',
         'linked_spouse_parent' => 'Mwenza/mzazi aliyeunganishwa',
         'independent_single_note' => 'Wanachama huru husajiliwa kama wasioolewa/kuolewa. Hali ya ndoa imefichwa kwa aina hii.',
+        'independent_type_hint' => 'Chagua Huru ili kusajili mtu anayeishi na familia/mlezi (si Baba au Mama wa kaya).',
         'guardian_full_name' => 'Jina kamili la mlezi',
         'guardian_phone' => 'Simu ya mlezi',
         'guardian_relationship' => 'Uhusiano',

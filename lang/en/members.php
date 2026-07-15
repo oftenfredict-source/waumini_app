@@ -101,6 +101,7 @@ return [
         'secondary_family_hint' => 'Also linking their spouse/parent if available: :name',
         'linked_spouse_parent' => 'Linked spouse/parent',
         'independent_single_note' => 'Independent members are registered as single. Marital status is hidden for this member type.',
+        'independent_type_hint' => 'Choose Independent to register someone who lives with a family/guardian (not as Father or Mother of a household).',
         'guardian_full_name' => 'Guardian Full Name',
         'guardian_phone' => 'Guardian Phone',
         'guardian_relationship' => 'Relationship',

@@ -53,7 +53,17 @@
     display: none !important;
 }
 
-.independent-family-section.is-visible {
+.independent-family-section.is-visible,
+#memberWizardForm.wizard-is-independent #independentFamilySection {
+    display: block !important;
+}
+
+#memberWizardForm.wizard-is-independent #maritalStatusSection,
+#memberWizardForm.wizard-is-independent #dependantsSection {
+    display: none !important;
+}
+
+#memberWizardForm.wizard-is-independent #independentMaritalNote {
     display: block !important;
 }
 

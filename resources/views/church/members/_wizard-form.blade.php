@@ -81,7 +81,7 @@
         @endforeach
     </div>
 
-    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate>
+    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate data-wizard-build="independent-family-3">
         @csrf
         @if($isEdit)
             @method('PUT')
@@ -136,6 +136,9 @@
                                 <option value="{{ $type->value }}" @selected($d('member_type') === $type->value)>{{ $type->label() }}</option>
                             @endforeach
                         </select>
+                        <small class="text-muted" id="independentMemberTypeHint" style="display:none;">
+                            {{ __('members.fields.independent_type_hint') }}
+                        </small>
                     </div>
                 </div>
                 <div class="col-md-4" id="temporaryDurationWrap" style="display:none;">
@@ -732,12 +735,14 @@
             @endif
 
             @if(! $isEdit)
-            <h4 class="mt-4 mb-3">{{ __('members.fields.dependants_title') }}</h4>
-            <p class="text-muted">{{ __('members.fields.dependants_hint') }}</p>
-            <div id="dependantsContainer"></div>
-            <button type="button" class="btn btn-outline-primary btn-sm" id="addDependantBtn">
-                <i class="fa fa-plus"></i> {{ __('members.fields.add_family_member') }}
-            </button>
+            <div id="dependantsSection">
+                <h4 class="mt-4 mb-3">{{ __('members.fields.dependants_title') }}</h4>
+                <p class="text-muted">{{ __('members.fields.dependants_hint') }}</p>
+                <div id="dependantsContainer"></div>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="addDependantBtn">
+                    <i class="fa fa-plus"></i> {{ __('members.fields.add_family_member') }}
+                </button>
+            </div>
             @endif
         </div>
 
