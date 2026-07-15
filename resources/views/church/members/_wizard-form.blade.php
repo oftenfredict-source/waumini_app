@@ -81,7 +81,7 @@
         @endforeach
     </div>
 
-    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate data-wizard-build="independent-family-5">
+    <form id="memberWizardForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" novalidate data-wizard-build="independent-family-6">
         @csrf
         @if($isEdit)
             @method('PUT')
@@ -235,7 +235,7 @@
                         </label>
                     </div>
                 </div>
-                <div class="col-md-12" id="memberBaptismFields" style="display:{{ $baptizedChecked ? 'block' : 'none' }};">
+                <div class="col-md-12{{ $baptizedChecked ? ' is-visible' : '' }}" id="memberBaptismFields">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
@@ -272,7 +272,7 @@
                         </label>
                     </div>
                 </div>
-                <div class="col-md-12" id="memberKipaimaraFields" style="display:{{ $kipaimaraChecked ? 'block' : 'none' }};">
+                <div class="col-md-12{{ $kipaimaraChecked ? ' is-visible' : '' }}" id="memberKipaimaraFields">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">

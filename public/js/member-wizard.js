@@ -620,8 +620,12 @@
         }
 
         var checked = baptizedCheckbox.checked;
+        if (form) {
+            form.classList.toggle('wizard-is-baptized', checked);
+        }
         if (wrap) {
-            wrap.style.display = checked ? 'block' : 'none';
+            wrap.classList.toggle('is-visible', checked);
+            wrap.style.display = '';
         }
 
         if (!checked) {
@@ -642,8 +646,12 @@
         }
 
         var checked = kipaimaraCheckbox.checked;
+        if (form) {
+            form.classList.toggle('wizard-is-kipaimara', checked);
+        }
         if (wrap) {
-            wrap.style.display = checked ? 'block' : 'none';
+            wrap.classList.toggle('is-visible', checked);
+            wrap.style.display = '';
         }
 
         if (!checked) {

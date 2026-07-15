@@ -97,6 +97,24 @@
     display: flex !important;
 }
 
+/* Baptism / Kipaimara detail fields — show when checkbox is checked. */
+#memberBaptismFields,
+#memberKipaimaraFields {
+    display: none;
+}
+
+#memberWizardForm:has(#is_baptized:checked) #memberBaptismFields,
+#memberWizardForm.wizard-is-baptized #memberBaptismFields,
+#memberBaptismFields.is-visible {
+    display: block !important;
+}
+
+#memberWizardForm:has(#is_kipaimara:checked) #memberKipaimaraFields,
+#memberWizardForm.wizard-is-kipaimara #memberKipaimaraFields,
+#memberKipaimaraFields.is-visible {
+    display: block !important;
+}
+
 .profile-preview {
     width: 120px;
     height: 120px;
