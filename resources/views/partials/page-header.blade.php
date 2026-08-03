@@ -9,7 +9,7 @@
     <div>
         <h1>
             @if($icon)
-                <i class="fa {{ $icon }}"></i>
+                <i class="{{ str_contains($icon, 'fa ') ? $icon : 'fa '.$icon }}"></i>
             @endif
             {{ $title }}
         </h1>
