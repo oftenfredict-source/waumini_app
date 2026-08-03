@@ -1,6 +1,6 @@
 <meta name="theme-color" content="{{ config('waumini.brand_color') }}">
 <meta name="brand-color" content="{{ config('waumini.brand_color') }}">
-<link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/waumini-brand.css') }}?v=branch-bar-3">
+<link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/waumini-brand.css') }}?v=branch-switcher-4">
 @include('partials.inline-resource-css', ['file' => 'waumini-mobile.css'])
 <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/waumini-mobile.css') }}?v=2">
 <style>
