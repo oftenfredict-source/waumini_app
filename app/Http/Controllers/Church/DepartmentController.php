@@ -11,6 +11,7 @@ use App\Http\Requests\Church\UpdateDepartmentRequest;
 use App\Models\Department;
 use App\Models\Member;
 use App\Models\MemberDependant;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\DepartmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,21 +21,29 @@ class DepartmentController extends Controller
 {
     public function __construct(
         private readonly DepartmentService $departmentService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(Department::class, 'department');
     }
 
     public function index(Request $request): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
         $query = Department::forChurch($church->id)
-            ->with('head')
+            ->with(['head', 'branch'])
             ->withCount([
                 'members as members_count' => fn ($q) => $q->activeMembers(),
                 'dependants',
             ])
             ->orderBy('name');
+
+        $this->branchAccessService->applyBranchFilter(
+            $query,
+            $user,
+            $request->integer('branch_id') ?: null,
+        );
 
         if ($search = $request->string('search')->trim()->toString()) {
             $query->where(function ($q) use ($search) {
@@ -49,15 +58,20 @@ class DepartmentController extends Controller
 
         $departments = $query->paginate(15)->withQueryString();
 
-        $members = Member::forChurch($church->id)
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
 
         return view('church.departments.index', [
             'departments' => $departments,
-            'members' => $members,
-            'filters' => $request->only(['search', 'status']),
+            'members' => $membersQuery->get(['id', 'full_name', 'member_number']),
+            'filters' => $request->only(['search', 'status', 'branch_id']),
+            'branches' => $this->branchAccessService->selectableBranches($user),
+            'canFilterBranches' => $this->branchAccessService->branchesFeatureEnabled($user)
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 
@@ -69,7 +83,11 @@ class DepartmentController extends Controller
     public function store(StoreDepartmentRequest $request): RedirectResponse
     {
         $church = auth()->user()->church;
-        $department = $this->departmentService->create($church, $request->validated());
+        $department = $this->departmentService->create(
+            $church,
+            $request->validated(),
+            $request->user(),
+        );
 
         return redirect()
             ->route('church.departments.show', $department)
@@ -80,31 +98,38 @@ class DepartmentController extends Controller
     {
         $department->load([
             'head',
+            'branch',
             'members' => fn ($q) => $q->activeMembers(),
             'dependants.member',
         ]);
         $church = auth()->user()->church;
 
-        $availableMembers = Member::forChurch($church->id)
+        $availableMembersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
             ->whereNotIn('id', $department->members->pluck('id'))
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number']);
+            ->orderBy('full_name');
+
+        $membersQuery = Member::forChurch($church->id)
+            ->where('status', 'active')
+            ->orderBy('full_name');
+
+        if ($department->branch_id) {
+            $availableMembersQuery->where('branch_id', $department->branch_id);
+            $membersQuery->where('branch_id', $department->branch_id);
+        }
 
         return view('church.departments.show', [
             'department' => $department,
-            'availableMembers' => $availableMembers,
-            'members' => Member::forChurch($church->id)
-                ->where('status', 'active')
-                ->orderBy('full_name')
-                ->get(['id', 'full_name', 'member_number']),
+            'availableMembers' => $availableMembersQuery->get(['id', 'full_name', 'member_number']),
+            'members' => $membersQuery->get(['id', 'full_name', 'member_number']),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled(auth()->user()),
         ]);
     }
 
     public function edit(Department $department): View
     {
         return view('church.departments.edit', array_merge(
-            $this->formData(),
+            $this->formData($department),
             ['department' => $department],
         ));
     }
@@ -181,16 +206,33 @@ class DepartmentController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function formData(): array
+    private function formData(?Department $department = null): array
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
+        $defaultBranchId = $department?->branch_id
+            ?? $this->branchAccessService->resolveBranchIdForCreate($user, null);
+
+        $membersQuery = Member::forChurch($church->id)
+            ->where('status', 'active')
+            ->orderBy('full_name');
+
+        if ($defaultBranchId) {
+            $membersQuery->where('branch_id', $defaultBranchId);
+        } else {
+            $this->branchAccessService->applyBranchScope($membersQuery, $user);
+        }
 
         return [
-            'members' => Member::forChurch($church->id)
-                ->where('status', 'active')
-                ->orderBy('full_name')
-                ->get(['id', 'full_name', 'member_number']),
+            'members' => $membersQuery->get(['id', 'full_name', 'member_number']),
             'statuses' => DepartmentStatus::cases(),
+            'branches' => $this->branchAccessService->selectableBranches($user),
+            'defaultBranchId' => $defaultBranchId,
+            'canSelectBranch' => $this->branchAccessService->branchesFeatureEnabled($user)
+                && $this->branchAccessService->managesAllBranches($user)
+                && ! $this->branchAccessService->sessionBranchId($user)
+                && $department === null,
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ];
     }
 }

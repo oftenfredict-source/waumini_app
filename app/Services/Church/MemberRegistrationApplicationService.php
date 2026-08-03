@@ -68,7 +68,7 @@ class MemberRegistrationApplicationService
     public function approve(
         MemberRegistrationApplication $application,
         User $reviewer,
-        string $envelopeNumber,
+        ?string $envelopeNumber = null,
         ?string $spouseEnvelopeNumber = null,
     ): array {
         if (! $application->isPending()) {
@@ -77,21 +77,31 @@ class MemberRegistrationApplicationService
             ]);
         }
 
-        if (! $this->memberService->isEnvelopeAvailable($application->church, $envelopeNumber)) {
+        $branchId = $application->branch_id
+            ?? (($application->registration_data['branch_id'] ?? null) ? (int) $application->registration_data['branch_id'] : null);
+
+        $envelopeNumber = $envelopeNumber !== null && trim($envelopeNumber) !== ''
+            ? trim($envelopeNumber)
+            : null;
+        $spouseEnvelopeNumber = $spouseEnvelopeNumber !== null && trim($spouseEnvelopeNumber) !== ''
+            ? trim($spouseEnvelopeNumber)
+            : null;
+
+        if ($envelopeNumber && ! $this->memberService->isEnvelopeAvailable($application->church, $envelopeNumber, null, $branchId)) {
             throw ValidationException::withMessages([
-                'envelope_number' => 'This envelope number is already in use.',
+                'envelope_number' => 'This envelope number is already in use in this branch.',
             ]);
         }
 
-        return DB::transaction(function () use ($application, $reviewer, $envelopeNumber, $spouseEnvelopeNumber) {
+        return DB::transaction(function () use ($application, $reviewer, $envelopeNumber, $spouseEnvelopeNumber, $branchId) {
             $data = $application->registration_data;
             $data['envelope_number'] = $envelopeNumber;
             $data['branch_id'] = $data['branch_id'] ?? $application->branch_id;
 
             if (! empty(trim((string) ($data['spouse_full_name'] ?? ''))) && $spouseEnvelopeNumber) {
-                if (! $this->memberService->isEnvelopeAvailable($application->church, $spouseEnvelopeNumber, null)) {
+                if (! $this->memberService->isEnvelopeAvailable($application->church, $spouseEnvelopeNumber, null, $branchId)) {
                     throw ValidationException::withMessages([
-                        'spouse_envelope_number' => 'Spouse envelope number is already in use.',
+                        'spouse_envelope_number' => 'Spouse envelope number is already in use in this branch.',
                     ]);
                 }
 

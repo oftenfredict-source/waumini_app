@@ -6,6 +6,7 @@ use App\Enums\DepartmentStatus;
 use App\Enums\LeadershipPosition;
 use App\Models\Department;
 use App\Models\SystemSetting;
+use App\Services\Church\BranchAccessService;
 use App\Services\Church\ChurchSettingsService;
 use App\Services\Church\DepartmentAssignmentService;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +18,7 @@ class SettingsController extends SystemController
     public function __construct(
         private readonly ChurchSettingsService $churchSettingsService,
         private readonly DepartmentAssignmentService $departmentAssignmentService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->middleware(function ($request, $next) {
             abort_unless($request->user()?->can('system.settings'), 403);
@@ -34,10 +36,12 @@ class SettingsController extends SystemController
             $tab = 'general';
         }
 
-        $departments = Department::forChurch($church->id)
+        $user = $request->user();
+        $departmentsQuery = Department::forChurch($church->id)
             ->where('status', DepartmentStatus::Active)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+            ->with('branch')
+            ->orderBy('name');
+        $this->branchAccessService->applyBranchScope($departmentsQuery, $user);
 
         return view('church.system.settings.index', [
             'church' => $church,
@@ -45,8 +49,9 @@ class SettingsController extends SystemController
             'settings' => $this->churchSettingsService->all($church),
             'categories' => config('church_settings.categories'),
             'platformSenderId' => SystemSetting::smsGatewayConfig()['sender_id'],
-            'departments' => $departments,
+            'departments' => $departmentsQuery->get(['id', 'name', 'branch_id']),
             'leadershipPositions' => LeadershipPosition::options(),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 

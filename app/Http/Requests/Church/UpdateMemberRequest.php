@@ -8,6 +8,8 @@ use App\Enums\MemberType;
 use App\Enums\MembershipType;
 use App\Enums\WeddingType;
 use App\Models\Member;
+use App\Services\Church\ChurchSettingsService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,6 +22,14 @@ class UpdateMemberRequest extends FormRequest
         return $member instanceof Member && $this->user()->can('update', $member);
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'envelope_number' => $this->filled('envelope_number') ? $this->string('envelope_number')->trim()->toString() : null,
+            'spouse_envelope_number' => $this->filled('spouse_envelope_number') ? $this->string('spouse_envelope_number')->trim()->toString() : null,
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -27,8 +37,15 @@ class UpdateMemberRequest extends FormRequest
     {
         /** @var Member $member */
         $member = $this->route('member');
-        $churchId = $this->user()->church_id;
-        $branchesEnabled = (bool) $this->user()->church?->branches_enabled;
+        $church = $this->user()->church;
+        $churchId = $church->id;
+        $settings = app(ChurchSettingsService::class);
+        $branchesEnabled = (bool) $church?->branches_enabled;
+        $branchId = $branchesEnabled
+            ? ($this->integer('branch_id') ?: $member->branch_id)
+            : null;
+        $memberAge = $this->ageFromInput('date_of_birth') ?? $member->date_of_birth?->age;
+        $spouseAge = $this->ageFromInput('spouse_date_of_birth');
         $isMarried = $this->input('marital_status') === MaritalStatus::Married->value;
         $isPermanent = $this->input('membership_type') === MembershipType::Permanent->value;
         $spouseIsMember = $this->input('spouse_church_member') === 'yes';
@@ -36,19 +53,19 @@ class UpdateMemberRequest extends FormRequest
         $spouseUsesManual = $isMarried && (! $spouseIsMember || $this->input('spouse_input_method') === 'manual');
         $hasLinkedSpouse = (bool) $member->spouse_member_id;
         $canSetSpouse = $isMarried && ! $hasLinkedSpouse;
+        $spouseEnvelopeRequired = $canSetSpouse && $spouseUsesManual && $settings->envelopeRequiredForAge($church, $spouseAge);
         $isIndependent = $isPermanent && $this->input('member_type') === MemberType::Independent->value;
         $familyUsesMember = $isIndependent && $this->input('family_parent_type') === 'member';
         $familyUsesGuardian = $isIndependent && $this->input('family_parent_type') === 'guardian';
 
         return [
-            'envelope_number' => [
-                'required',
-                'string',
-                'digits:3',
-                Rule::unique('members', 'envelope_number')
-                    ->where(fn ($q) => $q->where('church_id', $churchId))
-                    ->ignore($member->id),
-            ],
+            'envelope_number' => Member::envelopeValidationRules(
+                $church,
+                $memberAge,
+                $branchId,
+                $branchesEnabled,
+                $member->id,
+            ),
             'membership_type' => ['required', Rule::enum(MembershipType::class)],
             'member_type' => [
                 Rule::requiredIf($isPermanent),
@@ -117,14 +134,14 @@ class UpdateMemberRequest extends FormRequest
                 Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId)),
             ],
             'spouse_envelope_number' => [
-                Rule::requiredIf($canSetSpouse && $spouseIsMember && $this->input('spouse_input_method') === 'manual'),
+                Rule::requiredIf($spouseEnvelopeRequired),
                 'nullable',
                 'string',
                 'digits:3',
                 'different:envelope_number',
                 Rule::when(
-                    $canSetSpouse && $spouseUsesManual,
-                    Rule::unique('members', 'envelope_number')->where(fn ($q) => $q->where('church_id', $churchId))
+                    $canSetSpouse && $spouseUsesManual && $this->filled('spouse_envelope_number'),
+                    Member::uniqueEnvelopeRule($churchId, $branchId, $branchesEnabled, $member->id)
                 ),
             ],
             'family_parent_type' => [
@@ -154,5 +171,20 @@ class UpdateMemberRequest extends FormRequest
             ],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
+    }
+
+    private function ageFromInput(string $key): ?int
+    {
+        $value = $this->input($key);
+
+        if (! $value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->age;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

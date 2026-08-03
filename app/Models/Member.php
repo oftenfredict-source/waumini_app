@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Unique;
 
 class Member extends Model
 {
@@ -280,5 +282,51 @@ class Member extends Model
         $plural = $this->temporary_duration_value > 1 ? 's' : '';
 
         return "{$this->temporary_duration_value} {$unit}{$plural}";
+    }
+
+    /**
+     * Envelope numbers are unique per branch when branches are enabled.
+     */
+    public static function uniqueEnvelopeRule(
+        int $churchId,
+        ?int $branchId,
+        bool $branchesEnabled = false,
+        ?int $ignoreMemberId = null,
+    ): Unique {
+        $rule = Rule::unique('members', 'envelope_number')->where(function ($q) use ($churchId, $branchId, $branchesEnabled) {
+            $q->where('church_id', $churchId);
+
+            if ($branchesEnabled) {
+                $q->where('branch_id', $branchId);
+            }
+        });
+
+        if ($ignoreMemberId) {
+            $rule->ignore($ignoreMemberId);
+        }
+
+        return $rule;
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    public static function envelopeValidationRules(
+        Church $church,
+        ?int $age,
+        ?int $branchId,
+        bool $branchesEnabled = false,
+        ?int $ignoreMemberId = null,
+        bool $forceRequired = false,
+    ): array {
+        $required = $forceRequired
+            || app(\App\Services\Church\ChurchSettingsService::class)->envelopeRequiredForAge($church, $age);
+
+        return [
+            $required ? 'required' : 'nullable',
+            'string',
+            'digits:3',
+            self::uniqueEnvelopeRule($church->id, $branchId, $branchesEnabled, $ignoreMemberId),
+        ];
     }
 }

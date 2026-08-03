@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\ChildEducationLevel;
 use App\Enums\DependantRelationship;
-use App\Models\Church;
+use App\Services\Church\ChurchSettingsService;
 use App\Traits\BelongsToChurch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -84,14 +84,26 @@ class MemberDependant extends Model
         return $query->where('relationship', DependantRelationship::Child);
     }
 
-    public function scopeEligibleForIndependence(Builder $query): Builder
+    public function scopeEligibleForIndependence(Builder $query, ?int $graduationAge = null): Builder
     {
-        $age = config('membership.child_independence_age', 21);
+        $age = $graduationAge ?? config('membership.child_independence_age', 13);
 
         return $query->whereNull('linked_member_id')
             ->where('relationship', DependantRelationship::Child)
             ->whereNotNull('date_of_birth')
             ->whereDate('date_of_birth', '<=', now()->subYears($age)->toDateString());
+    }
+
+    public function scopeActiveChildren(Builder $query, ?int $graduationAge = null): Builder
+    {
+        $age = $graduationAge ?? config('membership.child_independence_age', 13);
+
+        return $query->whereNull('linked_member_id')
+            ->where('relationship', DependantRelationship::Child)
+            ->where(function ($q) use ($age) {
+                $q->whereNull('date_of_birth')
+                    ->orWhereDate('date_of_birth', '>', now()->subYears($age)->toDateString());
+            });
     }
 
     public function scopeForSundaySchool(Builder $query): Builder
@@ -106,10 +118,10 @@ class MemberDependant extends Model
             ->whereDate('date_of_birth', '>', now()->subYears($maxAge + 1)->toDateString());
     }
 
-    public function scopeForMainServiceAttendance(Builder $query): Builder
+    public function scopeForMainServiceAttendance(Builder $query, ?int $graduationAge = null): Builder
     {
         $minAge = config('membership.main_service_child_min_age', 13);
-        $maxAge = config('membership.child_independence_age', 21) - 1;
+        $maxAge = ($graduationAge ?? config('membership.child_independence_age', 13)) - 1;
 
         return $query->children()
             ->whereNull('linked_member_id')
@@ -130,7 +142,7 @@ class MemberDependant extends Model
             && $age <= config('membership.sunday_school_max_age', 12);
     }
 
-    public function shouldAttendMainService(): bool
+    public function shouldAttendMainService(?int $graduationAge = null): bool
     {
         $age = $this->age();
 
@@ -139,7 +151,7 @@ class MemberDependant extends Model
         }
 
         $minAge = config('membership.main_service_child_min_age', 13);
-        $maxAge = config('membership.child_independence_age', 21) - 1;
+        $maxAge = ($graduationAge ?? $this->graduationAge()) - 1;
 
         return $age >= $minAge && $age <= $maxAge;
     }
@@ -147,6 +159,17 @@ class MemberDependant extends Model
     public function age(): ?int
     {
         return $this->date_of_birth?->age;
+    }
+
+    public function graduationAge(): int
+    {
+        $this->loadMissing('church');
+
+        if ($this->church) {
+            return app(ChurchSettingsService::class)->childGraduationAge($this->church);
+        }
+
+        return (int) config('membership.child_independence_age', 13);
     }
 
     public function hasMemberParent(): bool
@@ -168,24 +191,25 @@ class MemberDependant extends Model
         return $this->linked_member_id !== null;
     }
 
-    public function isEligibleForIndependence(): bool
+    public function isEligibleForIndependence(?int $graduationAge = null): bool
     {
         if ($this->isConverted() || $this->relationship !== DependantRelationship::Child) {
             return false;
         }
 
         $age = $this->age();
+        $threshold = $graduationAge ?? $this->graduationAge();
 
-        return $age !== null && $age >= config('membership.child_independence_age', 21);
+        return $age !== null && $age >= $threshold;
     }
 
-    public function independenceStatusLabel(): string
+    public function independenceStatusLabel(?int $graduationAge = null): string
     {
         if ($this->isConverted()) {
             return 'Independent member';
         }
 
-        if ($this->isEligibleForIndependence()) {
+        if ($this->isEligibleForIndependence($graduationAge)) {
             return 'Ready to convert';
         }
 

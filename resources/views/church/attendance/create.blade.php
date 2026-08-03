@@ -100,7 +100,7 @@
                 <i class="fa fa-users"></i>
                 {{ __('pages.attendance.main_service_alert', [
                     'min' => config('membership.main_service_child_min_age', 13),
-                    'max' => config('membership.child_independence_age', 21) - 1,
+                    'max' => max(0, app(\App\Services\Church\ChurchSettingsService::class)->childGraduationAge(auth()->user()->church) - 1),
                 ]) }}
             </div>
         @endif
@@ -203,7 +203,7 @@
                             @empty
                                 <p class="text-muted">{{ __('pages.attendance.no_teenagers', [
                                     'min' => config('membership.main_service_child_min_age', 13),
-                                    'max' => config('membership.child_independence_age', 21) - 1,
+                                    'max' => max(0, app(\App\Services\Church\ChurchSettingsService::class)->childGraduationAge(auth()->user()->church) - 1),
                                 ]) }}</p>
                             @endforelse
                         </div>

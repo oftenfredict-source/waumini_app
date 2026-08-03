@@ -9,6 +9,10 @@ use App\Enums\MemberType;
 use App\Enums\MembershipType;
 use App\Enums\TemporaryDurationUnit;
 use App\Enums\WeddingType;
+use App\Models\Member;
+use App\Services\Church\BranchAccessService;
+use App\Services\Church\ChurchSettingsService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,16 +23,35 @@ class StoreMemberRequest extends FormRequest
         return $this->user()->can('members.create');
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'envelope_number' => $this->filled('envelope_number') ? $this->string('envelope_number')->trim()->toString() : null,
+            'spouse_envelope_number' => $this->filled('spouse_envelope_number') ? $this->string('spouse_envelope_number')->trim()->toString() : null,
+        ]);
+    }
+
     public function rules(): array
     {
-        $churchId = $this->user()->church_id;
-        $branchesEnabled = (bool) $this->user()->church?->branches_enabled;
+        $church = $this->user()->church;
+        $churchId = $church->id;
+        $settings = app(ChurchSettingsService::class);
+        $branchesEnabled = (bool) $church?->branches_enabled;
+        $branchId = $branchesEnabled
+            ? app(BranchAccessService::class)->resolveBranchIdForCreate(
+                $this->user(),
+                $this->integer('branch_id') ?: null,
+            )
+            : null;
+        $memberAge = $this->ageFromInput('date_of_birth');
+        $spouseAge = $this->ageFromInput('spouse_date_of_birth');
         $isMarried = $this->input('marital_status') === MaritalStatus::Married->value;
         $isPermanent = $this->input('membership_type') === MembershipType::Permanent->value;
         $isTemporary = $this->input('membership_type') === MembershipType::Temporary->value;
         $spouseIsMember = $this->input('spouse_church_member') === 'yes';
         $spouseUsesSelect = $isMarried && $spouseIsMember && $this->input('spouse_input_method') === 'select';
         $spouseUsesManual = $isMarried && (! $spouseIsMember || $this->input('spouse_input_method') === 'manual');
+        $spouseEnvelopeRequired = $spouseUsesManual && $settings->envelopeRequiredForAge($church, $spouseAge);
         $isIndependent = $isPermanent && $this->input('member_type') === MemberType::Independent->value;
         $familyUsesMember = $isIndependent && $this->input('family_parent_type') === 'member';
         $familyUsesGuardian = $isIndependent && $this->input('family_parent_type') === 'guardian';
@@ -57,12 +80,7 @@ class StoreMemberRequest extends FormRequest
                 'nullable',
                 Rule::enum(MemberType::class),
             ],
-            'envelope_number' => [
-                'required',
-                'string',
-                'digits:3',
-                Rule::unique('members', 'envelope_number')->where(fn ($q) => $q->where('church_id', $churchId)),
-            ],
+            'envelope_number' => Member::envelopeValidationRules($church, $memberAge, $branchId, $branchesEnabled),
             'full_name' => ['required', 'string', 'max:255'],
             'gender' => ['required', Rule::in(['male', 'female'])],
             'date_of_birth' => ['required', 'date', 'before:today'],
@@ -121,14 +139,14 @@ class StoreMemberRequest extends FormRequest
                 Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId)),
             ],
             'spouse_envelope_number' => [
-                Rule::requiredIf($isMarried && $spouseIsMember && $this->input('spouse_input_method') === 'manual'),
+                Rule::requiredIf($spouseEnvelopeRequired),
                 'nullable',
                 'string',
                 'digits:3',
                 'different:envelope_number',
                 Rule::when(
-                    $spouseUsesManual,
-                    Rule::unique('members', 'envelope_number')->where(fn ($q) => $q->where('church_id', $churchId))
+                    $spouseUsesManual && $this->filled('spouse_envelope_number'),
+                    Member::uniqueEnvelopeRule($churchId, $branchId, $branchesEnabled)
                 ),
             ],
 
@@ -182,5 +200,20 @@ class StoreMemberRequest extends FormRequest
                 Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId)),
             ],
         ];
+    }
+
+    private function ageFromInput(string $key): ?int
+    {
+        $value = $this->input($key);
+
+        if (! $value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->age;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

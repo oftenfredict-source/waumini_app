@@ -16,6 +16,7 @@ class Department extends Model
 
     protected $fillable = [
         'church_id',
+        'branch_id',
         'name',
         'description',
         'head_id',
@@ -34,9 +35,23 @@ class Department extends Model
         return $this->belongsTo(Church::class);
     }
 
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(ChurchBranch::class, 'branch_id');
+    }
+
     public function head(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'head_id');
+    }
+
+    public function displayLabel(): string
+    {
+        if ($this->relationLoaded('branch') && $this->branch) {
+            return $this->name.' ('.$this->branch->displayLabel().')';
+        }
+
+        return $this->name;
     }
 
     public function members(): \Illuminate\Database\Eloquent\Relations\BelongsToMany

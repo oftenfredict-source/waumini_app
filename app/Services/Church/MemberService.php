@@ -16,6 +16,7 @@ use App\Models\Member;
 use App\Models\MemberDependant;
 use App\Models\User;
 use App\Services\Church\CelebrationService;
+use App\Services\Church\ChurchSettingsService;
 use App\Services\Sms\ChurchSmsService;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
@@ -93,8 +94,10 @@ class MemberService
 
             $data['spouse_phone_number'] = $this->normalizePhoneNumber($data['spouse_phone_number'] ?? null);
             $data = $this->normalizeBaptismFields($data);
-            $kipaimaraEnabled = app(ChurchSettingsService::class)->get($church, 'kipaimara_registration_enabled', false);
-            $data = $this->normalizeKipaimaraFields($data, (bool) $kipaimaraEnabled, forceClear: ! $kipaimaraEnabled);
+            $settings = app(ChurchSettingsService::class);
+            $memberAge = $this->ageFromDateString($data['date_of_birth'] ?? null);
+            $kipaimaraAllowed = $settings->canShowKipaimara($church, $memberAge, false);
+            $data = $this->normalizeKipaimaraFields($data, $kipaimaraAllowed, forceClear: ! $kipaimaraAllowed);
             $data = $this->normalizeFamilyLink($data);
 
             unset($data['spouse_input_method'], $data['dependants'], $data['family_parent_type']);
@@ -183,9 +186,10 @@ class MemberService
 
             $data['phone_number'] = $this->normalizePhoneNumber($data['phone_number'] ?? null);
             $data = $this->normalizeBaptismFields($data);
-            $kipaimaraEnabled = (bool) app(ChurchSettingsService::class)->get($church, 'kipaimara_registration_enabled', false);
-            $kipaimaraVisible = $kipaimaraEnabled || (bool) $member->is_kipaimara;
-            $data = $this->normalizeKipaimaraFields($data, $kipaimaraVisible, forceClear: false);
+            $settings = app(ChurchSettingsService::class);
+            $memberAge = $this->ageFromDateString($data['date_of_birth'] ?? $member->date_of_birth?->toDateString());
+            $kipaimaraAllowed = $settings->canShowKipaimara($church, $memberAge, (bool) $member->is_kipaimara);
+            $data = $this->normalizeKipaimaraFields($data, $kipaimaraAllowed, forceClear: ! $kipaimaraAllowed && $memberAge !== null && $memberAge < $settings->kipaimaraMinAge($church));
             $data = $this->normalizeFamilyLink($data);
 
             if (array_key_exists('branch_id', $data)) {
@@ -287,8 +291,8 @@ class MemberService
 
         if ($church) {
             $settings = app(ChurchSettingsService::class);
-            $allowKipaimara = $allowKipaimara
-                || (bool) $settings->get($church, 'kipaimara_registration_enabled', false);
+            $childAge = $this->ageFromDateString($data['date_of_birth'] ?? $dependant->date_of_birth?->toDateString());
+            $allowKipaimara = $settings->canShowKipaimara($church, $childAge, (bool) $dependant->is_kipaimara);
             $allowEducation = $allowEducation
                 || (bool) $settings->get($church, 'children_education_details_enabled', false);
         }
@@ -331,8 +335,16 @@ class MemberService
         return $this->registeredAccounts;
     }
 
-    public function isEnvelopeAvailable(Church $church, string $envelope, ?int $exceptMemberId = null): bool
-    {
+    public function isEnvelopeAvailable(
+        Church $church,
+        ?string $envelope,
+        ?int $exceptMemberId = null,
+        ?int $branchId = null,
+    ): bool {
+        if ($envelope === null || $envelope === '') {
+            return true;
+        }
+
         if (strlen($envelope) !== 3 || ! ctype_digit($envelope)) {
             return false;
         }
@@ -343,6 +355,10 @@ class MemberService
                     ->orWhere('spouse_envelope_number', $envelope);
             });
 
+        if ($church->branches_enabled) {
+            $query->where('branch_id', $branchId);
+        }
+
         if ($exceptMemberId) {
             $query->whereKeyNot($exceptMemberId);
         }
@@ -352,7 +368,7 @@ class MemberService
 
     public function convertChildToIndependentMember(
         MemberDependant $dependant,
-        string $envelopeNumber,
+        ?string $envelopeNumber = null,
         ?string $phoneNumber = null
     ): Member {
         $this->registeredAccounts = [];
@@ -364,6 +380,17 @@ class MemberService
 
             if (! $church) {
                 throw new \RuntimeException('Church not found for this child record.');
+            }
+
+            $envelopeNumber = $envelopeNumber !== null && $envelopeNumber !== ''
+                ? $envelopeNumber
+                : null;
+            $settings = app(ChurchSettingsService::class);
+
+            if ($settings->envelopeRequiredForAge($church, $dependant->age()) && ! $envelopeNumber) {
+                throw new \RuntimeException(
+                    'Envelope number is required from age '.$settings->envelopeRequiredFromAge($church).'.'
+                );
             }
 
             if ($dependant->relationship !== DependantRelationship::Child) {
@@ -386,14 +413,16 @@ class MemberService
                 return $existingMember->fresh(['user']);
             }
 
-            if (! $dependant->isEligibleForIndependence()) {
+            $graduationAge = app(ChurchSettingsService::class)->childGraduationAge($church);
+
+            if (! $dependant->isEligibleForIndependence($graduationAge)) {
                 throw new \RuntimeException(
-                    'Child must be at least '.config('membership.child_independence_age', 21).' years old with a date of birth on file.'
+                    "Child must be at least {$graduationAge} years old with a date of birth on file."
                 );
             }
 
-            if (! $this->isEnvelopeAvailable($church, $envelopeNumber)) {
-                throw new \RuntimeException('Envelope number is already in use.');
+            if ($envelopeNumber && ! $this->isEnvelopeAvailable($church, $envelopeNumber, null, $parent?->branch_id)) {
+                throw new \RuntimeException('Envelope number is already in use in this branch.');
             }
 
             $phone = $phoneNumber
@@ -402,6 +431,7 @@ class MemberService
 
             $memberData = [
                 'church_id' => $church->id,
+                'branch_id' => $parent?->branch_id,
                 'member_number' => $this->generateMemberId($church),
                 'envelope_number' => $envelopeNumber,
                 'member_type' => MemberType::Independent,
@@ -449,18 +479,23 @@ class MemberService
 
     public function processAgedOutChildren(Church $church): int
     {
+        $graduationAge = app(ChurchSettingsService::class)->childGraduationAge($church);
+
         $dependants = MemberDependant::forChurch($church->id)
-            ->eligibleForIndependence()
+            ->eligibleForIndependence($graduationAge)
             ->with('member')
             ->get();
 
         $converted = 0;
 
-        foreach ($dependants as $dependant) {
-            $envelope = $this->findNextAvailableEnvelope($church);
+        $settings = app(ChurchSettingsService::class);
 
-            if (! $envelope) {
-                break;
+        foreach ($dependants as $dependant) {
+            $envelope = $this->findNextAvailableEnvelope($church, $dependant->member?->branch_id);
+            $envelopeRequired = $settings->envelopeRequiredForAge($church, $dependant->age());
+
+            if ($envelopeRequired && ! $envelope) {
+                continue;
             }
 
             try {
@@ -474,12 +509,12 @@ class MemberService
         return $converted;
     }
 
-    public function findNextAvailableEnvelope(Church $church): ?string
+    public function findNextAvailableEnvelope(Church $church, ?int $branchId = null): ?string
     {
         for ($i = 1; $i <= 999; $i++) {
             $envelope = str_pad((string) $i, 3, '0', STR_PAD_LEFT);
 
-            if ($this->isEnvelopeAvailable($church, $envelope)) {
+            if ($this->isEnvelopeAvailable($church, $envelope, null, $branchId)) {
                 return $envelope;
             }
         }
@@ -878,8 +913,10 @@ class MemberService
             $linkedMemberId = $matchingMember->id;
         }
 
-        $kipaimaraEnabled = (bool) app(ChurchSettingsService::class)->get($church, 'kipaimara_registration_enabled', false);
-        $educationEnabled = (bool) app(ChurchSettingsService::class)->get($church, 'children_education_details_enabled', false);
+        $settings = app(ChurchSettingsService::class);
+        $dependantAge = $this->ageFromDateString($dependant['date_of_birth'] ?? null);
+        $kipaimaraAllowed = $settings->canShowKipaimara($church, $dependantAge, false);
+        $educationEnabled = (bool) $settings->get($church, 'children_education_details_enabled', false);
 
         $createdDependant = MemberDependant::create([
             'church_id' => $church->id,
@@ -888,7 +925,7 @@ class MemberService
             'gender' => $dependant['gender'],
             'date_of_birth' => $dependant['date_of_birth'] ?? null,
             ...$this->normalizeDependantBaptismFields($dependant),
-            ...($kipaimaraEnabled
+            ...($kipaimaraAllowed
                 ? $this->normalizeDependantKipaimaraFields($dependant, true)
                 : [
                     'is_kipaimara' => false,
@@ -1234,6 +1271,19 @@ class MemberService
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
+    private function ageFromDateString(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->age;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     private function normalizeKipaimaraFields(array $data, bool $allow, bool $forceClear = false): array
     {
         if (! $allow) {

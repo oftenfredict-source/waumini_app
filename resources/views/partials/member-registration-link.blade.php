@@ -4,7 +4,13 @@
         <div class="pr-3" style="flex: 1; min-width: 220px;">
             <h5 class="mb-2"><i class="fa fa-link text-primary"></i> Member self-registration link</h5>
             <p class="text-muted mb-2 small">
-                Share this link with members so they can register online. Applications will appear under
+                @if(!empty($registrationBranch))
+                    Share this link for <strong>{{ $registrationBranch->displayLabel() }}</strong>.
+                    Members who open it register into this branch only — they will not choose another branch.
+                @else
+                    Share this link with members so they can register online.
+                @endif
+                Applications will appear under
                 <strong>Registration Approvals</strong> for pastor or secretary review.
             </p>
         </div>

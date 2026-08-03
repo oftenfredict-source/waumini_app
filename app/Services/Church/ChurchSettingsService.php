@@ -50,6 +50,80 @@ class ChurchSettingsService
         return Arr::get($this->all($church), $key, $default);
     }
 
+    /**
+     * Age at which a dependant leaves the Children list and can convert to a member (youth).
+     * Children younger than this age remain active in Children.
+     */
+    public function childGraduationAge(Church $church): int
+    {
+        $age = (int) $this->get(
+            $church,
+            'child_max_age',
+            config('membership.child_independence_age', 13),
+        );
+
+        return max(1, min(30, $age));
+    }
+
+    public function youthMinAge(Church $church): int
+    {
+        $age = (int) $this->get($church, 'youth_min_age', $this->childGraduationAge($church));
+
+        return max(0, min(120, $age));
+    }
+
+    public function youthMaxAge(Church $church): int
+    {
+        $age = (int) $this->get($church, 'youth_max_age', 21);
+
+        return max($this->youthMinAge($church), min(120, $age));
+    }
+
+    /**
+     * Kipaimara fields are hidden for people younger than this age.
+     */
+    public function kipaimaraMinAge(Church $church): int
+    {
+        $age = (int) $this->get($church, 'kipaimara_min_age', 11);
+
+        return max(0, min(30, $age));
+    }
+
+    public function canShowKipaimara(?Church $church, ?int $age, bool $alreadyMarked = false): bool
+    {
+        if (! $church) {
+            return false;
+        }
+
+        if (! (bool) $this->get($church, 'kipaimara_registration_enabled', false) && ! $alreadyMarked) {
+            return false;
+        }
+
+        if ($age === null) {
+            return (bool) $this->get($church, 'kipaimara_registration_enabled', false) || $alreadyMarked;
+        }
+
+        return $age >= $this->kipaimaraMinAge($church);
+    }
+
+    /**
+     * Envelope is optional through the youth max age (inclusive), required from the next year.
+     * Example: youth 13–21 → optional; age 22+ → required.
+     */
+    public function envelopeRequiredForAge(Church $church, ?int $age): bool
+    {
+        if ($age === null) {
+            return true;
+        }
+
+        return $age > $this->youthMaxAge($church);
+    }
+
+    public function envelopeRequiredFromAge(Church $church): int
+    {
+        return $this->youthMaxAge($church) + 1;
+    }
+
     public function resolveSenderId(Church $church): string
     {
         if ((bool) $this->get($church, 'use_custom_sender_id', false)) {
@@ -89,26 +163,31 @@ class ChurchSettingsService
                     'remove_logo' => filter_var($input['remove_logo'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 ],
             ),
-            'membership' => array_merge(
-                validator($input, [
-                    'child_max_age' => ['required', 'integer', 'min:1', 'max:30'],
-                    'member_id_prefix' => ['required', 'string', 'min:2', 'max:6', 'regex:/^[A-Za-z0-9]+$/'],
-                    'department_assignment_rules' => ['nullable', 'array'],
-                    'department_assignment_rules.*.department_id' => ['nullable'],
-                    'department_assignment_rules.*.min_age' => ['nullable', 'integer', 'min:0', 'max:120'],
-                    'department_assignment_rules.*.max_age' => ['nullable', 'integer', 'min:0', 'max:120'],
-                    'department_assignment_rules.*.genders' => ['nullable', 'array'],
-                    'department_assignment_rules.*.genders.*' => ['string', Rule::in(['male', 'female'])],
-                    'department_assignment_rules.*.leadership_positions' => ['nullable', 'array'],
-                    'department_assignment_rules.*.leadership_positions.*' => ['string', Rule::enum(LeadershipPosition::class)],
-                ])->validate(),
-                [
-                    'auto_generate_member_id' => filter_var($input['auto_generate_member_id'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'require_member_phone' => filter_var($input['require_member_phone'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'kipaimara_registration_enabled' => filter_var($input['kipaimara_registration_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'children_education_details_enabled' => filter_var($input['children_education_details_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'department_assignment_enabled' => filter_var($input['department_assignment_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                ],
+            'membership' => $this->normalizeMembershipTab(
+                array_merge(
+                    validator($input, [
+                        'child_max_age' => ['required', 'integer', 'min:1', 'max:30'],
+                        'youth_min_age' => ['required', 'integer', 'min:1', 'max:120'],
+                        'youth_max_age' => ['required', 'integer', 'min:1', 'max:120'],
+                        'kipaimara_min_age' => ['required', 'integer', 'min:0', 'max:30'],
+                        'member_id_prefix' => ['required', 'string', 'min:2', 'max:6', 'regex:/^[A-Za-z0-9]+$/'],
+                        'department_assignment_rules' => ['nullable', 'array'],
+                        'department_assignment_rules.*.department_id' => ['nullable'],
+                        'department_assignment_rules.*.min_age' => ['nullable', 'integer', 'min:0', 'max:120'],
+                        'department_assignment_rules.*.max_age' => ['nullable', 'integer', 'min:0', 'max:120'],
+                        'department_assignment_rules.*.genders' => ['nullable', 'array'],
+                        'department_assignment_rules.*.genders.*' => ['string', Rule::in(['male', 'female'])],
+                        'department_assignment_rules.*.leadership_positions' => ['nullable', 'array'],
+                        'department_assignment_rules.*.leadership_positions.*' => ['string', Rule::enum(LeadershipPosition::class)],
+                    ])->validate(),
+                    [
+                        'auto_generate_member_id' => filter_var($input['auto_generate_member_id'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'require_member_phone' => filter_var($input['require_member_phone'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'kipaimara_registration_enabled' => filter_var($input['kipaimara_registration_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'children_education_details_enabled' => filter_var($input['children_education_details_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'department_assignment_enabled' => filter_var($input['department_assignment_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    ],
+                )
             ),
             'finance' => array_merge(
                 validator($input, [
@@ -344,6 +423,39 @@ class ChurchSettingsService
         return array_merge($data, [
             'department_assignment_enabled' => $enabled,
             'department_assignment_rules' => $rules,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeMembershipTab(array $data): array
+    {
+        $childMaxAge = (int) ($data['child_max_age'] ?? 13);
+        $youthMinAge = (int) ($data['youth_min_age'] ?? $childMaxAge);
+        $youthMaxAge = (int) ($data['youth_max_age'] ?? 21);
+        $kipaimaraMinAge = (int) ($data['kipaimara_min_age'] ?? 11);
+
+        $errors = [];
+
+        if ($youthMinAge < $childMaxAge) {
+            $errors['youth_min_age'] = 'Youth minimum age cannot be lower than the child graduation age.';
+        }
+
+        if ($youthMaxAge < $youthMinAge) {
+            $errors['youth_max_age'] = 'Youth maximum age must be greater than or equal to the youth minimum age.';
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return array_merge($data, [
+            'child_max_age' => $childMaxAge,
+            'youth_min_age' => $youthMinAge,
+            'youth_max_age' => $youthMaxAge,
+            'kipaimara_min_age' => $kipaimaraMinAge,
         ]);
     }
 

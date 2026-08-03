@@ -167,16 +167,29 @@
                 <form method="POST" action="{{ route('church.member-registrations.approve', $application) }}" id="approveRegistrationForm">
                     @csrf
                     <div class="form-group">
-                        <label>{{ __('pages.member_registrations.envelope_number') }} *</label>
+                        <label>
+                            {{ __('pages.member_registrations.envelope_number') }}
+                            @if($envelopeRequired ?? true)<span class="text-danger">*</span>@endif
+                        </label>
                         <input type="text" name="envelope_number" id="approval_envelope_number" class="form-control"
-                            maxlength="3" pattern="\d{3}" required>
+                            maxlength="3" pattern="\d{3}" @if($envelopeRequired ?? true) required @endif>
                         <small id="approval_envelope_status" class="form-text"></small>
+                        <small class="form-text text-muted">
+                            @if($envelopeRequired ?? true)
+                                Required from age {{ $envelopeRequiredFromAge ?? 22 }}.
+                            @else
+                                Optional through age {{ $youthMaxAge ?? 21 }}; required from age {{ $envelopeRequiredFromAge ?? 22 }}.
+                            @endif
+                        </small>
                     </div>
                     @if($needsSpouseEnvelope)
                         <div class="form-group">
-                            <label>{{ __('pages.member_registrations.spouse_envelope_number') }} *</label>
+                            <label>
+                                {{ __('pages.member_registrations.spouse_envelope_number') }}
+                                @if($spouseEnvelopeRequired ?? false)<span class="text-danger">*</span>@endif
+                            </label>
                             <input type="text" name="spouse_envelope_number" id="approval_spouse_envelope_number" class="form-control"
-                                maxlength="3" pattern="\d{3}" required>
+                                maxlength="3" pattern="\d{3}" @if($spouseEnvelopeRequired ?? false) required @endif>
                         </div>
                     @endif
                     <button type="submit" class="btn btn-success btn-block">
@@ -229,7 +242,12 @@
             return;
         }
         timer = setTimeout(function () {
-            fetch(url + '?envelope=' + encodeURIComponent(value), {
+            const params = new URLSearchParams({
+                envelope: value,
+                registration: @json($application->id),
+                branch_id: @json($application->branch_id ?? ($application->registration_data['branch_id'] ?? null)),
+            });
+            fetch(url + '?' + params.toString(), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
                 .then(r => r.json())

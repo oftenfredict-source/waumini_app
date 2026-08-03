@@ -37,8 +37,17 @@
 @push('scripts')
 @include('partials.member-wizard-i18n')
 <script>
+    @php
+        $wizardSettings = app(\App\Services\Church\ChurchSettingsService::class);
+        $wizardChurch = auth()->user()->church;
+    @endphp
     window.memberWizardConfig = {
         isEdit: false,
+        branchId: @json($defaultBranchId ?? null),
+        kipaimaraRegistrationEnabled: @json((bool) $wizardSettings->get($wizardChurch, 'kipaimara_registration_enabled', false)),
+        kipaimaraMinAge: @json($wizardSettings->kipaimaraMinAge($wizardChurch)),
+        youthMaxAge: @json($wizardSettings->youthMaxAge($wizardChurch)),
+        envelopeRequiredFromAge: @json($wizardSettings->envelopeRequiredFromAge($wizardChurch)),
         checkEnvelopeUrl: @json(route('church.members.check-envelope')),
         locationsUrl: @json(asset('data/tanzania-locations.json')),
         csrfToken: @json(csrf_token()),

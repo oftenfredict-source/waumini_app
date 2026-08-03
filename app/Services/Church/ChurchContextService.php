@@ -3,6 +3,7 @@
 namespace App\Services\Church;
 
 use App\Models\Church;
+use App\Models\ChurchBranch;
 use App\Models\ChurchDomain;
 use Illuminate\Http\Request;
 
@@ -76,14 +77,43 @@ class ChurchContextService
         return null;
     }
 
-    public function registrationUrl(Church $church): string
+    public function resolveRegistrationBranch(Request $request, Church $church): ?ChurchBranch
     {
-        return $church->portalUrl('/register');
+        if (! $church->branches_enabled) {
+            return null;
+        }
+
+        $code = $request->string('branch')->trim()->toString();
+
+        if ($code === '') {
+            return null;
+        }
+
+        return $church->branches()
+            ->active()
+            ->where('code', $code)
+            ->first();
     }
 
-    public function registrationSubdomainUrl(Church $church): string
+    public function registrationUrl(Church $church, ?ChurchBranch $branch = null): string
     {
-        return $church->subdomainUrl('/register');
+        return $this->appendRegistrationBranch($church->portalUrl('/register'), $branch);
+    }
+
+    public function registrationSubdomainUrl(Church $church, ?ChurchBranch $branch = null): string
+    {
+        return $this->appendRegistrationBranch($church->subdomainUrl('/register'), $branch);
+    }
+
+    private function appendRegistrationBranch(string $url, ?ChurchBranch $branch): string
+    {
+        if (! $branch?->code) {
+            return $url;
+        }
+
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$separator.http_build_query(['branch' => $branch->code]);
     }
 
     public function loginUrl(Church $church): string

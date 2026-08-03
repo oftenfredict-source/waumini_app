@@ -8,7 +8,6 @@ use App\Enums\MemberType;
 use App\Enums\MembershipType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreMemberSelfRegistrationRequest;
-use App\Models\ChurchBranch;
 use App\Models\Member;
 use App\Services\Church\ChurchContextService;
 use App\Services\Church\MemberRegistrationApplicationService;
@@ -32,8 +31,12 @@ class MemberSelfRegistrationController extends Controller
 
         $this->churchContextService->bindCurrentChurch($church);
 
+        $lockedBranch = $this->churchContextService->resolveRegistrationBranch(request(), $church);
+
         $branches = $church->branches_enabled
-            ? $church->branches()->orderBy('name')->get()
+            ? ($lockedBranch
+                ? collect([$lockedBranch])
+                : $church->branches()->orderBy('name')->get())
             : collect();
 
         $churchMembers = Member::forChurch($church->id)
@@ -45,7 +48,9 @@ class MemberSelfRegistrationController extends Controller
         return view('church.auth.register', [
             'church' => $church,
             'branches' => $branches,
-            'defaultBranchId' => $church->headquarters?->id ?? $branches->first()?->id,
+            'defaultBranchId' => $lockedBranch?->id ?? $church->headquarters?->id ?? $branches->first()?->id,
+            'branchLocked' => $lockedBranch !== null,
+            'lockedBranch' => $lockedBranch,
             'membershipTypes' => MembershipType::cases(),
             'memberTypes' => MemberType::cases(),
             'educationLevels' => EducationLevel::cases(),
@@ -66,9 +71,16 @@ class MemberSelfRegistrationController extends Controller
 
         $this->churchContextService->bindCurrentChurch($church);
 
+        $data = $request->safe()->except(['profile_picture', 'dependants']);
+
+        $lockedBranch = $this->churchContextService->resolveRegistrationBranch($request, $church);
+        if ($lockedBranch) {
+            $data['branch_id'] = $lockedBranch->id;
+        }
+
         $application = $this->registrationService->submit(
             $church,
-            $request->safe()->except(['profile_picture', 'dependants']),
+            $data,
             $request->file('profile_picture'),
             $request->input('dependants', []),
         );

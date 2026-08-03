@@ -194,19 +194,21 @@ class AttendanceController extends Controller
         $this->branchAccessService->applyBranchScope($membersQuery, $user);
         $members = $membersQuery->get(['id', 'full_name', 'member_number', 'envelope_number']);
 
+        $graduationAge = app(\App\Services\Church\ChurchSettingsService::class)->childGraduationAge($church);
+
         $sundaySchoolChildren = MemberDependant::forChurch($church->id)
             ->forSundaySchool()
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'gender', 'date_of_birth', 'member_id']);
 
         $teenagers = MemberDependant::forChurch($church->id)
-            ->forMainServiceAttendance()
+            ->forMainServiceAttendance($graduationAge)
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'gender', 'date_of_birth', 'member_id']);
 
         $allChildren = MemberDependant::forChurch($church->id)
             ->children()
-            ->whereNull('linked_member_id')
+            ->activeChildren($graduationAge)
             ->orderBy('full_name')
             ->get(['id', 'full_name', 'gender', 'date_of_birth', 'member_id']);
 

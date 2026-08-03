@@ -76,7 +76,8 @@
                         <option value="">{{ __('pages.shared.select_department') }}</option>
                         @foreach($departments as $department)
                             <option value="{{ $department->id }}" @selected(old('department_id') == $department->id)>
-                                {{ $department->name }} ({{ __('pages.shared.members_count', ['count' => $department->members_count]) }})
+                                {{ ($branchesEnabled ?? false) ? $department->displayLabel() : $department->name }}
+                                ({{ __('pages.shared.members_count', ['count' => $department->members_count]) }})
                             </option>
                         @endforeach
                     </select>

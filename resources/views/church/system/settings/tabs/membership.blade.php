@@ -17,16 +17,48 @@
     @csrf
     @method('PUT')
 
+    <h5 class="mb-2">Children &amp; youth ages</h5>
+    <div class="alert alert-light border mb-3">
+        <p class="mb-0">
+            Set when a person leaves the <strong>Children</strong> list and joins <strong>Youth</strong> as an independent member
+            (with an envelope number). Example: graduate at <strong>13</strong>, youth band <strong>13–21</strong> — ages 0–12 stay in Children.
+        </p>
+    </div>
+
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
-                <label>Child Maximum Age <span class="text-danger">*</span></label>
+                <label>Child graduation age <span class="text-danger">*</span></label>
                 <input type="number" name="child_max_age" class="form-control @error('child_max_age') is-invalid @enderror"
                        min="1" max="30" value="{{ old('child_max_age', $settings['child_max_age']) }}" required>
-                <small class="form-text text-muted">Maximum age before a dependant is treated as an independent member.</small>
+                <small class="form-text text-muted">From this age they leave Children and can convert to a member (youth) with an envelope number.</small>
                 @error('child_max_age')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Youth from age <span class="text-danger">*</span></label>
+                <input type="number" name="youth_min_age" class="form-control @error('youth_min_age') is-invalid @enderror"
+                       min="1" max="120" value="{{ old('youth_min_age', $settings['youth_min_age'] ?? $settings['child_max_age']) }}" required>
+                <small class="form-text text-muted">Start of youth age band (usually same as graduation age). Pair with department rules for Idara ya vijana.</small>
+                @error('youth_min_age')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Youth to age <span class="text-danger">*</span></label>
+                <input type="number" name="youth_max_age" class="form-control @error('youth_max_age') is-invalid @enderror"
+                       min="1" max="120" value="{{ old('youth_max_age', $settings['youth_max_age'] ?? 21) }}" required>
+                <small class="form-text text-muted">
+                    End of youth age band (example 21). Envelope number is <strong>optional</strong> up to this age;
+                    from age {{ (int) old('youth_max_age', $settings['youth_max_age'] ?? 21) + 1 }} it becomes <strong>required</strong>.
+                </small>
+                @error('youth_max_age')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <div class="form-group">
                 <label>Member ID Prefix <span class="text-danger">*</span></label>
@@ -34,6 +66,15 @@
                        maxlength="10" value="{{ old('member_id_prefix', $settings['member_id_prefix']) }}" required>
                 <small class="form-text text-muted">Used in member numbers, e.g. {{ strtoupper(old('member_id_prefix', $settings['member_id_prefix'])) }}-{{ now()->format('Y') }}-0001</small>
                 @error('member_id_prefix')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Kipaimara minimum age <span class="text-danger">*</span></label>
+                <input type="number" name="kipaimara_min_age" class="form-control @error('kipaimara_min_age') is-invalid @enderror"
+                       min="0" max="30" value="{{ old('kipaimara_min_age', $settings['kipaimara_min_age'] ?? 11) }}" required>
+                <small class="form-text text-muted">Hide Kipaimara completely below this age (default 11 hides ages 0–10).</small>
+                @error('kipaimara_min_age')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
     </div>
@@ -66,7 +107,7 @@
                 <span class="label-text">Allow Kipaimara (confirmation) details during member registration</span>
             </label>
         </div>
-        <small class="form-text text-muted">When enabled, registration shows Kipaimara fields similar to baptism. The officiant field is labeled Bishop (not Minister).</small>
+        <small class="form-text text-muted">When enabled, Kipaimara fields show only for people who meet the minimum age above. Younger ages hide Kipaimara completely.</small>
     </div>
 
     <div class="form-group">
@@ -87,10 +128,10 @@
         <p class="mb-2">Build one rule per department. Each rule can use <strong>gender</strong>, <strong>age</strong>, and/or <strong>leadership</strong>. If several are set, the person must match all of them.</p>
         <ul class="mb-0 pl-3">
             <li><strong>Women department</strong> — Gender: Female only</li>
-            <li><strong>Idara ya watoto</strong> — Ages 0–12 (applies to children list + members in that age)</li>
-            <li><strong>Idara ya vijana</strong> — Ages 13–40</li>
+            <li><strong>Idara ya watoto</strong> — Ages 0–{{ max(0, (int) old('child_max_age', $settings['child_max_age']) - 1) }} (children list)</li>
+            <li><strong>Idara ya vijana</strong> — Ages {{ old('youth_min_age', $settings['youth_min_age'] ?? $settings['child_max_age']) }}–{{ old('youth_max_age', $settings['youth_max_age'] ?? 21) }} (envelope optional; required from age {{ (int) old('youth_max_age', $settings['youth_max_age'] ?? 21) + 1 }})</li>
             <li><strong>Elders department</strong> — Leadership: Church Elder (roster stays in sync with active elders only)</li>
-            <li><strong>Female youth</strong> — Gender: Female + ages 13–40</li>
+            <li><strong>Female youth</strong> — Gender: Female + youth age band</li>
         </ul>
     </div>
 

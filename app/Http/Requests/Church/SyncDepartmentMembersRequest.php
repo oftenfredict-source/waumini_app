@@ -19,11 +19,18 @@ class SyncDepartmentMembersRequest extends FormRequest
     public function rules(): array
     {
         $churchId = $this->user()->church_id;
+        /** @var Department $department */
+        $department = $this->route('department');
 
         return [
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => [
-                Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId)),
+                Rule::exists('members', 'id')->where(function ($q) use ($churchId, $department) {
+                    $q->where('church_id', $churchId);
+                    if ($department->branch_id) {
+                        $q->where('branch_id', $department->branch_id);
+                    }
+                }),
             ],
         ];
     }

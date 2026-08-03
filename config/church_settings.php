@@ -32,7 +32,10 @@ return [
     'defaults' => [
         'date_format' => 'd/m/Y',
         'locale' => 'en',
-        'child_max_age' => 18,
+        'child_max_age' => 13,
+        'youth_min_age' => 13,
+        'youth_max_age' => 21,
+        'kipaimara_min_age' => 11,
         'auto_generate_member_id' => true,
         'member_id_prefix' => 'WL',
         'require_member_phone' => false,

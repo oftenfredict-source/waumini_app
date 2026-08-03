@@ -24,7 +24,7 @@
                 @foreach($departments as $department)
                     <option value="{{ $department->id }}"
                         @selected((string) ($rule['department_id'] ?? '') === (string) $department->id)>
-                        {{ $department->name }}
+                        {{ ($branchesEnabled ?? false) ? $department->displayLabel() : $department->name }}
                     </option>
                 @endforeach
             </select>

@@ -8,6 +8,7 @@ use App\Http\Requests\Church\StoreChildRequest;
 use App\Http\Requests\Church\UpdateDependantRequest;
 use App\Models\Member;
 use App\Models\MemberDependant;
+use App\Services\Church\ChurchSettingsService;
 use App\Services\Church\MemberService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class MemberChildController extends Controller
 {
     public function __construct(
         private readonly MemberService $memberService,
+        private readonly ChurchSettingsService $churchSettingsService,
     ) {}
 
     public function index(Request $request): View
@@ -24,11 +26,15 @@ class MemberChildController extends Controller
         $this->authorize('viewAny', MemberDependant::class);
 
         $church = auth()->user()->church;
-        $independenceAge = config('membership.child_independence_age', 21);
+        $independenceAge = $this->churchSettingsService->childGraduationAge($church);
+        $status = $request->string('status')->trim()->toString();
+        if ($status === '') {
+            $status = 'active';
+        }
 
         $query = MemberDependant::forChurch($church->id)
             ->children()
-            ->with(['member', 'linkedMember'])
+            ->with(['member', 'linkedMember', 'church'])
             ->latest();
 
         if ($search = $request->string('search')->trim()->toString()) {
@@ -39,34 +45,29 @@ class MemberChildController extends Controller
             });
         }
 
-        if ($status = $request->string('status')->trim()->toString()) {
-            match ($status) {
-                'converted' => $query->whereNotNull('linked_member_id'),
-                'eligible' => $query->whereNull('linked_member_id')
-                    ->whereNotNull('date_of_birth')
-                    ->whereDate('date_of_birth', '<=', now()->subYears($independenceAge)->toDateString()),
-                'active' => $query->whereNull('linked_member_id')
-                    ->where(function ($q) use ($independenceAge) {
-                        $q->whereNull('date_of_birth')
-                            ->orWhereDate('date_of_birth', '>', now()->subYears($independenceAge)->toDateString());
-                    }),
-                default => null,
-            };
-        }
+        match ($status) {
+            'converted' => $query->whereNotNull('linked_member_id'),
+            'eligible' => $query->eligibleForIndependence($independenceAge),
+            'active' => $query->activeChildren($independenceAge),
+            'all' => null,
+            default => $query->activeChildren($independenceAge),
+        };
 
         $children = $query->paginate(20)->withQueryString();
 
         $stats = [
-            'total' => MemberDependant::forChurch($church->id)->children()->count(),
-            'eligible' => MemberDependant::forChurch($church->id)->children()->eligibleForIndependence()->count(),
+            'total' => MemberDependant::forChurch($church->id)->children()->activeChildren($independenceAge)->count(),
+            'eligible' => MemberDependant::forChurch($church->id)->children()->eligibleForIndependence($independenceAge)->count(),
             'converted' => MemberDependant::forChurch($church->id)->children()->whereNotNull('linked_member_id')->count(),
         ];
 
         return view('church.members.children.index', [
             'children' => $children,
-            'filters' => $request->only(['search', 'status']),
+            'filters' => array_merge($request->only(['search']), ['status' => $status]),
             'stats' => $stats,
             'independenceAge' => $independenceAge,
+            'youthMinAge' => $this->churchSettingsService->youthMinAge($church),
+            'youthMaxAge' => $this->churchSettingsService->youthMaxAge($church),
         ]);
     }
 
@@ -84,6 +85,7 @@ class MemberChildController extends Controller
         return view('church.members.children.create', [
             'members' => $members,
             'selectedMemberId' => $request->integer('member_id') ?: old('member_id'),
+            'independenceAge' => $this->churchSettingsService->childGraduationAge($church),
         ]);
     }
 
@@ -119,8 +121,14 @@ class MemberChildController extends Controller
 
         $dependant->load(['member', 'linkedMember']);
 
+        $church = auth()->user()->church;
+        $age = $dependant->age();
+        $kipaimaraChecked = (bool) $dependant->is_kipaimara;
+
         return view('church.members.children.edit', [
             'dependant' => $dependant,
+            'showKipaimaraFields' => $this->churchSettingsService->canShowKipaimara($church, $age, $kipaimaraChecked),
+            'kipaimaraMinAge' => $this->churchSettingsService->kipaimaraMinAge($church),
         ]);
     }
 
@@ -174,7 +182,9 @@ class MemberChildController extends Controller
         $converted = $this->memberService->processAgedOutChildren($church);
 
         if ($converted === 0) {
-            return back()->with('error', 'No children aged '.config('membership.child_independence_age', 21).'+ are waiting for conversion with an available envelope.');
+            $age = $this->churchSettingsService->childGraduationAge($church);
+
+            return back()->with('error', "No children aged {$age}+ are waiting for conversion with an available envelope.");
         }
 
         return back()->with('success', "{$converted} child(ren) converted to independent members.");

@@ -121,15 +121,7 @@
             </div>
         </div>
 
-        @php
-            $kipaimaraEnabled = (bool) app(\App\Services\Church\ChurchSettingsService::class)->get(
-                auth()->user()->church,
-                'kipaimara_registration_enabled',
-                false
-            ) || (bool) old('is_kipaimara', $dependant->is_kipaimara);
-        @endphp
-
-        @if($kipaimaraEnabled)
+        <div id="childKipaimaraSection" @if(empty($showKipaimaraFields)) style="display:none;" @endif>
         <hr>
         <h5>{{ __('pages.members.kipaimara') }}</h5>
         <div class="row">
@@ -169,7 +161,7 @@
                 </div>
             </div>
         </div>
-        @endif
+        </div>
 
         @php
             $childrenEducationEnabled = (bool) app(\App\Services\Church\ChurchSettingsService::class)->get(
@@ -226,6 +218,38 @@
         if (kipaimara) {
             kipaimara.addEventListener('change', toggleKipaimaraFields);
             toggleKipaimaraFields();
+        }
+
+        var dob = document.querySelector('input[name="date_of_birth"]');
+        var kipaimaraSection = document.getElementById('childKipaimaraSection');
+        var kipaimaraMinAge = {{ (int) ($kipaimaraMinAge ?? 11) }};
+        var kipaimaraEnabled = @json((bool) app(\App\Services\Church\ChurchSettingsService::class)->get(auth()->user()->church, 'kipaimara_registration_enabled', false));
+
+        function ageFromDob(value) {
+            if (!value) return null;
+            var birth = new Date(value + 'T00:00:00');
+            if (isNaN(birth.getTime())) return null;
+            var today = new Date();
+            var age = today.getFullYear() - birth.getFullYear();
+            var m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+            return age;
+        }
+
+        function syncChildKipaimaraVisibility() {
+            if (!kipaimaraSection) return;
+            var age = ageFromDob(dob ? dob.value : '');
+            var show = kipaimaraEnabled && (age === null || age >= kipaimaraMinAge);
+            kipaimaraSection.style.display = show ? 'block' : 'none';
+            if (!show && kipaimara) {
+                kipaimara.checked = false;
+                toggleKipaimaraFields();
+            }
+        }
+
+        if (dob) {
+            dob.addEventListener('change', syncChildKipaimaraVisibility);
+            syncChildKipaimaraVisibility();
         }
     })();
 </script>

@@ -101,6 +101,7 @@ class AttendanceService
                 ->delete();
 
             $mode = $this->attendanceMode($source);
+            $graduationAge = app(ChurchSettingsService::class)->childGraduationAge($church);
 
             if ($mode === 'sunday_school') {
                 $memberIds = collect();
@@ -114,7 +115,7 @@ class AttendanceService
                     ->where('status', 'active')
                     ->pluck('id');
                 $dependantIds = MemberDependant::forChurch($church->id)
-                    ->forMainServiceAttendance()
+                    ->forMainServiceAttendance($graduationAge)
                     ->whereIn('id', $dependantIds)
                     ->pluck('id');
             } else {
@@ -124,7 +125,7 @@ class AttendanceService
                     ->pluck('id');
                 $dependantIds = MemberDependant::forChurch($church->id)
                     ->children()
-                    ->whereNull('linked_member_id')
+                    ->activeChildren($graduationAge)
                     ->whereIn('id', $dependantIds)
                     ->pluck('id');
             }

@@ -20,6 +20,9 @@
             <h3 class="tile-title">{{ __('pages.departments.information_title') }}</h3>
             <table class="table table-borderless mb-0">
                 <tr><th width="180">{{ __('common.name') }}</th><td>{{ $department->name }}</td></tr>
+                @if($branchesEnabled ?? false)
+                    <tr><th>{{ __('pages.branches.item') }}</th><td>{{ $department->branch?->displayLabel() ?? '—' }}</td></tr>
+                @endif
                 <tr><th>{{ __('common.status') }}</th>
                     <td>
                         <span class="badge badge-{{ $department->status->value === 'active' ? 'success' : 'secondary' }}">

@@ -118,7 +118,7 @@
                     <input type="date" name="date_of_birth"
                         class="form-control @error('date_of_birth') is-invalid @enderror"
                         value="{{ old('date_of_birth') }}" max="{{ now()->subDay()->toDateString() }}">
-                    <small class="text-muted">{{ __('pages.members_children.conversion_age_hint', ['age' => config('membership.child_independence_age', 21)]) }}</small>
+                    <small class="text-muted">{{ __('pages.members_children.conversion_age_hint', ['age' => $independenceAge ?? 13]) }}</small>
                     @error('date_of_birth')<small class="text-danger d-block">{{ $message }}</small>@enderror
                 </div>
             </div>

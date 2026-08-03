@@ -11,7 +11,7 @@ return [
     | independent permanent member.
     |
     */
-    'child_independence_age' => (int) env('CHILD_INDEPENDENCE_AGE', 21),
+    'child_independence_age' => (int) env('CHILD_INDEPENDENCE_AGE', 13),
 
     /*
     |--------------------------------------------------------------------------

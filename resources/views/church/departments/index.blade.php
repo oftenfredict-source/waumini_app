@@ -23,6 +23,14 @@
                 <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('common.active') }}</option>
                 <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('common.inactive') }}</option>
             </select>
+            @if($canFilterBranches ?? false)
+                <select name="branch_id" class="form-control mr-2 mb-2">
+                    <option value="">{{ __('pages.shared.all_branches') }}</option>
+                    @foreach($branches as $branch)
+                        <option value="{{ $branch->id }}" @selected((string) ($filters['branch_id'] ?? '') === (string) $branch->id)>{{ $branch->displayLabel() }}</option>
+                    @endforeach
+                </select>
+            @endif
             <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.search') }}</button>
         </form>
     </div>
@@ -42,6 +50,9 @@
                 <thead>
                     <tr>
                         <th>{{ __('pages.shared.department_name') }}</th>
+                        @if($branchesEnabled ?? false)
+                            <th>{{ __('pages.branches.item') }}</th>
+                        @endif
                         <th>{{ __('pages.shared.leader_col') }}</th>
                         <th>{{ __('pages.shared.members') }}</th>
                         <th>{{ __('common.status') }}</th>
@@ -58,6 +69,9 @@
                                     <br><small class="text-muted">{{ Str::limit($department->description, 60) }}</small>
                                 @endif
                             </td>
+                            @if($branchesEnabled ?? false)
+                                <td>{{ $department->branch?->displayLabel() ?? '—' }}</td>
+                            @endif
                             <td>{{ $department->head?->full_name ?? '—' }}</td>
                             <td>
                                 <strong>{{ $department->members_count ?? 0 }}</strong>
@@ -103,7 +117,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="{{ ($branchesEnabled ?? false) ? 7 : 6 }}" class="text-center text-muted py-4">
                                 {{ __('pages.departments.empty') }}
                                 @can('create', \App\Models\Department::class)
                                     <a href="{{ route('church.departments.create') }}">{{ __('pages.departments.add_department_link') }}</a>.

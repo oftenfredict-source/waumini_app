@@ -59,7 +59,9 @@ class ChurchDashboardService
             'active_members' => (clone $membersQuery)->where('status', MemberStatus::Active->value)->count(),
             'new_members_month' => (clone $membersQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->count(),
             'children' => MemberDependant::forChurch($churchId)->count(),
-            'departments' => Department::forChurch($churchId)->count(),
+            'departments' => tap(Department::forChurch($churchId), function ($query) use ($user) {
+                $this->branchAccessService->applyBranchScope($query, $user);
+            })->count(),
             'leaders' => (clone $leadersQuery)->count(),
             'monthly_attendance' => (clone $attendanceQuery)->count(),
             'upcoming_events_count' => (clone $eventsQuery)->count(),

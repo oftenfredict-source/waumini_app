@@ -51,11 +51,25 @@
     $settingsChurch = $church
         ?? ($member?->church ?? null)
         ?? auth()->user()?->church;
+    $settingsService = app(\App\Services\Church\ChurchSettingsService::class);
     $kipaimaraRegistrationEnabled = (bool) ($kipaimaraRegistrationEnabled
         ?? ($settingsChurch
-            ? app(\App\Services\Church\ChurchSettingsService::class)->get($settingsChurch, 'kipaimara_registration_enabled', false)
+            ? $settingsService->get($settingsChurch, 'kipaimara_registration_enabled', false)
             : false));
-    $showKipaimaraFields = $kipaimaraRegistrationEnabled || ($isEdit && $kipaimaraChecked);
+    $kipaimaraMinAge = (int) ($kipaimaraMinAge
+        ?? ($settingsChurch ? $settingsService->kipaimaraMinAge($settingsChurch) : 11));
+    $memberAgeForKipaimara = null;
+    if ($dob = $d('date_of_birth')) {
+        try {
+            $memberAgeForKipaimara = \Carbon\Carbon::parse($dob)->age;
+        } catch (\Throwable) {
+            $memberAgeForKipaimara = null;
+        }
+    }
+    $showKipaimaraFields = $settingsChurch
+        ? $settingsService->canShowKipaimara($settingsChurch, $memberAgeForKipaimara, $isEdit && $kipaimaraChecked)
+        : false;
+    $kipaimaraSectionEnabled = $kipaimaraRegistrationEnabled || ($isEdit && $kipaimaraChecked);
     $childrenEducationEnabled = (bool) ($childrenEducationEnabled
         ?? ($settingsChurch
             ? app(\App\Services\Church\ChurchSettingsService::class)->get($settingsChurch, 'children_education_details_enabled', false)
@@ -109,11 +123,20 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>{{ __('members.fields.branch') }} *</label>
-                            <select name="branch_id" class="form-control" required>
-                                @foreach($branches as $branch)
-                                    <option value="{{ $branch->id }}" @selected((string) $d('branch_id', $defaultBranchId ?? null) === (string) $branch->id)>{{ $branch->displayLabel() }}</option>
-                                @endforeach
-                            </select>
+                            @if(!empty($branchLocked))
+                                @php
+                                    $lockedBranchLabel = $branches->firstWhere('id', $defaultBranchId)?->displayLabel()
+                                        ?? $branches->first()?->displayLabel();
+                                @endphp
+                                <input type="text" class="form-control" value="{{ $lockedBranchLabel }}" disabled>
+                                <input type="hidden" name="branch_id" value="{{ $defaultBranchId }}">
+                            @else
+                                <select name="branch_id" class="form-control" required>
+                                    @foreach($branches as $branch)
+                                        <option value="{{ $branch->id }}" @selected((string) $d('branch_id', $defaultBranchId ?? null) === (string) $branch->id)>{{ $branch->displayLabel() }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -158,11 +181,15 @@
                 </div>
                 <div class="col-md-4" id="envelopeFieldWrap" @if($isSelfRegistration ?? false) style="display:none;" @endif>
                     <div class="form-group">
-                        <label>{{ __('members.fields.envelope_number') }} *</label>
+                        <label>
+                            {{ __('members.fields.envelope_number') }}
+                            <span id="envelopeRequiredMark" class="text-danger">*</span>
+                        </label>
                         <input type="text" name="envelope_number" id="envelope_number" class="form-control"
                             maxlength="3" pattern="\d{3}" value="{{ $d('envelope_number') }}"
                             @unless($isSelfRegistration ?? false) required @endunless>
                         <div id="envelope_status" class="envelope-status"></div>
+                        <small id="envelopeAgeHint" class="text-muted" style="display:none;"></small>
                         @if($isSelfRegistration ?? false)
                             <small class="text-muted">{{ __('members.fields.envelope_assigned_later') }}</small>
                         @endif
@@ -261,18 +288,19 @@
                 </div>
             </div>
 
-            @if($showKipaimaraFields)
+            @if($kipaimaraSectionEnabled)
+            <div id="memberKipaimaraSection" @if(! $showKipaimaraFields) style="display:none;" @endif>
             <h4 class="mt-3 mb-3">{{ __('members.fields.kipaimara_info') }}</h4>
             <div class="row">
                 <div class="col-md-12">
                     <div class="animated-checkbox mb-3">
                         <label>
-                            <input type="checkbox" name="is_kipaimara" id="is_kipaimara" value="1" @checked($kipaimaraChecked)>
+                            <input type="checkbox" name="is_kipaimara" id="is_kipaimara" value="1" @checked($kipaimaraChecked && $showKipaimaraFields)>
                             <span class="label-text">{{ __('members.fields.is_kipaimara') }}</span>
                         </label>
                     </div>
                 </div>
-                <div class="col-md-12{{ $kipaimaraChecked ? ' is-visible' : '' }}" id="memberKipaimaraFields">
+                <div class="col-md-12{{ ($kipaimaraChecked && $showKipaimaraFields) ? ' is-visible' : '' }}" id="memberKipaimaraFields">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
@@ -296,6 +324,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
             @endif
         </div>
@@ -854,8 +883,8 @@
                     </div>
                 </div>
             </div>
-            @if($showKipaimaraFields)
-            <div class="col-md-12">
+            @if($kipaimaraSectionEnabled)
+            <div class="col-md-12 dependant-kipaimara-wrap" style="display:none;">
                 <div class="animated-checkbox mb-2">
                     <label>
                         <input type="checkbox" class="dependant-kipaimara" data-name="is_kipaimara" value="1">

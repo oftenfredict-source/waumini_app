@@ -638,6 +638,105 @@
         }
     }
 
+    function ageFromDobValue(value) {
+        if (!value) return null;
+        var birth = new Date(value + 'T00:00:00');
+        if (isNaN(birth.getTime())) return null;
+        var today = new Date();
+        var age = today.getFullYear() - birth.getFullYear();
+        var m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        return age;
+    }
+
+    function kipaimaraMinAge() {
+        var min = parseInt(window.memberWizardConfig.kipaimaraMinAge, 10);
+        return isNaN(min) ? 11 : min;
+    }
+
+    function kipaimaraFeatureEnabled() {
+        return !!window.memberWizardConfig.kipaimaraRegistrationEnabled;
+    }
+
+    function youthMaxAge() {
+        var max = parseInt(window.memberWizardConfig.youthMaxAge, 10);
+        return isNaN(max) ? 21 : max;
+    }
+
+    function envelopeRequiredFromAge() {
+        var from = parseInt(window.memberWizardConfig.envelopeRequiredFromAge, 10);
+        return isNaN(from) ? (youthMaxAge() + 1) : from;
+    }
+
+    function envelopeRequiredForAge(age) {
+        if (age === null) return true;
+        return age > youthMaxAge();
+    }
+
+    function syncEnvelopeRequirement() {
+        if (isSelfRegistration()) return;
+        var input = document.getElementById('envelope_number');
+        var mark = document.getElementById('envelopeRequiredMark');
+        var hint = document.getElementById('envelopeAgeHint');
+        var dob = form ? form.querySelector('[name="date_of_birth"]') : null;
+        if (!input) return;
+
+        var age = ageFromDobValue(dob ? dob.value : '');
+        var required = envelopeRequiredForAge(age);
+        if (required) {
+            input.setAttribute('required', 'required');
+        } else {
+            input.removeAttribute('required');
+        }
+        if (mark) mark.style.display = required ? 'inline' : 'none';
+        if (hint) {
+            if (age !== null && !required) {
+                hint.style.display = 'block';
+                hint.textContent = 'Optional for ages up to ' + youthMaxAge() + '. Required from age ' + envelopeRequiredFromAge() + '.';
+            } else if (age !== null && required) {
+                hint.style.display = 'block';
+                hint.textContent = 'Required from age ' + envelopeRequiredFromAge() + '.';
+            } else {
+                hint.style.display = 'none';
+            }
+        }
+    }
+
+    function syncMemberKipaimaraVisibility() {
+        var section = document.getElementById('memberKipaimaraSection');
+        var kipaimaraCheckbox = document.getElementById('is_kipaimara');
+        if (!section || !kipaimaraFeatureEnabled()) {
+            return;
+        }
+
+        var dob = form ? form.querySelector('[name="date_of_birth"]') : null;
+        var age = ageFromDobValue(dob ? dob.value : '');
+        var show = age === null || age >= kipaimaraMinAge();
+        section.style.display = show ? 'block' : 'none';
+
+        if (!show && kipaimaraCheckbox) {
+            kipaimaraCheckbox.checked = false;
+            toggleMemberKipaimaraFields();
+        }
+    }
+
+    function syncDependantKipaimaraVisibility(row) {
+        if (!row || !kipaimaraFeatureEnabled()) return;
+        var wrap = row.querySelector('.dependant-kipaimara-wrap');
+        var fields = row.querySelector('.dependant-kipaimara-fields');
+        var checkbox = row.querySelector('.dependant-kipaimara');
+        var dob = row.querySelector('[data-name="date_of_birth"], .dependant-dob, input[name*="[date_of_birth]"]');
+        if (!wrap) return;
+
+        var age = ageFromDobValue(dob ? dob.value : '');
+        var show = age !== null && age >= kipaimaraMinAge();
+        wrap.style.display = show ? 'block' : 'none';
+        if (!show) {
+            if (checkbox) checkbox.checked = false;
+            if (fields) fields.style.display = 'none';
+        }
+    }
+
     function toggleMemberKipaimaraFields() {
         var kipaimaraCheckbox = document.getElementById('is_kipaimara');
         var wrap = document.getElementById('memberKipaimaraFields');
@@ -865,11 +964,17 @@
     function checkEnvelope() {
         var input = document.getElementById('envelope_number');
         var status = document.getElementById('envelope_status');
-        if (!input || !status || input.value.length !== 3) return;
+        if (!input || !status || !window.memberWizardConfig.checkEnvelopeUrl || input.value.length !== 3) return;
 
         var url = window.memberWizardConfig.checkEnvelopeUrl + '?envelope=' + encodeURIComponent(input.value);
         if (window.memberWizardConfig.memberId) {
             url += '&except=' + encodeURIComponent(window.memberWizardConfig.memberId);
+        }
+
+        var branchField = document.querySelector('[name="branch_id"]');
+        var branchId = branchField ? branchField.value : (window.memberWizardConfig.branchId || '');
+        if (branchId) {
+            url += '&branch_id=' + encodeURIComponent(branchId);
         }
 
         fetch(url, {
@@ -893,6 +998,9 @@
             var newRow = container.querySelector('.dependant-row:last-child');
             if (newRow && typeof window.bindDependantSchoolLocation === 'function') {
                 window.bindDependantSchoolLocation(newRow);
+            }
+            if (newRow) {
+                syncDependantKipaimaraVisibility(newRow);
             }
             dependantIndex++;
         });
@@ -921,6 +1029,9 @@
                 if (kipaimaraFields) {
                     kipaimaraFields.style.display = e.target.checked ? 'block' : 'none';
                 }
+            }
+            if (e.target.matches('[data-name="date_of_birth"], .dependant-dob') || (e.target.name && e.target.name.indexOf('[date_of_birth]') !== -1)) {
+                syncDependantKipaimaraVisibility(e.target.closest('.dependant-row'));
             }
             if (e.target.classList.contains('dependant-is-student')) {
                 var studentRow = e.target.closest('.dependant-row');
@@ -961,6 +1072,29 @@
     if (memberKipaimara) {
         memberKipaimara.addEventListener('change', toggleMemberKipaimaraFields);
         toggleMemberKipaimaraFields();
+    }
+
+    var memberDob = form ? form.querySelector('[name="date_of_birth"]') : null;
+    if (memberDob) {
+        memberDob.addEventListener('change', function () {
+            syncMemberKipaimaraVisibility();
+            syncEnvelopeRequirement();
+        });
+        memberDob.addEventListener('input', function () {
+            syncMemberKipaimaraVisibility();
+            syncEnvelopeRequirement();
+        });
+        syncMemberKipaimaraVisibility();
+        syncEnvelopeRequirement();
+    }
+
+    if (dependantsContainer) {
+        dependantsContainer.querySelectorAll('.dependant-row').forEach(syncDependantKipaimaraVisibility);
+        dependantsContainer.addEventListener('input', function (e) {
+            if (e.target.matches('[data-name="date_of_birth"], .dependant-dob') || (e.target.name && e.target.name.indexOf('[date_of_birth]') !== -1)) {
+                syncDependantKipaimaraVisibility(e.target.closest('.dependant-row'));
+            }
+        });
     }
 
     form.setAttribute('novalidate', 'novalidate');
@@ -1025,6 +1159,14 @@
 
     var envelopeNumber = document.getElementById('envelope_number');
     if (envelopeNumber) envelopeNumber.addEventListener('blur', checkEnvelope);
+
+    var branchSelect = document.querySelector('select[name="branch_id"]');
+    if (branchSelect) {
+        branchSelect.addEventListener('change', function () {
+            window.memberWizardConfig.branchId = branchSelect.value || null;
+            checkEnvelope();
+        });
+    }
 
     var spouseMemberId = document.getElementById('spouse_member_id');
     if (spouseMemberId) {

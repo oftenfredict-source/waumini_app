@@ -81,6 +81,8 @@ class MemberController extends Controller
         ];
 
         $members = $query->paginate(15)->withQueryString();
+        $registrationBranch = $this->branchAccessService->activeBranch($user);
+        $canShareRegistration = $user->can('member_registrations.view') || $user->can('members.create');
 
         return view('church.members.index', [
             'members' => $members,
@@ -91,12 +93,13 @@ class MemberController extends Controller
                 && $this->branchAccessService->managesAllBranches($user)
                 && ! $this->branchAccessService->sessionBranchId($user),
             'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
-            'registrationUrl' => $user->can('member_registrations.view') || $user->can('members.create')
-                ? $this->churchContextService->registrationUrl($church)
+            'registrationUrl' => $canShareRegistration
+                ? $this->churchContextService->registrationUrl($church, $registrationBranch)
                 : null,
-            'registrationSubdomainUrl' => $user->can('member_registrations.view') || $user->can('members.create')
-                ? $this->churchContextService->registrationSubdomainUrl($church)
+            'registrationSubdomainUrl' => $canShareRegistration
+                ? $this->churchContextService->registrationSubdomainUrl($church, $registrationBranch)
                 : null,
+            'registrationBranch' => $canShareRegistration ? $registrationBranch : null,
         ]);
     }
 
@@ -116,6 +119,8 @@ class MemberController extends Controller
             $branches = $branches->where('id', $effective)->values();
         }
 
+        $registrationBranch = $this->branchAccessService->activeBranch($user);
+
         return view('church.members.create', [
             'churchMembers' => $churchMembersQuery->get(['id', 'full_name', 'member_number', 'envelope_number', 'gender', 'date_of_birth', 'phone_number', 'email', 'spouse_member_id']),
             'branches' => $branches,
@@ -128,8 +133,9 @@ class MemberController extends Controller
             'dependantRelationships' => DependantRelationship::cases(),
             'tribes' => config('tanzania.tribes'),
             'durationUnits' => \App\Enums\TemporaryDurationUnit::cases(),
-            'registrationUrl' => $this->churchContextService->registrationUrl($church),
-            'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church),
+            'registrationUrl' => $this->churchContextService->registrationUrl($church, $registrationBranch),
+            'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church, $registrationBranch),
+            'registrationBranch' => $registrationBranch,
         ]);
     }
 
@@ -349,13 +355,20 @@ class MemberController extends Controller
 
     public function checkEnvelope(Request $request): JsonResponse
     {
+        $user = auth()->user();
         $exceptMemberId = $request->integer('except') ?: null;
+        $branchId = null;
 
         if ($exceptMemberId) {
-            $member = Member::forChurch(auth()->user()->church_id)->findOrFail($exceptMemberId);
+            $member = Member::forChurch($user->church_id)->findOrFail($exceptMemberId);
             $this->authorize('update', $member);
+            $branchId = $request->integer('branch_id') ?: $member->branch_id;
         } else {
             $this->authorize('create', Member::class);
+            $branchId = $this->branchAccessService->resolveBranchIdForCreate(
+                $user,
+                $request->integer('branch_id') ?: null,
+            );
         }
 
         $envelope = $request->string('envelope')->trim()->toString();
@@ -365,14 +378,15 @@ class MemberController extends Controller
         }
 
         $available = $this->memberService->isEnvelopeAvailable(
-            auth()->user()->church,
+            $user->church,
             $envelope,
             $exceptMemberId,
+            $branchId,
         );
 
         return response()->json([
             'available' => $available,
-            'message' => $available ? 'Envelope number is available.' : 'Envelope number is already in use.',
+            'message' => $available ? 'Envelope number is available.' : 'Envelope number is already in use in this branch.',
         ]);
     }
 }

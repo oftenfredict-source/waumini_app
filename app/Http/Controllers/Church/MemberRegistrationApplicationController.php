@@ -56,6 +56,8 @@ class MemberRegistrationApplicationController extends Controller
             });
         }
 
+        $registrationBranch = $this->branchAccessService->activeBranch($user);
+
         return view('church.member-registrations.index', [
             'applications' => $query->paginate(15)->withQueryString(),
             'filters' => array_merge($request->only(['search', 'branch_id']), ['status' => $status]),
@@ -67,8 +69,9 @@ class MemberRegistrationApplicationController extends Controller
             'pendingCount' => MemberRegistrationApplication::forChurch($church->id)
                 ->where('status', MemberRegistrationStatus::Pending)
                 ->count(),
-            'registrationUrl' => $this->churchContextService->registrationUrl($church),
-            'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church),
+            'registrationUrl' => $this->churchContextService->registrationUrl($church, $registrationBranch),
+            'registrationSubdomainUrl' => $this->churchContextService->registrationSubdomainUrl($church, $registrationBranch),
+            'registrationBranch' => $registrationBranch,
         ]);
     }
 
@@ -76,9 +79,27 @@ class MemberRegistrationApplicationController extends Controller
     {
         $this->authorize('view', $registration);
 
-        $registration->load(['branch', 'reviewer', 'member']);
+        $registration->load(['branch', 'reviewer', 'member', 'church']);
         $data = $registration->registration_data ?? [];
         $needsSpouseEnvelope = MemberRegistrationApplicationService::needsSpouseEnvelope($data);
+        $settings = app(\App\Services\Church\ChurchSettingsService::class);
+        $church = $registration->church;
+        $applicantAge = null;
+        if (! empty($data['date_of_birth'])) {
+            try {
+                $applicantAge = \Carbon\Carbon::parse($data['date_of_birth'])->age;
+            } catch (\Throwable) {
+                $applicantAge = null;
+            }
+        }
+        $spouseAge = null;
+        if (! empty($data['spouse_date_of_birth'])) {
+            try {
+                $spouseAge = \Carbon\Carbon::parse($data['spouse_date_of_birth'])->age;
+            } catch (\Throwable) {
+                $spouseAge = null;
+            }
+        }
 
         $matchingDependant = null;
         $matchingMember = null;
@@ -93,6 +114,10 @@ class MemberRegistrationApplicationController extends Controller
             'registrationData' => $data,
             'dependants' => $registration->dependants_data ?? [],
             'needsSpouseEnvelope' => $needsSpouseEnvelope,
+            'envelopeRequired' => $settings->envelopeRequiredForAge($church, $applicantAge),
+            'spouseEnvelopeRequired' => $needsSpouseEnvelope && $settings->envelopeRequiredForAge($church, $spouseAge),
+            'envelopeRequiredFromAge' => $settings->envelopeRequiredFromAge($church),
+            'youthMaxAge' => $settings->youthMaxAge($church),
             'matchingDependant' => $matchingDependant,
             'matchingMember' => $matchingMember,
         ]);
@@ -103,8 +128,8 @@ class MemberRegistrationApplicationController extends Controller
         $result = $this->registrationService->approve(
             $registration,
             $request->user(),
-            $request->string('envelope_number')->toString(),
-            $request->string('spouse_envelope_number')->toString() ?: null,
+            $request->filled('envelope_number') ? $request->string('envelope_number')->toString() : null,
+            $request->filled('spouse_envelope_number') ? $request->string('spouse_envelope_number')->toString() : null,
         );
 
         $message = $this->memberService->spouseMemberWasCreated()
@@ -146,16 +171,23 @@ class MemberRegistrationApplicationController extends Controller
 
         $envelope = $request->string('envelope')->trim()->toString();
         $church = $request->user()->church;
+        $branchId = $request->integer('branch_id') ?: null;
+
+        if ($registrationId = $request->integer('registration') ?: null) {
+            $application = MemberRegistrationApplication::forChurch($church->id)->find($registrationId);
+            $branchId = $application?->branch_id
+                ?? ($application?->registration_data['branch_id'] ?? $branchId);
+        }
 
         if (strlen($envelope) !== 3 || ! ctype_digit($envelope)) {
             return response()->json(['available' => false, 'message' => 'Envelope must be 3 digits.']);
         }
 
-        $available = $this->memberService->isEnvelopeAvailable($church, $envelope);
+        $available = $this->memberService->isEnvelopeAvailable($church, $envelope, null, $branchId ? (int) $branchId : null);
 
         return response()->json([
             'available' => $available,
-            'message' => $available ? 'Envelope number is available.' : 'Envelope number is already in use.',
+            'message' => $available ? 'Envelope number is available.' : 'Envelope number is already in use in this branch.',
         ]);
     }
 }

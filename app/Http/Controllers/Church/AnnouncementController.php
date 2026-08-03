@@ -10,6 +10,7 @@ use App\Models\Announcement;
 use App\Models\Department;
 use App\Models\Member;
 use App\Services\Church\AnnouncementService;
+use App\Services\Church\BranchAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,6 +19,7 @@ class AnnouncementController extends Controller
 {
     public function __construct(
         private readonly AnnouncementService $announcementService,
+        private readonly BranchAccessService $branchAccessService,
     ) {
         $this->authorizeResource(Announcement::class, 'announcement');
     }
@@ -60,24 +62,27 @@ class AnnouncementController extends Controller
 
     public function create(): View
     {
-        $church = auth()->user()->church;
+        $user = auth()->user();
+        $church = $user->church;
 
-        $members = Member::forChurch($church->id)
+        $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
-            ->orderBy('full_name')
-            ->get(['id', 'full_name', 'member_number']);
+            ->orderBy('full_name');
+        $this->branchAccessService->applyBranchScope($membersQuery, $user);
 
-        $departments = Department::forChurch($church->id)
+        $departmentsQuery = Department::forChurch($church->id)
             ->where('status', 'active')
+            ->with('branch')
             ->withCount('members')
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+        $this->branchAccessService->applyBranchScope($departmentsQuery, $user);
 
         return view('church.announcements.create', [
-            'members' => $members,
-            'departments' => $departments,
+            'members' => $membersQuery->get(['id', 'full_name', 'member_number']),
+            'departments' => $departmentsQuery->get(),
             'types' => AnnouncementType::cases(),
             'targetTypes' => AnnouncementTargetType::cases(),
+            'branchesEnabled' => $this->branchAccessService->branchesFeatureEnabled($user),
         ]);
     }
 

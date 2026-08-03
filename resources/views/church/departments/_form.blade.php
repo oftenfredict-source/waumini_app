@@ -3,6 +3,7 @@
 @endphp
 
 <div class="row">
+    @include('church.partials.branch-field')
     <div class="col-md-6">
         <div class="form-group">
             <label>{{ __('pages.shared.department_name') }} *</label>

@@ -9,6 +9,7 @@ use App\Http\Requests\Church\UpdateBranchRequest;
 use App\Models\ChurchBranch;
 use App\Services\Church\BranchAccessService;
 use App\Services\Church\BranchService;
+use App\Services\Church\ChurchContextService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,6 +19,7 @@ class BranchController extends Controller
     public function __construct(
         private readonly BranchService $branchService,
         private readonly BranchAccessService $branchAccessService,
+        private readonly ChurchContextService $churchContextService,
     ) {
         $this->authorizeResource(ChurchBranch::class, 'branch');
     }
@@ -98,12 +100,19 @@ class BranchController extends Controller
             'leaders',
         ]);
 
+        $canShareRegistration = $user->can('member_registrations.view') || $user->can('members.create');
+        $church = $user->church;
+
         return view('church.branches.show', [
             'branch' => $branch,
             'canEnterBranch' => $this->branchAccessService->managesAllBranches($user)
                 && $this->branchAccessService->branchesFeatureEnabled($user)
                 && $branch->is_active,
             'isEntered' => $this->branchAccessService->sessionBranchId($user) === $branch->id,
+            'registrationUrl' => $canShareRegistration && $branch->is_active
+                ? $this->churchContextService->registrationUrl($church, $branch)
+                : null,
+            'registrationBranch' => $canShareRegistration && $branch->is_active ? $branch : null,
         ]);
     }
 

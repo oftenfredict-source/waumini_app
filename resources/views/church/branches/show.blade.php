@@ -14,6 +14,8 @@
     ],
 ])
 
+@include('partials.member-registration-link')
+
 <div class="row">
     <div class="col-lg-8">
         <div class="tile mb-3">

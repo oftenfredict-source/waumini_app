@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Church;
+use App\Services\Church\ChurchSettingsService;
 use App\Services\Church\MemberService;
 use Illuminate\Console\Command;
 
@@ -10,12 +11,11 @@ class ProcessAgedOutChildren extends Command
 {
     protected $signature = 'members:process-aged-out-children {--church= : Church ID to limit processing}';
 
-    protected $description = 'Convert children who have reached the independence age into independent members';
+    protected $description = 'Convert children who have reached the church graduation age into independent members';
 
-    public function handle(MemberService $memberService): int
+    public function handle(MemberService $memberService, ChurchSettingsService $churchSettingsService): int
     {
-        $age = config('membership.child_independence_age', 21);
-        $this->info("Processing children aged {$age} and above...");
+        $this->info('Processing children who have reached each church graduation age...');
 
         $churches = Church::query()
             ->when($this->option('church'), fn ($q, $id) => $q->whereKey($id))
@@ -24,11 +24,12 @@ class ProcessAgedOutChildren extends Command
         $total = 0;
 
         foreach ($churches as $church) {
+            $age = $churchSettingsService->childGraduationAge($church);
             $count = $memberService->processAgedOutChildren($church);
             $total += $count;
 
             if ($count > 0) {
-                $this->line("Church #{$church->id}: converted {$count} child(ren).");
+                $this->line("Church #{$church->id} (age {$age}+): converted {$count} child(ren).");
             }
         }
 

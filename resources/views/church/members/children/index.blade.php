@@ -50,10 +50,10 @@
             <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="{{ __('pages.members_children.search_placeholder') }}"
                 value="{{ $filters['search'] ?? '' }}">
             <select name="status" class="form-control mr-2 mb-2">
-                <option value="">{{ __('pages.shared.all_children') }}</option>
-                <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('pages.members_children.under_age', ['age' => $independenceAge]) }}</option>
+                <option value="active" @selected(($filters['status'] ?? 'active') === 'active')>{{ __('pages.members_children.under_age', ['age' => $independenceAge]) }}</option>
                 <option value="eligible" @selected(($filters['status'] ?? '') === 'eligible')>{{ __('pages.members_children.ready_to_convert', ['age' => $independenceAge]) }}</option>
                 <option value="converted" @selected(($filters['status'] ?? '') === 'converted')>{{ __('pages.members_children.converted') }}</option>
+                <option value="all" @selected(($filters['status'] ?? '') === 'all')>{{ __('pages.shared.all_children') }}</option>
             </select>
             <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.search') }}</button>
         </form>
@@ -133,12 +133,17 @@
                                             <i class="fa fa-edit"></i> {{ __('common.edit') }}
                                         </a>
                                     @endcan
-                                    @if($child->isEligibleForIndependence())
+                                    @if($child->isEligibleForIndependence($independenceAge))
                                         @can('convert', $child)
+                                            @php
+                                                $childEnvelopeRequired = ($child->age() ?? 0) > ($youthMaxAge ?? 21);
+                                            @endphp
                                             <form method="POST" action="{{ route('church.members.children.convert', $child) }}" class="form-inline">
                                             @csrf
                                             <input type="text" name="envelope_number" class="form-control form-control-sm mr-1"
-                                                placeholder="{{ __('pages.members_children.env_placeholder') }}" maxlength="3" pattern="\d{3}" required style="width:70px;">
+                                                placeholder="{{ __('pages.members_children.env_placeholder') }}" maxlength="3" pattern="\d{3}"
+                                                @if($childEnvelopeRequired) required @endif style="width:70px;"
+                                                title="{{ $childEnvelopeRequired ? 'Required' : 'Optional through age '.($youthMaxAge ?? 21) }}">
                                             <button type="submit" class="btn btn-sm btn-primary" title="{{ __('pages.members_children.convert_title') }}">
                                                 <i class="fa fa-user-plus"></i> {{ __('pages.members_children.convert') }}
                                             </button>

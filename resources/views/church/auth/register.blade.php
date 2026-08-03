@@ -13,7 +13,10 @@
 @php
     $isEdit = false;
     $isSelfRegistration = true;
-    $formAction = route('church.register.submit', ['church' => $church->slug]);
+    $formAction = route('church.register.submit', array_filter([
+        'church' => $church->slug,
+        'branch' => $lockedBranch?->code,
+    ]));
     $cancelUrl = route('church.login');
     $submitLabel = __('auth.submit_application');
 @endphp
@@ -21,6 +24,9 @@
 <div class="register-hero">
     <h1>{{ __('auth.member_registration') }}</h1>
     <p>{{ __('auth.registration_hero') }}</p>
+    @if(!empty($branchLocked) && $lockedBranch)
+        <p class="mb-0 mt-2"><strong>{{ $lockedBranch->displayLabel() }}</strong></p>
+    @endif
 </div>
 
 @include('partials.sweetalert-flash')
@@ -56,9 +62,14 @@
     ];
 @endphp
 <script>
+    @php
+        $wizardSettings = app(\App\Services\Church\ChurchSettingsService::class);
+    @endphp
     window.memberWizardConfig = {
         isEdit: false,
         isSelfRegistration: true,
+        kipaimaraRegistrationEnabled: @json((bool) $wizardSettings->get($church, 'kipaimara_registration_enabled', false)),
+        kipaimaraMinAge: @json($wizardSettings->kipaimaraMinAge($church)),
         checkEnvelopeUrl: null,
         locationsUrl: @json(asset('data/tanzania-locations.json')),
         csrfToken: @json(csrf_token()),

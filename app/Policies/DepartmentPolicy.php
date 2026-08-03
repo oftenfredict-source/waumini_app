@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Department;
 use App\Models\User;
+use App\Services\Church\BranchAccessService;
 
 class DepartmentPolicy
 {
@@ -16,7 +17,8 @@ class DepartmentPolicy
     {
         return $user->isChurchUser()
             && $user->can('departments.view')
-            && $department->church_id === $user->church_id;
+            && $department->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $department->branch_id);
     }
 
     public function create(User $user): bool
@@ -28,7 +30,8 @@ class DepartmentPolicy
     {
         return $user->isChurchUser()
             && $user->can('departments.manage')
-            && $department->church_id === $user->church_id;
+            && $department->church_id === $user->church_id
+            && app(BranchAccessService::class)->canAccessBranchId($user, $department->branch_id);
     }
 
     public function delete(User $user, Department $department): bool

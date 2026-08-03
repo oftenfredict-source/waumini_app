@@ -3,19 +3,31 @@
 namespace App\Services\Church;
 
 use App\Models\Church;
+use App\Models\ChurchBranch;
 use App\Models\Department;
 use App\Models\Member;
 use App\Models\MemberDependant;
+use App\Models\User;
 
 class DepartmentService
 {
-    public function create(Church $church, array $data): Department
+    public function __construct(
+        private readonly BranchAccessService $branchAccessService,
+    ) {}
+
+    public function create(Church $church, array $data, ?User $actor = null): Department
     {
         $data['church_id'] = $church->id;
+        $data['branch_id'] = $this->resolveBranchId(
+            $church,
+            $actor,
+            $data['branch_id'] ?? null,
+        );
 
         $trashed = Department::onlyTrashed()
             ->forChurch($church->id)
             ->where('name', $data['name'])
+            ->where('branch_id', $data['branch_id'])
             ->first();
 
         if ($trashed) {
@@ -24,6 +36,7 @@ class DepartmentService
                 'description' => $data['description'] ?? null,
                 'head_id' => $data['head_id'] ?? null,
                 'status' => $data['status'],
+                'branch_id' => $data['branch_id'],
             ]);
             $department = $trashed->fresh();
         } else {
@@ -34,13 +47,18 @@ class DepartmentService
             $this->ensureHeadIsMember($department, (int) $data['head_id']);
         }
 
-        return $department->fresh(['head', 'members']);
+        return $department->fresh(['head', 'members', 'branch']);
     }
 
     public function update(Department $department, array $data): Department
     {
         if (! empty($data['name']) && $data['name'] !== $department->name) {
-            $this->forceDeleteTrashedNameConflict($department->church_id, $data['name'], $department->id);
+            $this->forceDeleteTrashedNameConflict(
+                $department->church_id,
+                $data['name'],
+                $data['branch_id'] ?? $department->branch_id,
+                $department->id,
+            );
         }
 
         $department->update($data);
@@ -49,7 +67,7 @@ class DepartmentService
             $this->ensureHeadIsMember($department, (int) $data['head_id']);
         }
 
-        return $department->fresh(['head', 'members']);
+        return $department->fresh(['head', 'members', 'branch']);
     }
 
     public function assignHead(Department $department, ?int $headId): Department
@@ -125,11 +143,36 @@ class DepartmentService
         $department->delete();
     }
 
-    private function forceDeleteTrashedNameConflict(int $churchId, string $name, ?int $exceptId = null): void
+    private function resolveBranchId(Church $church, ?User $actor, mixed $requestedBranchId): ?int
     {
+        if (! $actor || ! $this->branchAccessService->branchesFeatureEnabled($actor)) {
+            return $requestedBranchId ? (int) $requestedBranchId : null;
+        }
+
+        $branchId = $this->branchAccessService->resolveBranchIdForCreate(
+            $actor,
+            $requestedBranchId ? (int) $requestedBranchId : null,
+        );
+
+        if ($branchId) {
+            return $branchId;
+        }
+
+        return ChurchBranch::forChurch($church->id)
+            ->where('is_headquarters', true)
+            ->value('id');
+    }
+
+    private function forceDeleteTrashedNameConflict(
+        int $churchId,
+        string $name,
+        ?int $branchId,
+        ?int $exceptId = null,
+    ): void {
         $query = Department::onlyTrashed()
             ->forChurch($churchId)
-            ->where('name', $name);
+            ->where('name', $name)
+            ->where('branch_id', $branchId);
 
         if ($exceptId) {
             $query->whereKeyNot($exceptId);

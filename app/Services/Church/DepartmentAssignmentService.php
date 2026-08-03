@@ -194,6 +194,7 @@ class DepartmentAssignmentService
     private function syncMemberDepartments(Church $church, Member $member, array $rules): array
     {
         $matchingIds = $this->matchingDepartmentIds($member, $rules, $this->memberAge($member), $this->personGender($member), $this->activeLeadershipPositions($member));
+        $matchingIds = $this->filterDepartmentIdsForBranch($church, $matchingIds, $member->branch_id);
         $attached = $this->attachMemberToDepartments($church, $member, $matchingIds, autoAssigned: true);
         $removed = $this->reconcileMemberDepartments($member, $rules, $matchingIds);
 
@@ -210,7 +211,9 @@ class DepartmentAssignmentService
      */
     private function syncDependantDepartments(Church $church, MemberDependant $dependant, array $rules): array
     {
+        $dependant->loadMissing('member:id,branch_id');
         $matchingIds = $this->matchingDepartmentIds($dependant, $rules, $this->dependantAge($dependant), $this->personGender($dependant), []);
+        $matchingIds = $this->filterDepartmentIdsForBranch($church, $matchingIds, $dependant->member?->branch_id);
         $attached = $this->attachDependantToDepartments($church, $dependant, $matchingIds);
         $removed = $this->reconcileDependantDepartments($dependant, $matchingIds);
 
@@ -226,6 +229,7 @@ class DepartmentAssignmentService
      */
     private function attachMatchingDependantDepartments(Church $church, MemberDependant $dependant, array $rules): int
     {
+        $dependant->loadMissing('member:id,branch_id');
         $matchingIds = $this->matchingDepartmentIds(
             $dependant,
             $rules,
@@ -233,6 +237,7 @@ class DepartmentAssignmentService
             $this->personGender($dependant),
             [],
         );
+        $matchingIds = $this->filterDepartmentIdsForBranch($church, $matchingIds, $dependant->member?->branch_id);
 
         return $this->attachDependantToDepartments($church, $dependant, $matchingIds);
     }
@@ -319,6 +324,24 @@ class DepartmentAssignmentService
         }
 
         return $attached;
+    }
+
+    /**
+     * @param  array<int, int>  $departmentIds
+     * @return array<int, int>
+     */
+    private function filterDepartmentIdsForBranch(Church $church, array $departmentIds, ?int $branchId): array
+    {
+        if ($departmentIds === []) {
+            return [];
+        }
+
+        return Department::forChurch($church->id)
+            ->whereIn('id', array_values($departmentIds))
+            ->where('branch_id', $branchId)
+            ->pluck('id')
+            ->mapWithKeys(fn ($id) => [(int) $id => (int) $id])
+            ->all();
     }
 
     /**
