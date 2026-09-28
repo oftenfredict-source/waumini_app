@@ -156,15 +156,20 @@ class DatabaseBackupService
         SystemSetting::setValue('backup', 'notify_phone', $this->sms->normalizePhone($notifyPhone));
 
         if (is_string($clientId)) {
-            SystemSetting::setValue('backup', 'google_client_id', trim($clientId));
+            SystemSetting::setValue('backup', 'google_client_id', GoogleDriveBackupClient::normalizeCredential($clientId));
         }
 
         if (is_string($clientSecret) && trim($clientSecret) !== '') {
-            SystemSetting::setValue('backup', 'google_client_secret', trim($clientSecret));
+            SystemSetting::setValue('backup', 'google_client_secret', GoogleDriveBackupClient::normalizeCredential($clientSecret));
         }
 
         if (is_string($refreshToken) && trim($refreshToken) !== '') {
-            SystemSetting::setValue('backup', 'google_refresh_token', trim($refreshToken));
+            SystemSetting::setValue(
+                'backup',
+                'google_refresh_token',
+                GoogleDriveBackupClient::normalizeCredential($refreshToken)
+            );
+            $this->drive = null;
             $this->syncConnectedEmail();
         }
     }
@@ -395,17 +400,23 @@ class DatabaseBackupService
 
     private function clientId(): string
     {
-        return trim((string) SystemSetting::getValue('backup', 'google_client_id', config('backup.google_client_id')));
+        return GoogleDriveBackupClient::normalizeCredential(
+            (string) SystemSetting::getValue('backup', 'google_client_id', config('backup.google_client_id'))
+        );
     }
 
     private function clientSecret(): string
     {
-        return trim((string) SystemSetting::getValue('backup', 'google_client_secret', config('backup.google_client_secret')));
+        return GoogleDriveBackupClient::normalizeCredential(
+            (string) SystemSetting::getValue('backup', 'google_client_secret', config('backup.google_client_secret'))
+        );
     }
 
     private function refreshToken(): string
     {
-        return trim((string) SystemSetting::getValue('backup', 'google_refresh_token', config('backup.google_refresh_token')));
+        return GoogleDriveBackupClient::normalizeCredential(
+            (string) SystemSetting::getValue('backup', 'google_refresh_token', config('backup.google_refresh_token'))
+        );
     }
 
     private function syncConnectedEmail(): void

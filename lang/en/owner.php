@@ -322,7 +322,7 @@ return [
         'backup_setup_title' => 'Use a Google Drive Refresh Token from your existing Web client:',
         'backup_step_1' => 'Open Google Cloud Console → Google Auth Platform → Clients → your Web application (Often Fred). Copy the Client ID and Client secret.',
         'backup_step_2' => 'If needed, keep https://developers.google.com/oauthplayground in Authorized redirect URIs, then Save.',
-        'backup_step_3' => 'Open OAuth Playground → gear icon → Use your own OAuth credentials → paste Client ID and secret. Select Drive API v3 (drive.file) → Authorize → Exchange authorization code for tokens → copy the Refresh token.',
+        'backup_step_3' => 'Open OAuth Playground → gear icon → enable Use your own OAuth credentials → paste THIS Client ID and the currently enabled Client secret (not Playground defaults, not an old rotated secret). Select Drive API v3 (drive.file) → Authorize → Exchange authorization code for tokens → copy the Refresh token (starts with 1//, not ya29).',
         'backup_step_4' => 'Paste Client ID, Client secret, and Refresh token here and Save. You can reuse a refresh token from another app only if it was issued with this same Client ID.',
         'backup_redirect_uri' => 'Authorized redirect URI (optional, for Connect Google Drive)',
         'backup_redirect_uri_help' => 'Needed only if you use Connect Google Drive instead of pasting a refresh token. Local and live URLs are different — add both if you use both.',

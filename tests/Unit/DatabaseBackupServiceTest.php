@@ -76,4 +76,32 @@ class DatabaseBackupServiceTest extends TestCase
         $this->assertSame('owner@example.com', $client->accountEmail());
         $this->assertSame('1//rotated-refresh', $saved);
     }
+
+    public function test_unauthorized_client_explains_credential_mismatch(): void
+    {
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'error' => 'unauthorized_client',
+                'error_description' => 'Unauthorized',
+            ], 401),
+        ]);
+
+        $client = new GoogleDriveBackupClient([
+            'client_id' => 'client-id',
+            'client_secret' => 'client-secret',
+            'refresh_token' => '1//other-app-token',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('unauthorized_client');
+        $client->accountEmail();
+    }
+
+    public function test_normalize_credential_strips_labels_and_whitespace(): void
+    {
+        $this->assertSame(
+            '1//abc',
+            GoogleDriveBackupClient::normalizeCredential("Refresh token: \n1//abc\n"),
+        );
+    }
 }

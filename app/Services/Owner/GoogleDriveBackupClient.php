@@ -32,7 +32,7 @@ class GoogleDriveBackupClient
     public static function authorizationUrl(string $clientId, string $redirectUri, string $state): string
     {
         return self::AUTH_URL.'?'.http_build_query([
-            'client_id' => $clientId,
+            'client_id' => self::normalizeCredential($clientId),
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
             'scope' => implode(' ', self::SCOPES),
@@ -43,15 +43,25 @@ class GoogleDriveBackupClient
         ]);
     }
 
+    public static function normalizeCredential(?string $value): string
+    {
+        $value = trim((string) $value);
+        $value = trim($value, "\"'");
+        $value = preg_replace('/^(refresh[_ ]?token|access[_ ]?token|client[_ ]?secret)\s*[:=]\s*/i', '', $value) ?? $value;
+        $value = preg_replace('/\s+/', '', $value) ?? $value;
+
+        return $value;
+    }
+
     /**
      * @return array{refresh_token: string, access_token: string, email: ?string}
      */
     public static function exchangeCode(string $clientId, string $clientSecret, string $redirectUri, string $code): array
     {
         $response = Http::asForm()->post(self::TOKEN_URL, [
-            'code' => $code,
-            'client_id' => $clientId,
-            'client_secret' => $clientSecret,
+            'code' => self::normalizeCredential($code),
+            'client_id' => self::normalizeCredential($clientId),
+            'client_secret' => self::normalizeCredential($clientSecret),
             'redirect_uri' => $redirectUri,
             'grant_type' => 'authorization_code',
         ]);
@@ -205,15 +215,21 @@ class GoogleDriveBackupClient
 
     private function accessToken(): string
     {
-        $clientId = $this->oauth['client_id'] ?? '';
-        $clientSecret = $this->oauth['client_secret'] ?? '';
-        $refreshToken = $this->oauth['refresh_token'] ?? '';
+        $clientId = self::normalizeCredential($this->oauth['client_id'] ?? '');
+        $clientSecret = self::normalizeCredential($this->oauth['client_secret'] ?? '');
+        $refreshToken = self::normalizeCredential($this->oauth['refresh_token'] ?? '');
 
         if ($clientId === '' || $clientSecret === '' || $refreshToken === '') {
             throw new RuntimeException('Save the Google Client ID, Client secret, and Refresh Token in Owner Settings.');
         }
 
-        $response = Http::asForm()->post(self::TOKEN_URL, [
+        if (str_starts_with($refreshToken, 'ya29.')) {
+            throw new RuntimeException(
+                'That value is an Access Token, not a Refresh Token. In OAuth Playground copy the Refresh token (usually starts with 1//), then paste that.'
+            );
+        }
+
+        $response = Http::asForm()->acceptJson()->post(self::TOKEN_URL, [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
             'refresh_token' => $refreshToken,
@@ -221,15 +237,7 @@ class GoogleDriveBackupClient
         ]);
 
         if (! $response->successful()) {
-            $error = (string) $response->json('error');
-
-            if ($error === 'invalid_grant') {
-                throw new RuntimeException(
-                    'Google Drive refresh token is no longer valid. In Google Auth Platform, set Publishing status to In production (Testing tokens expire after 7 days). Then paste a new refresh token once — the system will keep it alive automatically.'
-                );
-            }
-
-            throw new RuntimeException('Google Drive authentication failed: '.$response->body());
+            throw new RuntimeException($this->tokenFailureMessage((string) $response->json('error'), $response->body()));
         }
 
         $token = $response->json('access_token');
@@ -247,5 +255,15 @@ class GoogleDriveBackupClient
         }
 
         return $token;
+    }
+
+    private function tokenFailureMessage(string $error, string $body): string
+    {
+        return match ($error) {
+            'unauthorized_client' => 'Google rejected these credentials (unauthorized_client). The Refresh Token was not issued for this Client ID and Client secret. In OAuth Playground open the gear, enable Use your own OAuth credentials, paste the SAME Client ID and the currently enabled Client secret, authorize Drive (drive.file), then paste a new Refresh token here together with that secret.',
+            'invalid_client' => 'Google Client ID or Client secret is wrong. Paste the enabled secret from Google Cloud Console → Clients → Often Fred (an old rotated secret will fail).',
+            'invalid_grant' => 'Google Drive refresh token is no longer valid. Set Google Auth Platform publishing status to In production (Testing tokens expire after 7 days), then generate one new refresh token with the same Client ID and secret.',
+            default => 'Google Drive authentication failed: '.$body,
+        };
     }
 }

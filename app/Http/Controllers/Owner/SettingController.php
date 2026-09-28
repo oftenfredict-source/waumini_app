@@ -221,7 +221,7 @@ class SettingController extends Controller
             'run_at' => ['required', 'regex:/^\d{1,2}:\d{2}(:\d{2})?$/'],
             'google_client_id' => ['nullable', 'string', 'max:255'],
             'google_client_secret' => ['nullable', 'string', 'max:255'],
-            'google_refresh_token' => ['nullable', 'string', 'max:512'],
+            'google_refresh_token' => ['nullable', 'string', 'max:2048'],
             'notify_sms' => ['nullable', 'boolean'],
             'notify_phone' => ['nullable', 'string', 'max:30'],
         ]);

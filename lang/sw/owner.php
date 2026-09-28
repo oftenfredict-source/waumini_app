@@ -322,7 +322,7 @@ return [
         'backup_setup_title' => 'Tumia Google Drive Refresh Token kutoka OAuth Web client iliyopo:',
         'backup_step_1' => 'Fungua Google Cloud Console → Google Auth Platform → Clients → Web application yako (Often Fred). Nakili Client ID na Client secret.',
         'backup_step_2' => 'Ikihitajika, hakikisha https://developers.google.com/oauthplayground ipo kwenye Authorized redirect URIs, kisha Save.',
-        'backup_step_3' => 'Fungua OAuth Playground → alama ya gia → Use your own OAuth credentials → bandika Client ID na secret. Chagua Drive API v3 (drive.file) → Authorize → Exchange authorization code for tokens → nakili Refresh token.',
+        'backup_step_3' => 'Fungua OAuth Playground → alama ya gia → washa Use your own OAuth credentials → bandika Client ID HII na Client secret ILIYO ENABLED sasa (si credentials default za Playground, wala secret ya zamani). Chagua Drive API v3 (drive.file) → Authorize → Exchange authorization code for tokens → nakili Refresh token (inaanza 1//, si ya29).',
         'backup_step_4' => 'Bandika Client ID, Client secret, na Refresh token hapa, kisha Hifadhi. Unaweza kutumia refresh token ya mfumo mwingine ikiwa ilitolewa kwa Client ID hii hii.',
         'backup_redirect_uri' => 'Authorized redirect URI (si lazima, kwa Connect Google Drive)',
         'backup_redirect_uri_help' => 'Inahitajika tu ukitumia Connect Google Drive badala ya kubandika refresh token. URL ya local na live ni tofauti — ongeza zote ikiwa unatumia zote.',
