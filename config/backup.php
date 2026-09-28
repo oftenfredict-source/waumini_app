@@ -16,6 +16,8 @@ return [
 
     'google_client_secret' => env('GOOGLE_CLIENT_SECRET') ?: '',
 
+    'google_refresh_token' => env('GOOGLE_DRIVE_REFRESH_TOKEN') ?: '',
+
     'local_path' => storage_path('app/backups'),
 
 ];

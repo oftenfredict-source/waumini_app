@@ -147,6 +147,18 @@ class GoogleDriveBackupClient
         return $fileId;
     }
 
+    public function accountEmail(): ?string
+    {
+        $profile = Http::withToken($this->accessToken())
+            ->get('https://www.googleapis.com/oauth2/v2/userinfo');
+
+        if ($profile->successful() && is_string($profile->json('email'))) {
+            return $profile->json('email');
+        }
+
+        return null;
+    }
+
     /**
      * @return list<array{id: string, name: string, createdTime: string}>
      */
@@ -196,7 +208,7 @@ class GoogleDriveBackupClient
         $refreshToken = $this->oauth['refresh_token'] ?? '';
 
         if ($clientId === '' || $clientSecret === '' || $refreshToken === '') {
-            throw new RuntimeException('Connect Google Drive in Owner Settings before running a backup.');
+            throw new RuntimeException('Save the Google Client ID, Client secret, and Refresh Token in Owner Settings.');
         }
 
         $response = Http::asForm()->post(self::TOKEN_URL, [

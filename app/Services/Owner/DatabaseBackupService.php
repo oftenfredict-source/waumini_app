@@ -108,6 +108,7 @@ class DatabaseBackupService
      *     connected_email: ?string,
      *     client_id: string,
      *     has_client_secret: bool,
+     *     has_refresh_token: bool,
      *     redirect_uri: string,
      *     notify_sms: bool,
      *     notify_phone: string,
@@ -126,6 +127,7 @@ class DatabaseBackupService
             'connected_email' => $this->connectedEmail(),
             'client_id' => $this->clientId(),
             'has_client_secret' => $this->clientSecret() !== '',
+            'has_refresh_token' => $this->refreshToken() !== '',
             'redirect_uri' => $this->redirectUri(),
             'notify_sms' => $this->smsNotifyEnabled(),
             'notify_phone' => $this->notifyPhone(),
@@ -142,6 +144,7 @@ class DatabaseBackupService
         ?string $clientSecret = null,
         bool $notifySms = false,
         string $notifyPhone = '',
+        ?string $refreshToken = null,
     ): void {
         SystemSetting::setValue('backup', 'enabled', $enabled);
         SystemSetting::setValue('backup', 'folder_id', trim($folderId));
@@ -156,6 +159,11 @@ class DatabaseBackupService
 
         if (is_string($clientSecret) && trim($clientSecret) !== '') {
             SystemSetting::setValue('backup', 'google_client_secret', trim($clientSecret));
+        }
+
+        if (is_string($refreshToken) && trim($refreshToken) !== '') {
+            SystemSetting::setValue('backup', 'google_refresh_token', trim($refreshToken));
+            $this->syncConnectedEmail();
         }
     }
 
@@ -202,7 +210,7 @@ class DatabaseBackupService
     private function assertReady(): void
     {
         if (! $this->isConfigured()) {
-            throw new RuntimeException('Save the Google OAuth client and click Connect Google Drive first.');
+            throw new RuntimeException('Save the Google Client ID, Client secret, and Refresh Token first.');
         }
     }
 
@@ -357,7 +365,7 @@ class DatabaseBackupService
     private function driveClient(): GoogleDriveBackupClient
     {
         if (! $this->isConfigured()) {
-            throw new RuntimeException('Connect Google Drive in Owner Settings before running a backup.');
+            throw new RuntimeException('Save the Google Client ID, Client secret, and Refresh Token in Owner Settings before running a backup.');
         }
 
         return new GoogleDriveBackupClient([
@@ -379,7 +387,21 @@ class DatabaseBackupService
 
     private function refreshToken(): string
     {
-        return trim((string) SystemSetting::getValue('backup', 'google_refresh_token', ''));
+        return trim((string) SystemSetting::getValue('backup', 'google_refresh_token', config('backup.google_refresh_token')));
+    }
+
+    private function syncConnectedEmail(): void
+    {
+        if (! $this->isConfigured()) {
+            return;
+        }
+
+        try {
+            SystemSetting::setValue('backup', 'google_email', $this->driveClient()->accountEmail() ?? '');
+        } catch (Throwable $e) {
+            Log::warning('Could not verify Google Drive refresh token: '.$e->getMessage());
+            SystemSetting::setValue('backup', 'google_email', '');
+        }
     }
 
     private function folderId(): string

@@ -221,6 +221,7 @@ class SettingController extends Controller
             'run_at' => ['required', 'regex:/^\d{1,2}:\d{2}(:\d{2})?$/'],
             'google_client_id' => ['nullable', 'string', 'max:255'],
             'google_client_secret' => ['nullable', 'string', 'max:255'],
+            'google_refresh_token' => ['nullable', 'string', 'max:512'],
             'notify_sms' => ['nullable', 'boolean'],
             'notify_phone' => ['nullable', 'string', 'max:30'],
         ]);
@@ -239,6 +240,7 @@ class SettingController extends Controller
             $request->filled('google_client_secret') ? $data['google_client_secret'] : null,
             $request->boolean('notify_sms'),
             (string) ($data['notify_phone'] ?? ''),
+            $request->filled('google_refresh_token') ? $data['google_refresh_token'] : null,
         );
 
         return $this->redirectToTab('backup', 'Backup settings saved.');

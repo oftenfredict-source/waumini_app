@@ -40,6 +40,11 @@
             </div>
         </div>
     </div>
+    <div class="form-group">
+        <label>{{ __('owner.set.backup_refresh_token') }}</label>
+        <input type="password" name="google_refresh_token" class="form-control" value="" autocomplete="new-password" placeholder="{{ ! empty($backup['has_refresh_token']) ? __('owner.set.keep_password') : __('owner.set.backup_refresh_token_placeholder') }}">
+        <small class="text-muted">{{ __('owner.set.backup_refresh_token_help') }}</small>
+    </div>
 
     <div class="form-group">
         <div class="animated-checkbox">
@@ -111,7 +116,11 @@
 @if($connected)
     <p class="text-success mb-3">
         <i class="fa fa-check-circle"></i>
-        {{ __('owner.set.backup_connected', ['email' => $backup['connected_email'] ?? 'Google Drive']) }}
+        @if(! empty($backup['connected_email']))
+            {{ __('owner.set.backup_connected', ['email' => $backup['connected_email']]) }}
+        @else
+            {{ __('owner.set.backup_connected_token') }}
+        @endif
     </p>
     <form method="POST" action="{{ route('owner.settings.backup.google.disconnect') }}" class="d-inline" onsubmit="return confirm(@json(__('owner.set.backup_disconnect_confirm')));">
         @csrf
