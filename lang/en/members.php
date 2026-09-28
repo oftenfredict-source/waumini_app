@@ -188,6 +188,8 @@ return [
         'region' => 'Region',
         'road' => 'Road',
         'house_number' => 'House Number',
+        'lives_with' => 'Lives with',
+        'household_members' => 'Living in this household',
         'marital_status' => 'Marital Status',
         'wedding_type' => 'Wedding Type',
         'wedding_date' => 'Wedding Date',

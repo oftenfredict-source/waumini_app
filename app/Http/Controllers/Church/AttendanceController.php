@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Church;
 
 use App\Enums\AttendanceSourceType;
+use App\Enums\SpecialEventStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Church\StoreAttendanceRequest;
 use App\Models\AttendanceRecord;
@@ -67,6 +68,8 @@ class AttendanceController extends Controller
                 'has_attendance' => $summary['total_count'] > 0,
                 'can_record' => $service->canRecordAttendance(),
                 'opens_at' => $service->attendanceOpensAt(),
+                'show_qr' => ! $service->isSundaySchool()
+                    && $service->status !== \App\Enums\ChurchServiceStatus::Cancelled,
             ];
         });
 
@@ -90,6 +93,7 @@ class AttendanceController extends Controller
                 'has_attendance' => $summary['total_count'] > 0,
                 'can_record' => $event->canRecordAttendance(),
                 'opens_at' => $event->attendanceOpensAt(),
+                'show_qr' => $event->status !== \App\Enums\SpecialEventStatus::Cancelled,
             ];
         });
 
@@ -291,6 +295,34 @@ class AttendanceController extends Controller
             'attendanceMode' => $this->attendanceService->attendanceMode($summary['source']),
             'canRecordAttendance' => $summary['source']->canRecordAttendance(),
             'attendanceOpensAt' => $summary['source']->attendanceOpensAt(),
+        ]);
+    }
+
+    public function qrPoster(Request $request): View
+    {
+        $this->authorize('viewAny', AttendanceRecord::class);
+
+        $user = auth()->user();
+        $church = $user->church;
+        $sourceType = $request->string('source_type')->toString();
+        $sourceId = $request->integer('source_id');
+
+        abort_unless($sourceType && $sourceId, 404);
+
+        $source = $this->attendanceService->resolveSource($church, $sourceType, $sourceId);
+        abort_unless(
+            $this->branchAccessService->canAccessBranchId($user, $source->branch_id),
+            403
+        );
+
+        if ($source instanceof ChurchService && $source->isSundaySchool()) {
+            abort(404);
+        }
+
+        return view('church.attendance.qr-poster', [
+            'sourceType' => $sourceType,
+            'sourceId' => $sourceId,
+            'label' => $this->attendanceService->sourceLabel($source),
         ]);
     }
 }

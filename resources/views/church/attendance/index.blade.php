@@ -116,6 +116,12 @@
                                             </button>
                                         @endif
                                     @endcan
+                                    @if($session['show_qr'] ?? false)
+                                        <a href="{{ route('church.attendance.qr', ['source_type' => $session['source_type'], 'source_id' => $session['source_id']]) }}"
+                                            class="btn btn-sm btn-dark" title="{{ __('pages.attendance.print_qr') }}" target="_blank">
+                                            <i class="fa fa-qrcode"></i>
+                                        </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

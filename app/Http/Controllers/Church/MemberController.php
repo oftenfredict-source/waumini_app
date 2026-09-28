@@ -214,6 +214,7 @@ class MemberController extends Controller
         return view('church.members.show', [
             'member' => $member,
             'familyDependants' => $member->familyDependants(),
+            'householdIndependents' => $member->membersLivingInHousehold(),
             'memberTypes' => MemberType::cases(),
             'durationUnits' => \App\Enums\TemporaryDurationUnit::cases(),
         ]);

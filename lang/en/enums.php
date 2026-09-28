@@ -77,6 +77,7 @@ return [
     ],
     'church_service_status' => [
         'scheduled' => 'Scheduled',
+        'ongoing' => 'Ongoing',
         'completed' => 'Completed',
         'cancelled' => 'Cancelled',
     ],
@@ -282,6 +283,7 @@ return [
     ],
     'special_event_status' => [
         'scheduled' => 'Scheduled',
+        'ongoing' => 'Ongoing',
         'completed' => 'Completed',
         'cancelled' => 'Cancelled',
     ],

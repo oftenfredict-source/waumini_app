@@ -77,6 +77,7 @@ return [
     ],
     'church_service_status' => [
         'scheduled' => 'Imepangwa',
+        'ongoing' => 'Inaendelea',
         'completed' => 'Imekamilika',
         'cancelled' => 'Imefutwa',
     ],
@@ -282,6 +283,7 @@ return [
     ],
     'special_event_status' => [
         'scheduled' => 'Imepangwa',
+        'ongoing' => 'Inaendelea',
         'completed' => 'Imekamilika',
         'cancelled' => 'Imefutwa',
     ],

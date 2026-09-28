@@ -72,6 +72,11 @@
 </div>
 
 @if($selectedSource)
+    @include('church.attendance._scan-qr', [
+        'sourceType' => $selectedSourceType,
+        'sourceId' => $selectedSourceId,
+        'source' => $selectedSource,
+    ])
     @if(! $canRecordAttendance)
         <div class="alert alert-warning">
             <i class="fa fa-clock-o"></i>

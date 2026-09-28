@@ -104,6 +104,11 @@
                 </form>
             @endcan
         </div>
+        @include('church.attendance._scan-qr', [
+            'sourceType' => \App\Enums\AttendanceSourceType::ChurchService->value,
+            'sourceId' => $service->id,
+            'source' => $service,
+        ])
     </div>
 </div>
 @endsection

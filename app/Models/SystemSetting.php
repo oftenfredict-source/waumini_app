@@ -85,4 +85,34 @@ class SystemSetting extends Model
 
         return $config['username'] !== '' && $config['password'] !== '';
     }
+
+    /**
+     * @return array{
+     *     company_name: string,
+     *     company_address: string,
+     *     company_phone: string,
+     *     company_tin: string,
+     *     company_website: string,
+     *     bank_name: string,
+     *     bank_account_name: string,
+     *     bank_account_number: string,
+     *     invoice_purpose: string,
+     *     invoice_recipient_title: string,
+     * }
+     */
+    public static function invoiceSettings(): array
+    {
+        return [
+            'company_name' => (string) self::getValue('billing', 'company_name', 'EmCa Techonologies LTD'),
+            'company_address' => (string) self::getValue('billing', 'company_address', "P.O.Box 20,\nMoshi Kilimanjaro."),
+            'company_phone' => (string) self::getValue('billing', 'company_phone', '+255 749 719 998'),
+            'company_tin' => (string) self::getValue('billing', 'company_tin', '181-103-264'),
+            'company_website' => (string) self::getValue('billing', 'company_website', 'www.emca.tech'),
+            'bank_name' => (string) self::getValue('billing', 'bank_name', 'NBC BANK'),
+            'bank_account_name' => (string) self::getValue('billing', 'bank_account_name', 'EMCA TECHONOLOGIES LTD'),
+            'bank_account_number' => (string) self::getValue('billing', 'bank_account_number', '017101009272'),
+            'invoice_purpose' => (string) self::getValue('billing', 'invoice_purpose', 'Waumini Link System Service Cost'),
+            'invoice_recipient_title' => (string) self::getValue('billing', 'invoice_recipient_title', 'Managing Director'),
+        ];
+    }
 }

@@ -96,6 +96,7 @@ class ChurchController extends Controller
                 ->latest('paid_at')
                 ->limit(10)
                 ->get(),
+            'invoices' => $church->invoices()->latest('issued_at')->limit(20)->get(),
             'platformCurrency' => SystemSetting::platformCurrency(),
             'smsSummary' => $this->smsUsageService->churchSummary($church),
         ]);

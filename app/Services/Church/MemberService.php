@@ -569,6 +569,19 @@ class MemberService
                 $member->user->delete();
             }
 
+            $member->dependants()
+                ->whereNull('linked_member_id')
+                ->get()
+                ->each(function (MemberDependant $dependant) {
+                    $dependant->departments()->detach();
+                    $dependant->delete();
+                });
+
+            $member->forceFill([
+                'envelope_number' => null,
+                'spouse_envelope_number' => null,
+            ])->save();
+
             $member->delete();
         });
     }
@@ -825,6 +838,10 @@ class MemberService
 
         return MemberDependant::forChurch($church->id)
             ->whereNull('linked_member_id')
+            ->where(function ($query) {
+                $query->whereNull('member_id')
+                    ->orWhereHas('member');
+            })
             ->whereNotNull('date_of_birth')
             ->whereDate('date_of_birth', $dobDate)
             ->with('member')

@@ -118,6 +118,11 @@
                 @endif
             @endcan
         </div>
+        @include('church.attendance._scan-qr', [
+            'sourceType' => $sourceType->value,
+            'sourceId' => $sourceId,
+            'source' => $summary['source'],
+        ])
     </div>
 </div>
 @endsection

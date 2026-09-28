@@ -71,6 +71,12 @@
                 </a>
             </li>
             <li>
+                <a class="app-menu__item @if(request()->routeIs('owner.invoices.*')) active @endif" href="{{ route('owner.invoices.index') }}">
+                    <i class="app-menu__icon fa fa-file-text-o"></i>
+                    <span class="app-menu__label">{{ __('owner.invoices') }}</span>
+                </a>
+            </li>
+            <li>
                 <a class="app-menu__item @if(request()->routeIs('owner.revenue.*')) active @endif" href="{{ route('owner.revenue.index') }}">
                     <i class="app-menu__icon fa fa-bar-chart"></i>
                     <span class="app-menu__label">{{ __('owner.revenue') }}</span>

@@ -13,6 +13,13 @@ class EnsureChurchMember
         $user = $request->user();
 
         if (! $user || ! $user->canAccessMemberPortal()) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This area is for church members only.',
+                ], 403);
+            }
+
             abort(403, 'This area is for church members only.');
         }
 

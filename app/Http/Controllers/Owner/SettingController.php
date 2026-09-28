@@ -68,6 +68,16 @@ class SettingController extends Controller
             'trial_days' => ['required', 'integer', 'min:0', 'max:90'],
             'tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'grace_period_days' => ['nullable', 'integer', 'min:0', 'max:30'],
+            'company_name' => ['nullable', 'string', 'max:150'],
+            'company_address' => ['nullable', 'string', 'max:255'],
+            'company_phone' => ['nullable', 'string', 'max:50'],
+            'company_tin' => ['nullable', 'string', 'max:50'],
+            'company_website' => ['nullable', 'string', 'max:150'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'bank_account_name' => ['nullable', 'string', 'max:150'],
+            'bank_account_number' => ['nullable', 'string', 'max:50'],
+            'invoice_purpose' => ['nullable', 'string', 'max:255'],
+            'invoice_recipient_title' => ['nullable', 'string', 'max:100'],
         ]);
 
         SystemSetting::setValue('billing', 'currency', strtoupper($data['currency']));
@@ -75,6 +85,13 @@ class SettingController extends Controller
         SystemSetting::setValue('billing', 'tax_rate', (float) ($data['tax_rate'] ?? 0));
         SystemSetting::setValue('billing', 'grace_period_days', (int) ($data['grace_period_days'] ?? 3));
         SystemSetting::setValue('churches', 'default_currency', strtoupper($data['currency']));
+
+        foreach ([
+            'company_name', 'company_address', 'company_phone', 'company_tin', 'company_website',
+            'bank_name', 'bank_account_name', 'bank_account_number', 'invoice_purpose', 'invoice_recipient_title',
+        ] as $key) {
+            SystemSetting::setValue('billing', $key, $data[$key] ?? '');
+        }
 
         SubscriptionPackage::query()->update(['currency' => strtoupper($data['currency'])]);
 
@@ -267,6 +284,7 @@ class SettingController extends Controller
             'trial_days' => SystemSetting::getValue('billing', 'trial_days', 14),
             'tax_rate' => SystemSetting::getValue('billing', 'tax_rate', 0),
             'grace_period_days' => SystemSetting::getValue('billing', 'grace_period_days', 3),
+            ...SystemSetting::invoiceSettings(),
 
             'allow_registration' => SystemSetting::getValue('churches', 'allow_registration', true),
             'require_approval' => SystemSetting::getValue('churches', 'require_approval', false),

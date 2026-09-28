@@ -55,6 +55,7 @@ class ChurchServiceController extends Controller
         }
 
         $services = $query->paginate(15)->withQueryString();
+        $services->getCollection()->each->syncLiveStatus();
 
         return view('church.services.index', [
             'services' => $services,
@@ -100,6 +101,7 @@ class ChurchServiceController extends Controller
     public function show(ChurchService $service): View
     {
         $service->load(['creator', 'preacherMember', 'coordinatorMember']);
+        $service->syncLiveStatus();
 
         return view('church.services.show', compact('service'));
     }

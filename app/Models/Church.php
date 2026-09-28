@@ -65,6 +65,11 @@ class Church extends Model
         return $this->hasMany(ChurchSubscription::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function hasPackageFeature(string $key): bool
     {
         $package = $this->activeSubscription?->package;

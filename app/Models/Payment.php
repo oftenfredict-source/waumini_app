@@ -46,4 +46,9 @@ class Payment extends Model
     {
         return $this->status === 'completed';
     }
+
+    public function invoice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }

@@ -36,6 +36,7 @@
         </div>
 
         @include('owner.churches.partials.subscription-management')
+        @include('owner.churches.partials.invoices')
         @include('owner.churches.partials.sms-usage-summary')
 
         <div class="tile">

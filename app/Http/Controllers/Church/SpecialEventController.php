@@ -61,6 +61,7 @@ class SpecialEventController extends Controller
         }
 
         $events = $query->paginate(15)->withQueryString();
+        $events->getCollection()->each->syncLiveStatus();
 
         return view('church.special-events.index', [
             'events' => $events,
@@ -103,6 +104,7 @@ class SpecialEventController extends Controller
     public function show(SpecialEvent $specialEvent): View
     {
         $specialEvent->load('creator');
+        $specialEvent->syncLiveStatus();
 
         return view('church.special-events.show', ['event' => $specialEvent]);
     }

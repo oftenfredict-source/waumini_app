@@ -3,6 +3,7 @@
 use App\Http\Controllers\Owner\ChurchController;
 use App\Http\Controllers\Owner\ChurchSubscriptionController;
 use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\Owner\InvoiceController;
 use App\Http\Controllers\Owner\LoginController;
 use App\Http\Controllers\Owner\PaymentController;
 use App\Http\Controllers\Owner\RevenueController;
@@ -34,6 +35,13 @@ Route::middleware(['auth', 'owner'])->group(function () {
     Route::get('subscriptions/packages', [SubscriptionController::class, 'packages'])->name('subscriptions.packages');
 
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+
+    Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::post('invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
+    Route::post('churches/{church}/invoices', [InvoiceController::class, 'store'])->name('churches.invoices.store');
 
     Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
 

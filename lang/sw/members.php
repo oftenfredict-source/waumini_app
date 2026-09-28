@@ -188,6 +188,8 @@ return [
         'region' => 'Mkoa',
         'road' => 'Barabara',
         'house_number' => 'Nambari ya Nyumba',
+        'lives_with' => 'Anaishi na',
+        'household_members' => 'Wanaoishi katika kaya hii',
         'marital_status' => 'Hali ya Ndoa',
         'wedding_type' => 'Aina ya Harusi',
         'wedding_date' => 'Tarehe ya Harusi',

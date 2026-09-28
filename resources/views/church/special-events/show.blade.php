@@ -87,6 +87,11 @@
                 </form>
             @endcan
         </div>
+        @include('church.attendance._scan-qr', [
+            'sourceType' => \App\Enums\AttendanceSourceType::SpecialEvent->value,
+            'sourceId' => $event->id,
+            'source' => $event,
+        ])
     </div>
 </div>
 @endsection

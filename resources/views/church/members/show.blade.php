@@ -163,13 +163,69 @@
             </table>
         </div>
 
-        @php $spouse = $member->resolvedSpouse(); @endphp
-        @if($member->marital_status || $spouse || $familyDependants->isNotEmpty())
+        @php
+            $spouse = $member->resolvedSpouse();
+            $isIndependent = $member->member_type?->value === 'independent';
+            $householdIndependents = $householdIndependents ?? collect();
+            $hasFamilyHousehold = $member->familyMember || $member->guardian_full_name || $householdIndependents->isNotEmpty();
+        @endphp
+        @if((! $isIndependent && $member->marital_status) || $spouse || $familyDependants->isNotEmpty() || $hasFamilyHousehold)
             <div class="tile">
                 <h3 class="tile-title">{{ __('members.summary.family_information') }}</h3>
                 <table class="table table-borderless table-sm">
-                    @if($member->marital_status)
+                    @if(! $isIndependent && $member->marital_status)
                         <tr><th width="180">{{ __('members.fields.marital_status') }}</th><td>{{ $member->marital_status->label() }}</td></tr>
+                    @endif
+                    @if($member->familyMember)
+                        <tr>
+                            <th width="180">{{ __('members.summary.lives_with') }}</th>
+                            <td>
+                                <a href="{{ route('church.members.show', $member->familyMember) }}">{{ $member->familyMember->full_name }}</a>
+                                <span class="text-muted">({{ $member->familyMember->member_number }})</span>
+                                <span class="badge badge-light">{{ __('pages.members.registered_member') }}</span>
+                                @if($member->guardian_relationship)
+                                    <div class="small text-muted mt-1">{{ __('members.fields.guardian_relationship') }}: {{ $member->guardian_relationship }}</div>
+                                @endif
+                            </td>
+                        </tr>
+                        @if($member->secondaryFamilyMember)
+                            <tr>
+                                <th>{{ __('members.fields.linked_spouse_parent') }}</th>
+                                <td>
+                                    <a href="{{ route('church.members.show', $member->secondaryFamilyMember) }}">{{ $member->secondaryFamilyMember->full_name }}</a>
+                                    <span class="text-muted">({{ $member->secondaryFamilyMember->member_number }})</span>
+                                </td>
+                            </tr>
+                        @endif
+                    @elseif($member->guardian_full_name)
+                        <tr>
+                            <th width="180">{{ __('members.fields.family_guardian_title') }}</th>
+                            <td>
+                                <div>{{ $member->guardian_full_name }}</div>
+                                @if($member->guardian_relationship)
+                                    <div class="small text-muted">{{ $member->guardian_relationship }}</div>
+                                @endif
+                                @if($member->guardian_phone)
+                                    <div class="small text-muted">{{ $member->guardian_phone }}</div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endif
+                    @if($householdIndependents->isNotEmpty())
+                        <tr>
+                            <th width="180">{{ __('members.summary.household_members') }}</th>
+                            <td>
+                                @foreach($householdIndependents as $lodger)
+                                    <div class="{{ $loop->first ? '' : 'mt-1' }}">
+                                        <a href="{{ route('church.members.show', $lodger) }}">{{ $lodger->full_name }}</a>
+                                        <span class="text-muted">({{ $lodger->member_number }})</span>
+                                        @if($lodger->guardian_relationship)
+                                            <span class="badge badge-light">{{ $lodger->guardian_relationship }}</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </td>
+                        </tr>
                     @endif
                     @if($member->marital_status?->value === 'married')
                         <tr><th>{{ __('members.fields.wedding_type') }}</th><td>{{ $member->wedding_type?->label() ?? '—' }}</td></tr>

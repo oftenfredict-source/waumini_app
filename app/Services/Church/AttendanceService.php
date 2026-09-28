@@ -3,6 +3,8 @@
 namespace App\Services\Church;
 
 use App\Enums\AttendanceSourceType;
+use App\Enums\ChurchServiceStatus;
+use App\Enums\SpecialEventStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Church;
 use App\Models\ChurchService;
@@ -10,8 +12,12 @@ use App\Models\Member;
 use App\Models\MemberDependant;
 use App\Models\SpecialEvent;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\ValidationException;
 
 class AttendanceService
 {
@@ -70,6 +76,175 @@ class AttendanceService
     public function canRecordAttendance(ChurchService|SpecialEvent $source, ?\Carbon\CarbonInterface $now = null): bool
     {
         return $source->canRecordAttendance($now);
+    }
+
+    /**
+     * @return array{already_recorded: bool, id: int, title: string, source_type: string, attended_at: string|null}
+     */
+    public function recordMemberScan(Member $member, string $payload): array
+    {
+        [$sourceType, $sourceId] = $this->parseScanPayload($payload);
+        $church = Church::query()->findOrFail($member->church_id);
+
+        try {
+            $source = $this->resolveSource($church, $sourceType, $sourceId);
+        } catch (ModelNotFoundException) {
+            throw ValidationException::withMessages([
+                'payload' => [__('pages.attendance.invalid_qr')],
+            ]);
+        }
+
+        $cancelled = ($source instanceof ChurchService && $source->status === ChurchServiceStatus::Cancelled)
+            || ($source instanceof SpecialEvent && $source->status === SpecialEventStatus::Cancelled);
+
+        if ($cancelled) {
+            throw ValidationException::withMessages([
+                'payload' => [__('pages.attendance.service_cancelled_scan')],
+            ]);
+        }
+
+        if ($this->attendanceMode($source) === 'sunday_school') {
+            throw ValidationException::withMessages([
+                'payload' => [__('pages.attendance.sunday_school_scan')],
+            ]);
+        }
+
+        if (! $this->canRecordAttendance($source)) {
+            $opensAt = $source->attendanceOpensAt();
+            $when = $opensAt?->format('M d, Y H:i') ?? __('pages.attendance.scheduled_start');
+
+            throw ValidationException::withMessages([
+                'payload' => [__('pages.attendance.not_yet_open', ['when' => $when])],
+            ]);
+        }
+
+        $closesAt = $source->attendanceEndsAt()
+            ?? $source->attendanceOpensAt()?->copy()->endOfDay();
+        $now = $source->nowInChurch();
+        if ($closesAt && $now->greaterThanOrEqualTo($closesAt)) {
+            throw ValidationException::withMessages([
+                'payload' => [__('pages.attendance.scan_window_closed')],
+            ]);
+        }
+
+        return DB::transaction(function () use ($church, $source, $sourceType, $sourceId, $member) {
+            $existing = AttendanceRecord::forChurch($church->id)
+                ->forSource($sourceType, $sourceId)
+                ->where('member_id', $member->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                return $this->scanResult($existing, $source, true);
+            }
+
+            try {
+                $record = AttendanceRecord::create([
+                    'church_id' => $church->id,
+                    'branch_id' => $source->branch_id,
+                    'source_type' => AttendanceSourceType::from($sourceType),
+                    'source_id' => $sourceId,
+                    'member_id' => $member->id,
+                    'attended_at' => now(),
+                    'recorded_by' => request()->user()?->id,
+                    'notes' => 'qr_checkin',
+                ]);
+            } catch (QueryException) {
+                $existing = AttendanceRecord::forChurch($church->id)
+                    ->forSource($sourceType, $sourceId)
+                    ->where('member_id', $member->id)
+                    ->first();
+
+                if ($existing) {
+                    return $this->scanResult($existing, $source, true);
+                }
+
+                throw ValidationException::withMessages([
+                    'payload' => [__('pages.attendance.already_scanned')],
+                ]);
+            }
+
+            return $this->scanResult($record, $source, false);
+        });
+    }
+
+    /**
+     * @return array{0: string, 1: int}
+     */
+    public function parseScanPayload(string $payload): array
+    {
+        $raw = trim($payload);
+        if ($raw === '') {
+            throw ValidationException::withMessages([
+                'payload' => [__('pages.attendance.invalid_qr')],
+            ]);
+        }
+
+        $json = json_decode($raw, true);
+        if (is_array($json)) {
+            $type = (string) ($json['source_type'] ?? $json['type'] ?? '');
+            $id = (int) ($json['source_id'] ?? $json['id'] ?? 0);
+            if ($this->isAttendanceSource($type) && $id > 0) {
+                return [$type, $id];
+            }
+        }
+
+        if (preg_match('/^waumini:attendance:(church_service|special_event):(\d+)$/', $raw, $matches)) {
+            return [$matches[1], (int) $matches[2]];
+        }
+
+        if (preg_match('/^(church_service|special_event):(\d+)$/', $raw, $matches)) {
+            return [$matches[1], (int) $matches[2]];
+        }
+
+        $query = parse_url($raw, PHP_URL_QUERY);
+        if (is_string($query) && $query !== '') {
+            parse_str($query, $params);
+            $type = (string) ($params['source_type'] ?? '');
+            $id = (int) ($params['source_id'] ?? 0);
+            if ($this->isAttendanceSource($type) && $id > 0) {
+                return [$type, $id];
+            }
+        }
+
+        throw ValidationException::withMessages([
+            'payload' => [__('pages.attendance.invalid_qr')],
+        ]);
+    }
+
+    public static function scanPayload(string $sourceType, int $sourceId): string
+    {
+        return static::scanUrl($sourceType, $sourceId);
+    }
+
+    public static function scanUrl(string $sourceType, int $sourceId): string
+    {
+        return URL::signedRoute('church.attendance.checkin', [
+            'source_type' => $sourceType,
+            'source_id' => $sourceId,
+        ]);
+    }
+
+    private function isAttendanceSource(string $type): bool
+    {
+        return in_array($type, [
+            AttendanceSourceType::ChurchService->value,
+            AttendanceSourceType::SpecialEvent->value,
+        ], true);
+    }
+
+    /**
+     * @return array{already_recorded: bool, id: int, title: string, source_type: string, attended_at: string|null}
+     */
+    private function scanResult(AttendanceRecord $record, ChurchService|SpecialEvent $source, bool $alreadyRecorded): array
+    {
+        return [
+            'already_recorded' => $alreadyRecorded,
+            'id' => $record->id,
+            'title' => $this->sourceLabel($source),
+            'source_type' => $record->source_type?->value ?? '',
+            'attended_at' => $record->attended_at?->toIso8601String(),
+        ];
     }
 
     public function sync(

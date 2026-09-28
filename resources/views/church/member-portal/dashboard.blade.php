@@ -149,8 +149,10 @@
             @forelse($data['upcoming_services'] as $service)
                 <div class="member-list-item d-flex justify-content-between">
                     <div>
-                        <strong>{{ $service->displayTitle() }}</strong>
-                        @if($service->preacher)<div class="text-muted small">{{ $service->preacher }}</div>@endif
+                        <strong>
+                            <a href="{{ route('church.member.services.show', $service) }}">{{ $service->displayTitle() }}</a>
+                        </strong>
+                        @if($service->preacherDisplay() !== '—')<div class="text-muted small">{{ $service->preacherDisplay() }}</div>@endif
                     </div>
                     <span class="badge badge-primary">{{ $service->service_date?->format('M d') }}</span>
                 </div>

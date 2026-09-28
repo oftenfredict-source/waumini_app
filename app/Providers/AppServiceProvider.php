@@ -11,6 +11,7 @@ use App\Models\ChurchBranch;
 use App\Models\Celebration;
 use App\Models\ChurchService;
 use App\Models\Department;
+use App\Models\Invoice;
 use App\Models\Leader;
 use App\Models\Member;
 use App\Models\MemberDependant;
@@ -37,6 +38,7 @@ use App\Policies\AnnouncementPolicy;
 use App\Policies\CelebrationPolicy;
 use App\Policies\ChurchServicePolicy;
 use App\Policies\DepartmentPolicy;
+use App\Policies\InvoicePolicy;
 use App\Policies\LeaderPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\MemberRegistrationApplicationPolicy;
@@ -57,8 +59,11 @@ use App\Policies\UserPolicy;
 use App\Services\Church\BranchAccessService;
 use App\Services\Church\ChurchRolePermissionService;
 use App\Services\Church\HeaderNotificationService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -82,6 +87,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('api-login', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
         if (! $this->app->runningInConsole() && $this->app->bound('request')) {
             $request = $this->app->make('request');
             URL::forceRootUrl($request->getSchemeAndHttpHost().$request->getBaseUrl());
@@ -110,6 +119,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(BereavementEvent::class, BereavementEventPolicy::class);
         Gate::policy(SubscriptionPackage::class, SubscriptionPackagePolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
+        Gate::policy(Invoice::class, InvoicePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(SupportTicket::class, SupportTicketPolicy::class);
         Gate::policy(SystemSetting::class, SystemSettingPolicy::class);

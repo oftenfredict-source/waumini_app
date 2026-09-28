@@ -186,6 +186,28 @@ class Member extends Model
         return $this->hasMany(Member::class, 'family_member_id');
     }
 
+    /**
+     * Independent members registered as living with this member or their spouse link.
+     *
+     * @return Collection<int, Member>
+     */
+    public function membersLivingInHousehold(): Collection
+    {
+        if (! $this->church_id || ! $this->id) {
+            return collect();
+        }
+
+        return static::query()
+            ->forChurch($this->church_id)
+            ->whereKeyNot($this->id)
+            ->where(function (Builder $query) {
+                $query->where('family_member_id', $this->id)
+                    ->orWhere('secondary_family_member_id', $this->id);
+            })
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'member_number', 'guardian_relationship']);
+    }
+
     public function spouseOf(): HasOne
     {
         return $this->hasOne(Member::class, 'spouse_member_id');
@@ -293,13 +315,15 @@ class Member extends Model
         bool $branchesEnabled = false,
         ?int $ignoreMemberId = null,
     ): Unique {
-        $rule = Rule::unique('members', 'envelope_number')->where(function ($q) use ($churchId, $branchId, $branchesEnabled) {
-            $q->where('church_id', $churchId);
+        $rule = Rule::unique('members', 'envelope_number')
+            ->where(function ($q) use ($churchId, $branchId, $branchesEnabled) {
+                $q->where('church_id', $churchId);
 
-            if ($branchesEnabled) {
-                $q->where('branch_id', $branchId);
-            }
-        });
+                if ($branchesEnabled) {
+                    $q->where('branch_id', $branchId);
+                }
+            })
+            ->withoutTrashed();
 
         if ($ignoreMemberId) {
             $rule->ignore($ignoreMemberId);

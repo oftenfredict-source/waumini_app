@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Church\AttendanceCheckInController;
 use App\Http\Controllers\Church\AttendanceController;
 use App\Http\Controllers\Church\AnnouncementController;
 use App\Http\Controllers\Church\BereavementController;
@@ -63,6 +64,10 @@ Route::middleware('church.maintenance')->group(function () {
     Route::post('register', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'store'])->name('register.submit');
     Route::get('register/success/{reference}', [\App\Http\Controllers\Church\MemberSelfRegistrationController::class, 'success'])->name('register.success');
 
+    Route::get('attendance/check-in', AttendanceCheckInController::class)
+        ->middleware('signed')
+        ->name('attendance.checkin');
+
     Route::middleware(['auth', 'church'])->group(function () {
     Route::post('impersonation/leave', [ImpersonationController::class, 'leave'])->name('impersonation.leave');
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
@@ -77,6 +82,7 @@ Route::middleware('church.maintenance')->group(function () {
         Route::get('announcements/{announcement}', [MemberPortalAnnouncementController::class, 'show'])->name('announcements.show');
         Route::get('leaders', [MemberPortalLeaderController::class, 'index'])->name('leaders.index');
         Route::get('services', [MemberPortalServiceController::class, 'index'])->name('services.index');
+        Route::get('services/{service}', [MemberPortalServiceController::class, 'show'])->name('services.show');
         Route::get('requests', [MemberPortalRequestController::class, 'index'])->name('requests.index');
         Route::get('requests/create', [MemberPortalRequestController::class, 'create'])->name('requests.create');
         Route::post('requests', [MemberPortalRequestController::class, 'store'])->name('requests.store');
@@ -135,6 +141,7 @@ Route::middleware('church.maintenance')->group(function () {
         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('attendance/statistics', [AttendanceController::class, 'statistics'])->name('attendance.statistics');
+    Route::get('attendance/qr', [AttendanceController::class, 'qrPoster'])->name('attendance.qr');
     Route::get('attendance/record', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     Route::get('attendance/view', [AttendanceController::class, 'show'])->name('attendance.show');
