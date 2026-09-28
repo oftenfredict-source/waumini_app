@@ -7,6 +7,7 @@ use App\Models\SystemSetting;
 use App\Services\Sms\SmsGatewayService;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -19,6 +20,10 @@ class DatabaseBackupService
     ) {}
 
     private ?GoogleDriveBackupClient $drive = null;
+
+    private ?string $resolvedFolderId = null;
+
+    private bool $folderResolved = false;
 
     /**
      * @return array{ok: bool, log: DatabaseBackupLog}
@@ -37,7 +42,7 @@ class DatabaseBackupService
             @unlink($sqlPath);
 
             $size = filesize($localGz) ?: 0;
-            $fileId = $this->driveClient()->upload($localGz, $filename, $this->folderId() ?: null);
+            $fileId = $this->driveClient()->upload($localGz, $filename, $this->resolvedFolderId());
 
             $this->pruneOldDriveBackups();
 
@@ -51,7 +56,7 @@ class DatabaseBackupService
                 'finished_at' => now(),
             ]);
 
-            $this->notifyOwnerBySms($log);
+            $this->notifyOwner($log);
 
             return ['ok' => true, 'log' => $log];
         } catch (Throwable $e) {
@@ -65,7 +70,7 @@ class DatabaseBackupService
                 'finished_at' => now(),
             ]);
 
-            $this->notifyOwnerBySms($log);
+            $this->notifyOwner($log);
 
             return ['ok' => false, 'log' => $log];
         } finally {
@@ -114,6 +119,10 @@ class DatabaseBackupService
      *     redirect_uri: string,
      *     notify_sms: bool,
      *     notify_phone: string,
+     *     notify_email: string,
+     *     dump_path: string,
+     *     backup_name: string,
+     *     refresh_token: string,
      *     sms_gateway_ready: bool
      * }
      */
@@ -130,9 +139,13 @@ class DatabaseBackupService
             'client_id' => $this->clientId(),
             'has_client_secret' => $this->clientSecret() !== '',
             'has_refresh_token' => $this->refreshToken() !== '',
+            'refresh_token' => $this->refreshToken(),
             'redirect_uri' => $this->redirectUri(),
             'notify_sms' => $this->smsNotifyEnabled(),
             'notify_phone' => $this->notifyPhone(),
+            'notify_email' => $this->notifyEmail(),
+            'dump_path' => $this->dumpPath(),
+            'backup_name' => $this->backupName(),
             'sms_gateway_ready' => $this->sms->isConfigured(),
         ];
     }
@@ -147,6 +160,9 @@ class DatabaseBackupService
         bool $notifySms = false,
         string $notifyPhone = '',
         ?string $refreshToken = null,
+        string $dumpPath = '',
+        string $backupName = '',
+        string $notifyEmail = '',
     ): void {
         SystemSetting::setValue('backup', 'enabled', $enabled);
         SystemSetting::setValue('backup', 'folder_id', trim($folderId));
@@ -154,6 +170,9 @@ class DatabaseBackupService
         SystemSetting::setValue('backup', 'run_at', $runAt);
         SystemSetting::setValue('backup', 'notify_sms', $notifySms);
         SystemSetting::setValue('backup', 'notify_phone', $this->sms->normalizePhone($notifyPhone));
+        SystemSetting::setValue('backup', 'notify_email', trim($notifyEmail));
+        SystemSetting::setValue('backup', 'dump_path', trim($dumpPath));
+        SystemSetting::setValue('backup', 'backup_name', trim($backupName));
 
         if (is_string($clientId)) {
             SystemSetting::setValue('backup', 'google_client_id', GoogleDriveBackupClient::normalizeCredential($clientId));
@@ -362,7 +381,7 @@ class DatabaseBackupService
     private function pruneOldDriveBackups(): void
     {
         $keep = $this->keepCount();
-        $files = $this->driveClient()->listBackupFiles($this->folderId() ?: null);
+        $files = $this->driveClient()->listBackupFiles($this->resolvedFolderId());
         $backups = array_values(array_filter(
             $files,
             fn (array $file): bool => str_ends_with((string) ($file['name'] ?? ''), '.sql.gz')
@@ -433,9 +452,36 @@ class DatabaseBackupService
         }
     }
 
+    private function resolvedFolderId(): ?string
+    {
+        if (! $this->folderResolved) {
+            $this->resolvedFolderId = $this->driveClient()->resolveUploadFolder($this->folderId() ?: null);
+            $this->folderResolved = true;
+        }
+
+        return $this->resolvedFolderId;
+    }
+
     private function folderId(): string
     {
         return trim((string) SystemSetting::getValue('backup', 'folder_id', config('backup.folder_id')));
+    }
+
+    private function dumpPath(): string
+    {
+        return trim((string) SystemSetting::getValue('backup', 'dump_path', config('backup.mysqldump_path')));
+    }
+
+    private function backupName(): string
+    {
+        $name = trim((string) SystemSetting::getValue('backup', 'backup_name', ''));
+
+        return $name !== '' ? $name : 'waumini_backup';
+    }
+
+    private function notifyEmail(): string
+    {
+        return trim((string) SystemSetting::getValue('backup', 'notify_email', ''));
     }
 
     private function keepCount(): int
@@ -477,6 +523,31 @@ class DatabaseBackupService
         }
 
         return $name !== '' ? $name : 'Waumini Link';
+    }
+
+    private function notifyOwner(DatabaseBackupLog $log): void
+    {
+        $this->notifyOwnerBySms($log);
+        $this->notifyOwnerByEmail($log);
+    }
+
+    private function notifyOwnerByEmail(DatabaseBackupLog $log): void
+    {
+        $email = $this->notifyEmail();
+
+        if ($email === '') {
+            return;
+        }
+
+        try {
+            Mail::raw($this->smsMessage($log), function ($message) use ($email, $log): void {
+                $message->to($email)->subject(
+                    $log->isSuccess() ? 'Waumini Link: Backup imefanikiwa' : 'Waumini Link: Backup imeshindikana'
+                );
+            });
+        } catch (Throwable $e) {
+            Log::warning('Backup email failed: '.$e->getMessage());
+        }
     }
 
     private function notifyOwnerBySms(DatabaseBackupLog $log): void
@@ -533,17 +604,28 @@ class DatabaseBackupService
 
     private function backupFilename(): string
     {
-        $name = Str::slug((string) config('app.name', 'waumini-link')) ?: 'waumini-link';
+        $name = Str::slug($this->backupName()) ?: 'waumini-backup';
 
         return $name.'-'.now()->format('Y-m-d-His').'.sql.gz';
     }
 
     private function mysqldumpPath(): string
     {
-        $configured = trim((string) config('backup.mysqldump_path'));
+        $configured = $this->dumpPath() ?: trim((string) config('backup.mysqldump_path'));
 
-        if ($configured !== '' && is_file($configured)) {
-            return $configured;
+        if ($configured !== '') {
+            if (is_file($configured)) {
+                return $configured;
+            }
+
+            if (is_dir($configured)) {
+                foreach (['mysqldump.exe', 'mysqldump'] as $binary) {
+                    $path = rtrim($configured, '\\/').DIRECTORY_SEPARATOR.$binary;
+                    if (is_file($path)) {
+                        return $path;
+                    }
+                }
+            }
         }
 
         $candidates = array_filter([
@@ -560,6 +642,6 @@ class DatabaseBackupService
             }
         }
 
-        throw new RuntimeException('mysqldump was not found. Set BACKUP_MYSQLDUMP_PATH in .env.');
+        throw new RuntimeException('mysqldump was not found. Set Dump Binary Path (for example C:\\xampp\\mysql\\bin or /usr/bin).');
     }
 }

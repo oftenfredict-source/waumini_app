@@ -4,49 +4,105 @@
     $connected = ! empty($backup['connected']);
 @endphp
 
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <div>
+        <h4 class="mb-1">{{ __('owner.set.backup_heading') }}</h4>
+        <p class="text-muted mb-0">{{ __('owner.set.backup_help') }}</p>
+    </div>
+    <div class="mt-2 mt-md-0">
+        @if($connected)
+            <span class="badge badge-success p-2 mr-1">
+                <i class="fa fa-check"></i>
+                {{ __('owner.set.backup_connected_badge') }}
+            </span>
+        @endif
+        <a href="{{ route('owner.settings.backup.google.connect') }}" class="btn btn-sm btn-success">
+            <i class="fa fa-google"></i> {{ $connected ? __('owner.set.backup_reconnect') : __('owner.set.backup_connect') }}
+        </a>
+        @if($connected)
+            <form method="POST" action="{{ route('owner.settings.backup.google.disconnect') }}" class="d-inline" onsubmit="return confirm(@json(__('owner.set.backup_disconnect_confirm')));">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-danger">{{ __('owner.set.backup_disconnect') }}</button>
+            </form>
+        @endif
+    </div>
+</div>
+
 <form method="POST" action="{{ route('owner.settings.backup') }}">
     @csrf
     @method('PUT')
-    <h4 class="mb-3">{{ __('owner.set.backup_heading') }}</h4>
-    <p class="text-muted">{{ __('owner.set.backup_help') }}</p>
 
-    <div class="alert alert-info">
-        <strong>{{ __('owner.set.backup_setup_title') }}</strong>
-        <ol class="mb-0 mt-2 pl-3">
-            <li>{{ __('owner.set.backup_step_1') }}</li>
-            <li>{{ __('owner.set.backup_step_2') }}</li>
-            <li>{{ __('owner.set.backup_step_3') }}</li>
-            <li>{{ __('owner.set.backup_step_4') }}</li>
-        </ol>
-    </div>
-
-    <div class="form-group">
-        <label>{{ __('owner.set.backup_redirect_uri') }}</label>
-        <input type="text" class="form-control" value="{{ $backup['redirect_uri'] ?? '' }}" readonly onclick="this.select()">
-        <small class="text-muted">{{ __('owner.set.backup_redirect_uri_help') }}</small>
-    </div>
-
+    <h5 class="mb-3"><i class="fa fa-cogs"></i> {{ __('owner.set.backup_advanced') }}</h5>
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_dump_path') }}</label>
+                <input type="text" name="dump_path" class="form-control" value="{{ old('dump_path', $backup['dump_path'] ?? '') }}" placeholder="C:\xampp\mysql\bin">
+                <small class="text-muted">{{ __('owner.set.backup_dump_path_help') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="form-group">
                 <label>{{ __('owner.set.backup_client_id') }}</label>
                 <input type="text" name="google_client_id" class="form-control" value="{{ old('google_client_id', $backup['client_id'] ?? '') }}" autocomplete="off">
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
                 <label>{{ __('owner.set.backup_client_secret') }}</label>
                 <input type="password" name="google_client_secret" class="form-control" value="" autocomplete="new-password" placeholder="{{ ! empty($backup['has_client_secret']) ? __('owner.set.keep_password') : __('owner.set.backup_client_secret_placeholder') }}">
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_folder_id') }}</label>
+                <input type="text" name="folder_id" class="form-control" value="{{ old('folder_id', $backup['folder_id'] ?? '') }}" placeholder="waumini_backup">
+                <small class="text-muted">{{ __('owner.set.backup_folder_id_help') }}</small>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_refresh_token') }}</label>
+                <input type="text" name="google_refresh_token" class="form-control" value="{{ old('google_refresh_token', $backup['refresh_token'] ?? '') }}" autocomplete="off" placeholder="{{ __('owner.set.backup_refresh_token_placeholder') }}">
+                <small class="text-muted">{{ __('owner.set.backup_refresh_token_help') }}</small>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label>{{ __('owner.set.backup_refresh_token') }}</label>
-        <input type="password" name="google_refresh_token" class="form-control" value="" autocomplete="new-password" placeholder="{{ ! empty($backup['has_refresh_token']) ? __('owner.set.keep_password') : __('owner.set.backup_refresh_token_placeholder') }}">
-        <small class="text-muted">{{ __('owner.set.backup_refresh_token_help') }}</small>
-    </div>
-    <div class="alert alert-info py-2">
-        {{ __('owner.set.backup_token_lifetime') }}
+
+    <h5 class="mb-3 mt-4"><i class="fa fa-sliders"></i> {{ __('owner.set.backup_basic') }}</h5>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_name') }}</label>
+                <input type="text" name="backup_name" class="form-control" value="{{ old('backup_name', $backup['backup_name'] ?? 'waumini_backup') }}" placeholder="waumini_backup">
+                <small class="text-muted">{{ __('owner.set.backup_name_help') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_notify_email') }}</label>
+                <input type="email" name="notify_email" class="form-control" value="{{ old('notify_email', $backup['notify_email'] ?? '') }}" placeholder="oftenfred.ict@gmail.com">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_notify_phone') }}</label>
+                <input type="text" name="notify_phone" class="form-control" value="{{ old('notify_phone', $backup['notify_phone'] ?? '') }}" placeholder="0744341239">
+                <small class="text-muted">{{ __('owner.set.backup_notify_phone_help') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_run_at') }}</label>
+                <input type="time" name="run_at" class="form-control" value="{{ old('run_at', $backup['run_at'] ?? '02:00') }}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>{{ __('owner.set.backup_keep_count') }}</label>
+                <input type="number" name="keep_count" class="form-control" value="{{ old('keep_count', $backup['keep_count'] ?? 14) }}" min="1" max="90" required>
+            </div>
+        </div>
     </div>
 
     <div class="form-group">
@@ -57,32 +113,14 @@
             </label>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>{{ __('owner.set.backup_folder_id') }}</label>
-                <input type="text" name="folder_id" class="form-control" value="{{ old('folder_id', $backup['folder_id'] ?? '') }}" placeholder="1AbCDefGhijKLmnoPQ">
-                <small class="text-muted">{{ __('owner.set.backup_folder_id_help') }}</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label>{{ __('owner.set.backup_run_at') }}</label>
-                <input type="time" name="run_at" class="form-control" value="{{ old('run_at', $backup['run_at'] ?? '02:00') }}" required>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label>{{ __('owner.set.backup_keep_count') }}</label>
-                <input type="number" name="keep_count" class="form-control" value="{{ old('keep_count', $backup['keep_count'] ?? 14) }}" min="1" max="90" required>
-            </div>
+    <div class="form-group">
+        <div class="animated-checkbox">
+            <label>
+                <input type="checkbox" name="notify_sms" value="1" @checked(old('notify_sms', $backup['notify_sms'] ?? true))>
+                <span class="label-text">{{ __('owner.set.backup_notify_sms') }}</span>
+            </label>
         </div>
     </div>
-
-    <hr class="my-3">
-    <h5>{{ __('owner.set.backup_notify_heading') }}</h5>
-    <p class="text-muted">{{ __('owner.set.backup_notify_help') }}</p>
 
     @if(empty($backup['sms_gateway_ready']))
         <div class="alert alert-warning py-2">
@@ -91,31 +129,10 @@
         </div>
     @endif
 
-    <div class="form-group">
-        <div class="animated-checkbox">
-            <label>
-                <input type="checkbox" name="notify_sms" value="1" @checked(old('notify_sms', $backup['notify_sms'] ?? false))>
-                <span class="label-text">{{ __('owner.set.backup_notify_sms') }}</span>
-            </label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label>{{ __('owner.set.backup_notify_phone') }}</label>
-        <input type="text" name="notify_phone" class="form-control" value="{{ old('notify_phone', $backup['notify_phone'] ?? '') }}" placeholder="255614863345">
-        <small class="text-muted">{{ __('owner.set.backup_notify_phone_help') }}</small>
-    </div>
-
     <div class="alert alert-warning">
         {{ __('owner.set.backup_scheduler_help') }}
         <code class="d-block mt-2">php artisan schedule:run</code>
     </div>
-
-    @if(empty($backup['has_refresh_token']))
-        <div class="alert alert-danger py-2">
-            <i class="fa fa-exclamation-circle"></i>
-            {{ __('owner.set.backup_missing_refresh') }}
-        </div>
-    @endif
 
     <button type="submit" class="btn btn-primary">
         <i class="fa fa-save"></i> {{ __('owner.set.save_backup') }}
@@ -124,33 +141,6 @@
         <i class="fa fa-cloud-upload"></i> {{ __('owner.set.backup_run_now') }}
     </button>
 </form>
-
-<hr class="my-4">
-
-<h5>{{ __('owner.set.backup_connect_heading') }}</h5>
-@if($connected)
-    <p class="text-success mb-3">
-        <i class="fa fa-check-circle"></i>
-        @if(! empty($backup['connected_email']))
-            {{ __('owner.set.backup_connected', ['email' => $backup['connected_email']]) }}
-        @else
-            {{ __('owner.set.backup_connected_token') }}
-        @endif
-    </p>
-    <form method="POST" action="{{ route('owner.settings.backup.google.disconnect') }}" class="d-inline" onsubmit="return confirm(@json(__('owner.set.backup_disconnect_confirm')));">
-        @csrf
-        <button type="submit" class="btn btn-outline-danger">
-            <i class="fa fa-unlink"></i> {{ __('owner.set.backup_disconnect') }}
-        </button>
-    </form>
-@else
-    <p class="text-muted">{{ __('owner.set.backup_connect_help') }}</p>
-    <a href="{{ route('owner.settings.backup.google.connect') }}" class="btn btn-success">
-        <i class="fa fa-google"></i> {{ __('owner.set.backup_connect') }}
-    </a>
-@endif
-
-<hr class="my-4">
 
 <h5 class="mt-4">{{ __('owner.set.backup_history') }}</h5>
 @if($logs->isEmpty())

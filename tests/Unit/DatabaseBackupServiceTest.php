@@ -104,4 +104,10 @@ class DatabaseBackupServiceTest extends TestCase
             GoogleDriveBackupClient::normalizeCredential("Refresh token: \n1//abc\n"),
         );
     }
+
+    public function test_folder_name_is_not_treated_as_drive_id(): void
+    {
+        $this->assertFalse(GoogleDriveBackupClient::looksLikeDriveId('aict_backup'));
+        $this->assertTrue(GoogleDriveBackupClient::looksLikeDriveId('1AbCDefGhijKLmnoPQRSTUV'));
+    }
 }

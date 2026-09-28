@@ -159,6 +159,61 @@ class GoogleDriveBackupClient
         return $fileId;
     }
 
+    public static function looksLikeDriveId(string $value): bool
+    {
+        return (bool) preg_match('/^[a-zA-Z0-9_-]{20,}$/', $value);
+    }
+
+    public function resolveUploadFolder(?string $folder): ?string
+    {
+        $folder = trim((string) $folder);
+
+        if ($folder === '') {
+            return null;
+        }
+
+        if (self::looksLikeDriveId($folder)) {
+            return $folder;
+        }
+
+        return $this->findOrCreateFolder($folder);
+    }
+
+    private function findOrCreateFolder(string $name): string
+    {
+        $escaped = str_replace(['\\', "'"], ['\\\\', "\\'"], $name);
+        $response = Http::withToken($this->accessToken())
+            ->get(self::FILES_URL, [
+                'q' => sprintf("name = '%s' and mimeType = 'application/vnd.google-apps.folder' and trashed = false", $escaped),
+                'spaces' => 'drive',
+                'fields' => 'files(id,name)',
+                'pageSize' => 1,
+                'supportsAllDrives' => 'true',
+                'includeItemsFromAllDrives' => 'true',
+            ]);
+
+        if ($response->successful()) {
+            $id = $response->json('files.0.id');
+            if (is_string($id) && $id !== '') {
+                return $id;
+            }
+        }
+
+        $create = Http::withToken($this->accessToken())
+            ->post(self::FILES_URL.'?supportsAllDrives=true', [
+                'name' => $name,
+                'mimeType' => 'application/vnd.google-apps.folder',
+            ]);
+
+        $id = $create->json('id');
+
+        if (! $create->successful() || ! is_string($id) || $id === '') {
+            throw new RuntimeException('Could not create Google Drive folder ['.$name.']: '.$create->body());
+        }
+
+        return $id;
+    }
+
     public function accountEmail(): ?string
     {
         $profile = Http::withToken($this->accessToken())

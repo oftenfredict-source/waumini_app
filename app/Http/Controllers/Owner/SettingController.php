@@ -224,6 +224,9 @@ class SettingController extends Controller
             'google_refresh_token' => ['nullable', 'string', 'max:2048'],
             'notify_sms' => ['nullable', 'boolean'],
             'notify_phone' => ['nullable', 'string', 'max:30'],
+            'notify_email' => ['nullable', 'email', 'max:150'],
+            'dump_path' => ['nullable', 'string', 'max:255'],
+            'backup_name' => ['nullable', 'string', 'max:80'],
         ]);
 
         $runAt = substr($data['run_at'], 0, 5);
@@ -241,6 +244,9 @@ class SettingController extends Controller
             $request->boolean('notify_sms'),
             (string) ($data['notify_phone'] ?? ''),
             $request->filled('google_refresh_token') ? $data['google_refresh_token'] : null,
+            (string) ($data['dump_path'] ?? ''),
+            (string) ($data['backup_name'] ?? ''),
+            (string) ($data['notify_email'] ?? ''),
         );
 
         if ($request->input('backup_action') === 'run') {
