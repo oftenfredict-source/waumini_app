@@ -18,6 +18,8 @@ class DatabaseBackupService
         private readonly SmsGatewayService $sms,
     ) {}
 
+    private ?GoogleDriveBackupClient $drive = null;
+
     /**
      * @return array{ok: bool, log: DatabaseBackupLog}
      */
@@ -214,6 +216,17 @@ class DatabaseBackupService
         }
     }
 
+    public function keepGoogleTokenAlive(): bool
+    {
+        if (! $this->isConfigured()) {
+            return false;
+        }
+
+        $this->driveClient()->accountEmail();
+
+        return true;
+    }
+
     private function dumpDatabase(string $filename): string
     {
         File::ensureDirectoryExists($this->localDirectory());
@@ -368,11 +381,16 @@ class DatabaseBackupService
             throw new RuntimeException('Save the Google Client ID, Client secret, and Refresh Token in Owner Settings before running a backup.');
         }
 
-        return new GoogleDriveBackupClient([
-            'client_id' => $this->clientId(),
-            'client_secret' => $this->clientSecret(),
-            'refresh_token' => $this->refreshToken(),
-        ]);
+        return $this->drive ??= new GoogleDriveBackupClient(
+            [
+                'client_id' => $this->clientId(),
+                'client_secret' => $this->clientSecret(),
+                'refresh_token' => $this->refreshToken(),
+            ],
+            function (string $token): void {
+                SystemSetting::setValue('backup', 'google_refresh_token', $token);
+            },
+        );
     }
 
     private function clientId(): string

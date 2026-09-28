@@ -22,9 +22,11 @@ class GoogleDriveBackupClient
 
     /**
      * @param  array{client_id: string, client_secret: string, refresh_token: string}  $oauth
+     * @param  (callable(string): void)|null  $onNewRefreshToken
      */
     public function __construct(
-        private readonly array $oauth,
+        private array $oauth,
+        private $onNewRefreshToken = null,
     ) {}
 
     public static function authorizationUrl(string $clientId, string $redirectUri, string $state): string
@@ -219,6 +221,14 @@ class GoogleDriveBackupClient
         ]);
 
         if (! $response->successful()) {
+            $error = (string) $response->json('error');
+
+            if ($error === 'invalid_grant') {
+                throw new RuntimeException(
+                    'Google Drive refresh token is no longer valid. In Google Auth Platform, set Publishing status to In production (Testing tokens expire after 7 days). Then paste a new refresh token once — the system will keep it alive automatically.'
+                );
+            }
+
             throw new RuntimeException('Google Drive authentication failed: '.$response->body());
         }
 
@@ -226,6 +236,14 @@ class GoogleDriveBackupClient
 
         if (! is_string($token) || $token === '') {
             throw new RuntimeException('Google Drive did not return an access token.');
+        }
+
+        $rotated = $response->json('refresh_token');
+        if (is_string($rotated) && $rotated !== '' && $rotated !== $refreshToken) {
+            $this->oauth['refresh_token'] = $rotated;
+            if (is_callable($this->onNewRefreshToken)) {
+                ($this->onNewRefreshToken)($rotated);
+            }
         }
 
         return $token;

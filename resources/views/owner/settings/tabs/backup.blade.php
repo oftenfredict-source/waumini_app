@@ -45,6 +45,9 @@
         <input type="password" name="google_refresh_token" class="form-control" value="" autocomplete="new-password" placeholder="{{ ! empty($backup['has_refresh_token']) ? __('owner.set.keep_password') : __('owner.set.backup_refresh_token_placeholder') }}">
         <small class="text-muted">{{ __('owner.set.backup_refresh_token_help') }}</small>
     </div>
+    <div class="alert alert-info py-2">
+        {{ __('owner.set.backup_token_lifetime') }}
+    </div>
 
     <div class="form-group">
         <div class="animated-checkbox">
@@ -107,7 +110,19 @@
         <code class="d-block mt-2">php artisan schedule:run</code>
     </div>
 
-    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('owner.set.save_backup') }}</button>
+    @if(empty($backup['has_refresh_token']))
+        <div class="alert alert-danger py-2">
+            <i class="fa fa-exclamation-circle"></i>
+            {{ __('owner.set.backup_missing_refresh') }}
+        </div>
+    @endif
+
+    <button type="submit" class="btn btn-primary">
+        <i class="fa fa-save"></i> {{ __('owner.set.save_backup') }}
+    </button>
+    <button type="submit" name="backup_action" value="run" class="btn btn-success ml-2" onclick="return confirm(@json(__('owner.set.backup_run_confirm')));">
+        <i class="fa fa-cloud-upload"></i> {{ __('owner.set.backup_run_now') }}
+    </button>
 </form>
 
 <hr class="my-4">
@@ -136,16 +151,6 @@
 @endif
 
 <hr class="my-4">
-
-<form method="POST" action="{{ route('owner.settings.backup.run') }}" onsubmit="return confirm(@json(__('owner.set.backup_run_confirm')));">
-    @csrf
-    <button type="submit" class="btn btn-outline-primary" @disabled(empty($backup['configured']))>
-        <i class="fa fa-cloud-upload"></i> {{ __('owner.set.backup_run_now') }}
-    </button>
-    @if(empty($backup['configured']))
-        <small class="text-muted ml-2">{{ __('owner.set.backup_run_blocked') }}</small>
-    @endif
-</form>
 
 <h5 class="mt-4">{{ __('owner.set.backup_history') }}</h5>
 @if($logs->isEmpty())

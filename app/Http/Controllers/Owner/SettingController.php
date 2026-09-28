@@ -243,6 +243,10 @@ class SettingController extends Controller
             $request->filled('google_refresh_token') ? $data['google_refresh_token'] : null,
         );
 
+        if ($request->input('backup_action') === 'run') {
+            return $this->executeBackupRun();
+        }
+
         return $this->redirectToTab('backup', 'Backup settings saved.');
     }
 
@@ -250,15 +254,7 @@ class SettingController extends Controller
     {
         $this->authorize('viewAny', SystemSetting::class);
 
-        set_time_limit(600);
-
-        $result = $this->databaseBackupService->run();
-
-        if ($result['ok']) {
-            return $this->redirectToTab('backup', 'Database backup uploaded to Google Drive: '.$result['log']->filename);
-        }
-
-        return $this->redirectToTab('backup', $result['log']->message ?: 'Database backup failed.', 'error');
+        return $this->executeBackupRun();
     }
 
     public function connectGoogleDrive(): RedirectResponse
@@ -437,6 +433,19 @@ class SettingController extends Controller
         }
 
         return $slug;
+    }
+
+    private function executeBackupRun(): RedirectResponse
+    {
+        set_time_limit(600);
+
+        $result = $this->databaseBackupService->run();
+
+        if ($result['ok']) {
+            return $this->redirectToTab('backup', 'Database backup uploaded to Google Drive: '.$result['log']->filename);
+        }
+
+        return $this->redirectToTab('backup', $result['log']->message ?: 'Database backup failed.', 'error');
     }
 
     private function redirectToTab(string $tab, string $message, string $type = 'success'): RedirectResponse

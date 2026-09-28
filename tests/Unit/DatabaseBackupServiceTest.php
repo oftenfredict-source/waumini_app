@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\DatabaseBackupLog;
 use App\Services\Owner\DatabaseBackupService;
 use App\Services\Owner\GoogleDriveBackupClient;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class DatabaseBackupServiceTest extends TestCase
@@ -45,5 +46,34 @@ class DatabaseBackupServiceTest extends TestCase
 
         $this->assertStringContainsString('imeshindikana', $service->smsMessage($fail));
         $this->assertStringContainsString('Connect Google Drive first.', $service->smsMessage($fail));
+    }
+
+    public function test_rotated_refresh_token_is_persisted(): void
+    {
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'access_token' => 'ya29.new-access',
+                'refresh_token' => '1//rotated-refresh',
+                'expires_in' => 3600,
+            ], 200),
+            'https://www.googleapis.com/oauth2/v2/userinfo' => Http::response([
+                'email' => 'owner@example.com',
+            ], 200),
+        ]);
+
+        $saved = null;
+        $client = new GoogleDriveBackupClient(
+            [
+                'client_id' => 'client-id',
+                'client_secret' => 'client-secret',
+                'refresh_token' => '1//old-refresh',
+            ],
+            function (string $token) use (&$saved): void {
+                $saved = $token;
+            },
+        );
+
+        $this->assertSame('owner@example.com', $client->accountEmail());
+        $this->assertSame('1//rotated-refresh', $saved);
     }
 }
