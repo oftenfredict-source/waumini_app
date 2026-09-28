@@ -2,6 +2,8 @@
 
 namespace Tests\Unit;
 
+use App\Models\DatabaseBackupLog;
+use App\Services\Owner\DatabaseBackupService;
 use App\Services\Owner\GoogleDriveBackupClient;
 use Tests\TestCase;
 
@@ -19,5 +21,29 @@ class DatabaseBackupServiceTest extends TestCase
         $this->assertStringContainsString('client_id=test-client-id', $url);
         $this->assertStringContainsString('access_type=offline', $url);
         $this->assertStringContainsString('state=state-token', $url);
+    }
+
+    public function test_sms_message_reports_success_and_failure(): void
+    {
+        $service = $this->app->make(DatabaseBackupService::class);
+
+        $ok = new DatabaseBackupLog([
+            'filename' => 'waumini-link-2026-09-28.sql.gz',
+            'size_bytes' => 1048576,
+            'status' => DatabaseBackupLog::STATUS_SUCCESS,
+            'message' => 'Uploaded to Google Drive.',
+        ]);
+
+        $this->assertStringContainsString('imefanikiwa', $service->smsMessage($ok));
+        $this->assertStringContainsString('1.00 MB', $service->smsMessage($ok));
+
+        $fail = new DatabaseBackupLog([
+            'filename' => 'waumini-link-2026-09-28.sql.gz',
+            'status' => DatabaseBackupLog::STATUS_FAILED,
+            'message' => 'Connect Google Drive first.',
+        ]);
+
+        $this->assertStringContainsString('imeshindikana', $service->smsMessage($fail));
+        $this->assertStringContainsString('Connect Google Drive first.', $service->smsMessage($fail));
     }
 }

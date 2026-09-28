@@ -72,6 +72,31 @@
         </div>
     </div>
 
+    <hr class="my-3">
+    <h5>{{ __('owner.set.backup_notify_heading') }}</h5>
+    <p class="text-muted">{{ __('owner.set.backup_notify_help') }}</p>
+
+    @if(empty($backup['sms_gateway_ready']))
+        <div class="alert alert-warning py-2">
+            <i class="fa fa-exclamation-triangle"></i>
+            {{ __('owner.set.backup_notify_gateway') }}
+        </div>
+    @endif
+
+    <div class="form-group">
+        <div class="animated-checkbox">
+            <label>
+                <input type="checkbox" name="notify_sms" value="1" @checked(old('notify_sms', $backup['notify_sms'] ?? false))>
+                <span class="label-text">{{ __('owner.set.backup_notify_sms') }}</span>
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>{{ __('owner.set.backup_notify_phone') }}</label>
+        <input type="text" name="notify_phone" class="form-control" value="{{ old('notify_phone', $backup['notify_phone'] ?? '') }}" placeholder="255614863345">
+        <small class="text-muted">{{ __('owner.set.backup_notify_phone_help') }}</small>
+    </div>
+
     <div class="alert alert-warning">
         {{ __('owner.set.backup_scheduler_help') }}
         <code class="d-block mt-2">php artisan schedule:run</code>

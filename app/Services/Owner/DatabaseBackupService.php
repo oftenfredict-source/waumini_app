@@ -4,7 +4,9 @@ namespace App\Services\Owner;
 
 use App\Models\DatabaseBackupLog;
 use App\Models\SystemSetting;
+use App\Services\Sms\SmsGatewayService;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -12,6 +14,10 @@ use Throwable;
 
 class DatabaseBackupService
 {
+    public function __construct(
+        private readonly SmsGatewayService $sms,
+    ) {}
+
     /**
      * @return array{ok: bool, log: DatabaseBackupLog}
      */
@@ -43,6 +49,8 @@ class DatabaseBackupService
                 'finished_at' => now(),
             ]);
 
+            $this->notifyOwnerBySms($log);
+
             return ['ok' => true, 'log' => $log];
         } catch (Throwable $e) {
             $log = DatabaseBackupLog::create([
@@ -54,6 +62,8 @@ class DatabaseBackupService
                 'started_at' => $startedAt,
                 'finished_at' => now(),
             ]);
+
+            $this->notifyOwnerBySms($log);
 
             return ['ok' => false, 'log' => $log];
         } finally {
@@ -98,7 +108,10 @@ class DatabaseBackupService
      *     connected_email: ?string,
      *     client_id: string,
      *     has_client_secret: bool,
-     *     redirect_uri: string
+     *     redirect_uri: string,
+     *     notify_sms: bool,
+     *     notify_phone: string,
+     *     sms_gateway_ready: bool
      * }
      */
     public function settings(): array
@@ -114,6 +127,9 @@ class DatabaseBackupService
             'client_id' => $this->clientId(),
             'has_client_secret' => $this->clientSecret() !== '',
             'redirect_uri' => $this->redirectUri(),
+            'notify_sms' => $this->smsNotifyEnabled(),
+            'notify_phone' => $this->notifyPhone(),
+            'sms_gateway_ready' => $this->sms->isConfigured(),
         ];
     }
 
@@ -124,11 +140,15 @@ class DatabaseBackupService
         string $runAt,
         ?string $clientId = null,
         ?string $clientSecret = null,
+        bool $notifySms = false,
+        string $notifyPhone = '',
     ): void {
         SystemSetting::setValue('backup', 'enabled', $enabled);
         SystemSetting::setValue('backup', 'folder_id', trim($folderId));
         SystemSetting::setValue('backup', 'keep_count', max(1, min(90, $keepCount)));
         SystemSetting::setValue('backup', 'run_at', $runAt);
+        SystemSetting::setValue('backup', 'notify_sms', $notifySms);
+        SystemSetting::setValue('backup', 'notify_phone', $this->sms->normalizePhone($notifyPhone));
 
         if (is_string($clientId)) {
             SystemSetting::setValue('backup', 'google_client_id', trim($clientId));
@@ -377,6 +397,82 @@ class DatabaseBackupService
         $value = trim((string) SystemSetting::getValue('backup', 'run_at', config('backup.run_at')));
 
         return preg_match('/^\d{2}:\d{2}$/', $value) ? $value : '02:00';
+    }
+
+    public function smsMessage(DatabaseBackupLog $log): string
+    {
+        $app = $this->appDisplayName();
+
+        if ($log->isSuccess()) {
+            $size = $log->size_bytes ? number_format($log->size_bytes / 1048576, 2).' MB' : '';
+
+            return trim("{$app}: Backup imefanikiwa. {$log->filename}".($size !== '' ? " ({$size})" : ''));
+        }
+
+        $reason = trim((string) $log->message);
+        if (strlen($reason) > 120) {
+            $reason = substr($reason, 0, 117).'...';
+        }
+
+        return trim("{$app}: Backup imeshindikana.".($reason !== '' ? " {$reason}" : ''));
+    }
+
+    private function appDisplayName(): string
+    {
+        try {
+            $name = trim((string) SystemSetting::getValue('general', 'app_name', config('app.name')));
+        } catch (Throwable) {
+            $name = (string) config('app.name', 'Waumini Link');
+        }
+
+        return $name !== '' ? $name : 'Waumini Link';
+    }
+
+    private function notifyOwnerBySms(DatabaseBackupLog $log): void
+    {
+        if (! $this->smsNotifyEnabled()) {
+            return;
+        }
+
+        $phone = $this->notifyPhone();
+
+        if ($phone === '' || ! $this->sms->isConfigured()) {
+            Log::warning('Backup SMS skipped: phone or SMS gateway is not configured.');
+
+            return;
+        }
+
+        try {
+            $result = $this->sms->send($phone, $this->smsMessage($log));
+
+            if (! ($result['ok'] ?? false)) {
+                Log::warning('Backup SMS was not delivered', [
+                    'reason' => $result['reason'] ?? $result['body'] ?? 'unknown',
+                ]);
+            }
+        } catch (Throwable $e) {
+            Log::warning('Backup SMS failed: '.$e->getMessage());
+        }
+    }
+
+    private function smsNotifyEnabled(): bool
+    {
+        return (bool) SystemSetting::getValue('backup', 'notify_sms', false);
+    }
+
+    private function notifyPhone(): string
+    {
+        $saved = $this->sms->normalizePhone(
+            (string) SystemSetting::getValue('backup', 'notify_phone', '')
+        );
+
+        if ($saved !== '') {
+            return $saved;
+        }
+
+        return $this->sms->normalizePhone(
+            (string) SystemSetting::getValue('general', 'support_phone', '')
+        );
     }
 
     private function localDirectory(): string
