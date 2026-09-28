@@ -60,6 +60,11 @@ Route::middleware(['auth', 'owner'])->group(function () {
     Route::post('settings/sms-test', [SettingController::class, 'testSms'])->name('settings.sms-test');
     Route::put('settings/legal', [SettingController::class, 'updateLegal'])->name('settings.legal');
     Route::put('settings/system', [SettingController::class, 'updateSystem'])->name('settings.system');
+    Route::put('settings/backup', [SettingController::class, 'updateBackup'])->name('settings.backup');
+    Route::post('settings/backup/run', [SettingController::class, 'runBackup'])->name('settings.backup.run');
+    Route::get('settings/backup/google/connect', [SettingController::class, 'connectGoogleDrive'])->name('settings.backup.google.connect');
+    Route::get('settings/backup/google/callback', [SettingController::class, 'googleDriveCallback'])->name('settings.backup.google.callback');
+    Route::post('settings/backup/google/disconnect', [SettingController::class, 'disconnectGoogleDrive'])->name('settings.backup.google.disconnect');
     Route::post('settings/packages', [SettingController::class, 'storePackage'])->name('settings.packages.store');
     Route::put('settings/packages/{package}', [SettingController::class, 'updatePackage'])->name('settings.packages.update');
     Route::delete('settings/packages/{package}', [SettingController::class, 'destroyPackage'])->name('settings.packages.destroy');

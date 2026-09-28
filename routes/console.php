@@ -10,3 +10,17 @@ Artisan::command('inspire', function () {
 
 Schedule::command('members:process-aged-out-children')->daily();
 Schedule::command('attendance:notify-missed-sundays')->dailyAt('08:00');
+
+try {
+    $backupEnabled = (bool) \App\Models\SystemSetting::getValue('backup', 'enabled', false);
+    $backupAt = (string) \App\Models\SystemSetting::getValue('backup', 'run_at', '02:00');
+} catch (\Throwable) {
+    $backupEnabled = false;
+    $backupAt = '02:00';
+}
+
+if ($backupEnabled) {
+    Schedule::command('backup:database')->dailyAt(
+        preg_match('/^\d{2}:\d{2}$/', $backupAt) ? $backupAt : '02:00'
+    );
+}

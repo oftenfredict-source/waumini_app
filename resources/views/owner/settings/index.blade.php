@@ -53,6 +53,11 @@
                 <i class="fa fa-server"></i> {{ __('owner.set.tab_system') }}
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link @if($activeTab === 'backup') active @endif" href="{{ route('owner.settings.index', ['tab' => 'backup']) }}">
+                <i class="fa fa-cloud-upload"></i> {{ __('owner.set.tab_backup') }}
+            </a>
+        </li>
     </ul>
 
     <div class="p-4">
@@ -70,6 +75,8 @@
             @include('owner.settings.tabs.legal')
         @elseif($activeTab === 'system')
             @include('owner.settings.tabs.system')
+        @elseif($activeTab === 'backup')
+            @include('owner.settings.tabs.backup')
         @endif
     </div>
 </div>

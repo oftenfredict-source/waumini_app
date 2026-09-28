@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StorePackageRequest;
 use App\Http\Requests\Owner\UpdatePackageRequest;
+use App\Models\DatabaseBackupLog;
 use App\Models\Feature;
 use App\Models\SubscriptionPackage;
 use App\Models\SystemSetting;
 use App\Services\Owner\AuditLogService;
+use App\Services\Owner\DatabaseBackupService;
 use App\Services\Owner\PackageFeatureService;
 use App\Services\Sms\ChurchSmsService;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +25,7 @@ class SettingController extends Controller
         private readonly AuditLogService $auditLogService,
         private readonly PackageFeatureService $packageFeatureService,
         private readonly ChurchSmsService $churchSmsService,
+        private readonly DatabaseBackupService $databaseBackupService,
     ) {}
 
     public function index(): View
@@ -37,6 +40,8 @@ class SettingController extends Controller
                 ->get(),
             'features' => Feature::orderBy('module')->orderBy('name')->get(),
             'baseDomain' => config('waumini.base_domain'),
+            'backupSettings' => $this->databaseBackupService->settings(),
+            'backupLogs' => DatabaseBackupLog::query()->latest()->limit(10)->get(),
         ]);
     }
 
@@ -203,6 +208,93 @@ class SettingController extends Controller
         SystemSetting::setValue('system', 'maintenance_message', $request->input('maintenance_message', ''));
 
         return $this->redirectToTab('system', 'System settings saved.');
+    }
+
+    public function updateBackup(Request $request): RedirectResponse
+    {
+        $this->authorize('viewAny', SystemSetting::class);
+
+        $data = $request->validate([
+            'enabled' => ['nullable', 'boolean'],
+            'folder_id' => ['nullable', 'string', 'max:128'],
+            'keep_count' => ['required', 'integer', 'min:1', 'max:90'],
+            'run_at' => ['required', 'regex:/^\d{1,2}:\d{2}(:\d{2})?$/'],
+            'google_client_id' => ['nullable', 'string', 'max:255'],
+            'google_client_secret' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $runAt = substr($data['run_at'], 0, 5);
+        if (strlen($runAt) === 4) {
+            $runAt = '0'.$runAt;
+        }
+
+        $this->databaseBackupService->saveSettings(
+            $request->boolean('enabled'),
+            (string) ($data['folder_id'] ?? ''),
+            (int) $data['keep_count'],
+            $runAt,
+            $data['google_client_id'] ?? null,
+            $request->filled('google_client_secret') ? $data['google_client_secret'] : null,
+        );
+
+        return $this->redirectToTab('backup', 'Backup settings saved.');
+    }
+
+    public function runBackup(): RedirectResponse
+    {
+        $this->authorize('viewAny', SystemSetting::class);
+
+        set_time_limit(600);
+
+        $result = $this->databaseBackupService->run();
+
+        if ($result['ok']) {
+            return $this->redirectToTab('backup', 'Database backup uploaded to Google Drive: '.$result['log']->filename);
+        }
+
+        return $this->redirectToTab('backup', $result['log']->message ?: 'Database backup failed.', 'error');
+    }
+
+    public function connectGoogleDrive(): RedirectResponse
+    {
+        $this->authorize('viewAny', SystemSetting::class);
+
+        try {
+            return redirect()->away($this->databaseBackupService->connectUrl());
+        } catch (\RuntimeException $e) {
+            return $this->redirectToTab('backup', $e->getMessage(), 'error');
+        }
+    }
+
+    public function googleDriveCallback(Request $request): RedirectResponse
+    {
+        $this->authorize('viewAny', SystemSetting::class);
+
+        if ($request->filled('error')) {
+            return $this->redirectToTab('backup', 'Google connection was cancelled.', 'error');
+        }
+
+        $data = $request->validate([
+            'code' => ['required', 'string'],
+            'state' => ['required', 'string'],
+        ]);
+
+        try {
+            $this->databaseBackupService->completeConnection($data['code'], $data['state']);
+        } catch (\RuntimeException $e) {
+            return $this->redirectToTab('backup', $e->getMessage(), 'error');
+        }
+
+        return $this->redirectToTab('backup', 'Google Drive connected. You can run a backup now.');
+    }
+
+    public function disconnectGoogleDrive(): RedirectResponse
+    {
+        $this->authorize('viewAny', SystemSetting::class);
+
+        $this->databaseBackupService->disconnect();
+
+        return $this->redirectToTab('backup', 'Google Drive disconnected.');
     }
 
     public function storePackage(StorePackageRequest $request): RedirectResponse
