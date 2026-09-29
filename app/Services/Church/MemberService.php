@@ -398,6 +398,9 @@ class MemberService
             }
         }
 
+        // Only active members' assigned envelope_number blocks reuse.
+        // Soft-deleted members are excluded by SoftDeletes. spouse_envelope_number
+        // is cleaned up on delete so it cannot keep a freed number reserved.
         $query = Member::forChurch($church->id)
             ->where(function ($q) use ($envelope) {
                 $q->where('envelope_number', $envelope)
@@ -632,13 +635,61 @@ class MemberService
                     $dependant->delete();
                 });
 
-            $member->forceFill([
-                'envelope_number' => null,
-                'spouse_envelope_number' => null,
-            ])->save();
+            $this->releaseEnvelopeNumbers($member);
 
             $member->delete();
         });
+    }
+
+    /**
+     * Free envelope numbers so they can be reassigned after delete.
+     * Clears the member's own numbers and any spouse copies that still point at them.
+     */
+    private function releaseEnvelopeNumbers(Member $member): void
+    {
+        $churchId = (int) $member->church_id;
+        $envelope = $member->envelope_number;
+        $spouseEnvelope = $member->spouse_envelope_number;
+        $linkedSpouseId = $member->spouse_member_id ? (int) $member->spouse_member_id : null;
+        $branchesEnabled = (bool) $member->church?->branches_enabled;
+        $branchId = $member->branch_id;
+
+        $member->forceFill([
+            'envelope_number' => null,
+            'spouse_envelope_number' => null,
+            'spouse_member_id' => null,
+        ])->save();
+
+        // Unlink the surviving spouse so they no longer reserve this envelope.
+        if ($linkedSpouseId) {
+            Member::query()
+                ->where('church_id', $churchId)
+                ->whereKey($linkedSpouseId)
+                ->update([
+                    'spouse_member_id' => null,
+                    'spouse_envelope_number' => null,
+                ]);
+        }
+
+        Member::query()
+            ->where('church_id', $churchId)
+            ->where('spouse_member_id', $member->id)
+            ->update([
+                'spouse_member_id' => null,
+                'spouse_envelope_number' => null,
+            ]);
+
+        foreach (array_filter([$envelope, $spouseEnvelope]) as $number) {
+            $query = Member::query()
+                ->where('church_id', $churchId)
+                ->where('spouse_envelope_number', $number);
+
+            if ($branchesEnabled) {
+                $query->where('branch_id', $branchId);
+            }
+
+            $query->update(['spouse_envelope_number' => null]);
+        }
     }
 
     public function resetMemberPassword(Member $member): string
