@@ -19,6 +19,7 @@ use App\Services\Church\CelebrationService;
 use App\Services\Church\ChurchSettingsService;
 use App\Services\Sms\ChurchSmsService;
 use Carbon\Carbon;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -102,7 +103,13 @@ class MemberService
 
             unset($data['spouse_input_method'], $data['dependants'], $data['family_parent_type']);
 
-            $member = Member::create($data);
+            try {
+                $member = Member::create($data);
+            } catch (UniqueConstraintViolationException $e) {
+                throw ValidationException::withMessages([
+                    'envelope_number' => 'This envelope number is already in use in this branch.',
+                ]);
+            }
             $this->createMemberUserAccount($church, $member);
 
             if ($matchingDependant) {
@@ -205,14 +212,45 @@ class MemberService
                 $data['temporary_duration_unit'] = null;
             }
 
-            $member->update($data);
+            // Linked spouses are edited on their own member record — never clear
+            // spouse_* columns from a partial edit payload.
+            if ($hadLinkedSpouse) {
+                foreach (array_keys($data) as $key) {
+                    if (str_starts_with($key, 'spouse_')) {
+                        unset($data[$key]);
+                    }
+                }
+            }
+
+            $previousEnvelope = $member->envelope_number;
+
+            try {
+                $member->update($data);
+            } catch (UniqueConstraintViolationException $e) {
+                throw ValidationException::withMessages([
+                    'envelope_number' => 'This envelope number is already in use in this branch.',
+                ]);
+            }
+
+            $member = $member->fresh();
+
+            if (
+                $hadLinkedSpouse
+                && $member->spouse_member_id
+                && array_key_exists('envelope_number', $data)
+                && $member->envelope_number !== $previousEnvelope
+            ) {
+                Member::forChurch($church->id)
+                    ->whereKey($member->spouse_member_id)
+                    ->update(['spouse_envelope_number' => $member->envelope_number]);
+            }
 
             $spouseMember = null;
 
             if (! $hadLinkedSpouse) {
                 $spouseMember = $this->provisionSpouseMember(
                     $church,
-                    $member->fresh(),
+                    $member,
                     $spouseInputMethod,
                     $selectedSpouseMemberId ? (int) $selectedSpouseMemberId : null,
                 );
@@ -349,6 +387,17 @@ class MemberService
             return false;
         }
 
+        $exceptIds = [];
+
+        if ($exceptMemberId) {
+            $exceptIds[] = $exceptMemberId;
+            $linkedSpouseId = Member::forChurch($church->id)->whereKey($exceptMemberId)->value('spouse_member_id');
+
+            if ($linkedSpouseId) {
+                $exceptIds[] = (int) $linkedSpouseId;
+            }
+        }
+
         $query = Member::forChurch($church->id)
             ->where(function ($q) use ($envelope) {
                 $q->where('envelope_number', $envelope)
@@ -359,8 +408,8 @@ class MemberService
             $query->where('branch_id', $branchId);
         }
 
-        if ($exceptMemberId) {
-            $query->whereKeyNot($exceptMemberId);
+        if ($exceptIds !== []) {
+            $query->whereKeyNot($exceptIds);
         }
 
         return ! $query->exists();
@@ -466,7 +515,13 @@ class MemberService
                 ]);
             }
 
-            $member = Member::create($memberData);
+            try {
+                $member = Member::create($memberData);
+            } catch (UniqueConstraintViolationException $e) {
+                throw ValidationException::withMessages([
+                    'envelope_number' => 'This envelope number is already in use in this branch.',
+                ]);
+            }
 
             $this->linkDependantToMember($dependant, $member);
 
@@ -1077,49 +1132,63 @@ class MemberService
             };
         }
 
-        return Member::create([
-            'church_id' => $church->id,
-            'branch_id' => $member->branch_id,
-            'member_number' => $this->generateMemberId($church),
-            'envelope_number' => $member->spouse_envelope_number,
-            'member_type' => $spouseMemberType,
-            'membership_type' => $member->membership_type,
-            'temporary_duration_value' => $member->temporary_duration_value,
-            'temporary_duration_unit' => $member->temporary_duration_unit,
-            'membership_expires_at' => $member->membership_expires_at,
-            'full_name' => $member->spouse_full_name,
-            'email' => $member->spouse_email,
-            'phone_number' => $this->normalizePhoneNumber($member->spouse_phone_number),
-            'gender' => $spouseGender,
-            'date_of_birth' => $member->spouse_date_of_birth,
-            'education_level' => $member->spouse_education_level,
-            'profession' => $member->spouse_profession,
-            'nida_number' => $member->spouse_nida_number,
-            'tribe' => $member->spouse_tribe,
-            'other_tribe' => $member->spouse_other_tribe,
-            'region' => $member->region,
-            'district' => $member->district,
-            'ward' => $member->ward,
-            'street' => $member->street,
-            'po_box' => $member->po_box,
-            'residence_region' => $member->residence_region,
-            'residence_district' => $member->residence_district,
-            'residence_ward' => $member->residence_ward,
-            'residence_street' => $member->residence_street,
-            'residence_road' => $member->residence_road,
-            'residence_house_number' => $member->residence_house_number,
-            'marital_status' => MaritalStatus::Married,
-            'spouse_church_member' => 'yes',
-            'spouse_member_id' => $member->id,
-            'spouse_full_name' => $member->full_name,
-            'spouse_gender' => $member->gender,
-            'spouse_date_of_birth' => $member->date_of_birth,
-            'spouse_phone_number' => $member->phone_number,
-            'spouse_email' => $member->email,
-            'spouse_envelope_number' => $member->envelope_number,
-            'membership_date' => $member->membership_date,
-            'status' => $member->status,
-        ]);
+        $spouseEnvelope = $member->spouse_envelope_number;
+
+        if ($spouseEnvelope && ! $this->isEnvelopeAvailable($church, $spouseEnvelope, $member->id, $member->branch_id)) {
+            throw ValidationException::withMessages([
+                'spouse_envelope_number' => 'Spouse envelope number is already in use in this branch.',
+            ]);
+        }
+
+        try {
+            return Member::create([
+                'church_id' => $church->id,
+                'branch_id' => $member->branch_id,
+                'member_number' => $this->generateMemberId($church),
+                'envelope_number' => $spouseEnvelope,
+                'member_type' => $spouseMemberType,
+                'membership_type' => $member->membership_type,
+                'temporary_duration_value' => $member->temporary_duration_value,
+                'temporary_duration_unit' => $member->temporary_duration_unit,
+                'membership_expires_at' => $member->membership_expires_at,
+                'full_name' => $member->spouse_full_name,
+                'email' => $member->spouse_email,
+                'phone_number' => $this->normalizePhoneNumber($member->spouse_phone_number),
+                'gender' => $spouseGender,
+                'date_of_birth' => $member->spouse_date_of_birth,
+                'education_level' => $member->spouse_education_level,
+                'profession' => $member->spouse_profession,
+                'nida_number' => $member->spouse_nida_number,
+                'tribe' => $member->spouse_tribe,
+                'other_tribe' => $member->spouse_other_tribe,
+                'region' => $member->region,
+                'district' => $member->district,
+                'ward' => $member->ward,
+                'street' => $member->street,
+                'po_box' => $member->po_box,
+                'residence_region' => $member->residence_region,
+                'residence_district' => $member->residence_district,
+                'residence_ward' => $member->residence_ward,
+                'residence_street' => $member->residence_street,
+                'residence_road' => $member->residence_road,
+                'residence_house_number' => $member->residence_house_number,
+                'marital_status' => MaritalStatus::Married,
+                'spouse_church_member' => 'yes',
+                'spouse_member_id' => $member->id,
+                'spouse_full_name' => $member->full_name,
+                'spouse_gender' => $member->gender,
+                'spouse_date_of_birth' => $member->date_of_birth,
+                'spouse_phone_number' => $member->phone_number,
+                'spouse_email' => $member->email,
+                'spouse_envelope_number' => $member->envelope_number,
+                'membership_date' => $member->membership_date,
+                'status' => $member->status,
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            throw ValidationException::withMessages([
+                'spouse_envelope_number' => 'Spouse envelope number is already in use in this branch.',
+            ]);
+        }
     }
 
     private function linkSpouseMembers(Member $member, int $spouseId): void

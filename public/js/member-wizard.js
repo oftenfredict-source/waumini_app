@@ -865,6 +865,7 @@
         var isMember = getField('spouse_church_member') === 'yes';
         var method = getField('spouse_input_method');
         var useSelect = isMember && method === 'select';
+        var useManual = !isMember || (isMember && method === 'manual');
 
         if (selectField) {
             if (useSelect) {
@@ -874,7 +875,7 @@
             }
         }
         if (manualField) {
-            if (isMember && method === 'manual') {
+            if (useManual) {
                 manualField.setAttribute('name', 'spouse_envelope_number');
                 manualField.required = true;
             } else {
@@ -910,10 +911,11 @@
 
         if (memberSelect) memberSelect.style.display = useSelect ? 'block' : 'none';
         if (manualFields) manualFields.style.display = useManual ? 'block' : 'none';
-        if (envelopeManualWrap) envelopeManualWrap.style.display = (!selfReg && isMember && method === 'manual') ? 'block' : 'none';
+        if (envelopeManualWrap) envelopeManualWrap.style.display = (!selfReg && useManual) ? 'block' : 'none';
 
         setFieldEnabled(memberSelect, useSelect);
         setFieldEnabled(manualFields, useManual);
+        syncSpouseEnvelopeFieldName();
 
         if (useManual) {
             var memberId = document.getElementById('spouse_member_id');

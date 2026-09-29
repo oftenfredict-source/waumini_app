@@ -24,10 +24,25 @@ class UpdateMemberRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'envelope_number' => $this->filled('envelope_number') ? $this->string('envelope_number')->trim()->toString() : null,
-            'spouse_envelope_number' => $this->filled('spouse_envelope_number') ? $this->string('spouse_envelope_number')->trim()->toString() : null,
-        ]);
+        $merge = [];
+
+        if ($this->exists('envelope_number')) {
+            $merge['envelope_number'] = $this->filled('envelope_number')
+                ? $this->string('envelope_number')->trim()->toString()
+                : null;
+        }
+
+        // Only touch spouse envelope when the field was actually submitted,
+        // so edit forms with a linked spouse do not wipe it to null.
+        if ($this->exists('spouse_envelope_number')) {
+            $merge['spouse_envelope_number'] = $this->filled('spouse_envelope_number')
+                ? $this->string('spouse_envelope_number')->trim()->toString()
+                : null;
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
     }
 
     /**
