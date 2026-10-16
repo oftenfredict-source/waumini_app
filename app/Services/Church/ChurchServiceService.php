@@ -106,21 +106,29 @@ class ChurchServiceService
 
         return Member::forChurch($church->id)
             ->activeMembers()
+            ->with('spouseMember:id,full_name')
             ->where(function ($q) use ($query) {
                 $q->where('full_name', 'like', "%{$query}%")
                     ->orWhere('member_number', 'like', "%{$query}%")
-                    ->orWhere('phone_number', 'like', "%{$query}%");
+                    ->orWhere('phone_number', 'like', "%{$query}%")
+                    ->orWhere('spouse_full_name', 'like', "%{$query}%");
             })
             ->orderBy('full_name')
             ->limit($limit)
-            ->get(['id', 'full_name', 'member_number', 'phone_number'])
-            ->map(fn (Member $member) => [
-                'id' => (int) $member->id,
-                'name' => $member->full_name,
-                'member_number' => $member->member_number,
-                'phone' => $member->phone_number,
-                'position' => null,
-            ]);
+            ->get(['id', 'full_name', 'member_number', 'phone_number', 'spouse_full_name', 'spouse_member_id'])
+            ->map(function (Member $member) {
+                $spouse = trim((string) ($member->spouseMember?->full_name ?: $member->spouse_full_name));
+
+                return [
+                    'id' => (int) $member->id,
+                    'name' => $member->full_name,
+                    'full_name' => $member->full_name,
+                    'member_number' => $member->member_number,
+                    'phone' => $member->phone_number,
+                    'position' => null,
+                    'spouse_name' => $spouse !== '' ? $spouse : null,
+                ];
+            });
     }
 
     /**

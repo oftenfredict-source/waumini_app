@@ -26,7 +26,12 @@ class StoreCelebrationRequest extends FormRequest
         return [
             'celebration_type' => ['required', Rule::enum(CelebrationType::class)],
             'member_id' => ['nullable', Rule::exists('members', 'id')->where(fn ($q) => $q->where('church_id', $churchId))],
-            'title' => [Rule::requiredIf(! $this->filled('member_id')), 'nullable', 'string', 'max:255'],
+            'title' => [
+                Rule::requiredIf($type === CelebrationType::Other->value || ! $this->filled('member_id')),
+                'nullable',
+                'string',
+                'max:255',
+            ],
             'celebration_date' => ['required', 'date'],
             'original_date' => ['nullable', 'date'],
             'wedding_type' => [
@@ -34,6 +39,10 @@ class StoreCelebrationRequest extends FormRequest
                 'nullable',
                 Rule::enum(WeddingType::class),
             ],
+            'venue' => ['nullable', 'string', 'max:255'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'special_guest' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

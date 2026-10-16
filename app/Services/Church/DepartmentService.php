@@ -81,6 +81,52 @@ class DepartmentService
         return $department->fresh(['head', 'members']);
     }
 
+    public function assignOfficer(Department $department, int $memberId, string $role): Department
+    {
+        $role = $this->normalizeOfficerRole($role);
+        $officerRoles = ['chairman', 'secretary', 'treasurer'];
+
+        if (in_array($role, $officerRoles, true)) {
+            $previousRoles = $role === 'chairman' ? ['chairman', 'head'] : [$role];
+            $previous = $department->members()
+                ->wherePivotIn('role', $previousRoles)
+                ->where('members.id', '!=', $memberId)
+                ->pluck('members.id');
+
+            foreach ($previous as $id) {
+                $department->members()->updateExistingPivot((int) $id, [
+                    'role' => 'member',
+                    'auto_assigned' => false,
+                ]);
+            }
+        }
+
+        $department->members()->syncWithoutDetaching([
+            $memberId => [
+                'role' => $role,
+                'auto_assigned' => false,
+            ],
+        ]);
+
+        if ($role === 'chairman') {
+            $department->update(['head_id' => $memberId]);
+        } elseif ((int) $department->head_id === $memberId) {
+            $department->update(['head_id' => null]);
+        }
+
+        return $department->fresh(['head', 'members', 'branch', 'dependants.member']);
+    }
+
+    public function normalizeOfficerRole(string $role): string
+    {
+        return match (strtolower(trim($role))) {
+            'head', 'chairman', 'chairperson', 'chair' => 'chairman',
+            'secretary' => 'secretary',
+            'treasurer' => 'treasurer',
+            default => 'member',
+        };
+    }
+
     public function attachMembers(Department $department, array $memberIds, bool $autoAssigned = false): int
     {
         $attached = 0;
@@ -93,7 +139,7 @@ class DepartmentService
             }
 
             $department->members()->attach($memberId, [
-                'role' => $department->head_id === $memberId ? 'head' : 'member',
+                'role' => $department->head_id === $memberId ? 'chairman' : 'member',
                 'auto_assigned' => $autoAssigned,
             ]);
             $attached++;
@@ -185,7 +231,7 @@ class DepartmentService
     {
         $department->members()->syncWithoutDetaching([
             $headId => [
-                'role' => 'head',
+                'role' => 'chairman',
                 'auto_assigned' => false,
             ],
         ]);

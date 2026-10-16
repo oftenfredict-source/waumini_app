@@ -27,6 +27,7 @@ class Leader extends Model
         'is_active',
         'appointed_by',
         'notes',
+        'deactivation_reason',
     ];
 
     protected function casts(): array

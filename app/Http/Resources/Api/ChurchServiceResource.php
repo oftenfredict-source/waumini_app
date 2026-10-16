@@ -13,7 +13,9 @@ class ChurchServiceResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->displayTitle(),
+            'custom_title' => $this->title,
             'service_type' => $this->service_type?->value,
+            'service_type_label' => $this->service_type?->label(),
             'service_date' => $this->service_date?->toDateString(),
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
@@ -21,6 +23,7 @@ class ChurchServiceResource extends JsonResource
             'preacher' => $this->preacherDisplay(),
             'venue' => $this->venue,
             'status' => $this->status?->value,
+            'status_label' => $this->status?->label(),
             'branch' => $this->whenLoaded('branch', fn () => $this->branch ? [
                 'id' => $this->branch->id,
                 'name' => $this->branch->name,

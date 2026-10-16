@@ -54,6 +54,12 @@
                     <form method="POST" action="{{ route('church.leadership.deactivate', $leader) }}"
                         data-swal-confirm="{{ __('pages.leadership.end_assignment_confirm') }}">
                         @csrf
+                        <div class="form-group text-left">
+                            <label>{{ __('pages.leadership.end_assignment_reason_label') }} *</label>
+                            <textarea name="reason" class="form-control @error('reason') is-invalid @enderror" rows="3" required
+                                placeholder="{{ __('pages.leadership.end_assignment_reason') }}">{{ old('reason') }}</textarea>
+                            @error('reason')<small class="text-danger">{{ $message }}</small>@enderror
+                        </div>
                         <button type="submit" class="btn btn-warning btn-block">
                             <i class="fa fa-ban"></i> {{ __('pages.leadership.end_assignment') }}
                         </button>

@@ -23,6 +23,16 @@ class LeaderResource extends JsonResource
             ] : null),
             'appointment_date' => $this->appointment_date?->toDateString(),
             'end_date' => $this->end_date?->toDateString(),
+            'is_active' => (bool) $this->is_active,
+            'is_currently_active' => $this->isCurrentlyActive(),
+            'appointed_by' => $this->appointed_by,
+            'description' => $this->description,
+            'notes' => $this->notes,
+            'deactivation_reason' => $this->deactivation_reason,
+            'branch' => $this->whenLoaded('branch', fn () => $this->branch ? [
+                'id' => $this->branch->id,
+                'name' => $this->branch->name,
+            ] : null),
         ];
     }
 }

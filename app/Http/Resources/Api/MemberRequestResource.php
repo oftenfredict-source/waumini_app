@@ -19,6 +19,12 @@ class MemberRequestResource extends JsonResource
             'description' => $this->description,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
+            'member' => $this->whenLoaded('member', fn () => $this->member ? [
+                'id' => $this->member->id,
+                'full_name' => $this->member->full_name,
+                'member_number' => $this->member->member_number,
+                'phone_number' => $this->member->phone_number,
+            ] : null),
             'assigned_leader' => $this->whenLoaded('assignedLeader', fn () => $this->assignedLeader ? [
                 'id' => $this->assignedLeader->id,
                 'position_label' => $this->assignedLeader->positionLabel(),

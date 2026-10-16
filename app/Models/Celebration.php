@@ -24,10 +24,14 @@ class Celebration extends Model
         'title',
         'celebration_date',
         'original_date',
-        'wedding_type',
-        'status',
-        'notes',
-        'created_by',
+            'wedding_type',
+            'status',
+            'notes',
+            'venue',
+            'start_time',
+            'end_time',
+            'special_guest',
+            'created_by',
     ];
 
     protected function casts(): array
@@ -119,8 +123,46 @@ class Celebration extends Model
         return $until !== null && $until <= $days;
     }
 
+    public function spouseName(): ?string
+    {
+        $member = $this->member;
+        if (! $member) {
+            return null;
+        }
+
+        $linked = $member->relationLoaded('spouseMember')
+            ? $member->spouseMember?->full_name
+            : null;
+        $inverse = $member->relationLoaded('spouseOf')
+            ? $member->spouseOf?->full_name
+            : null;
+        $name = trim((string) ($linked ?: $member->spouse_full_name ?: $inverse));
+
+        return $name !== '' ? $name : null;
+    }
+
+    public function coupleLabel(): string
+    {
+        $memberName = trim((string) ($this->member?->full_name ?: ''));
+        $spouseName = $this->spouseName();
+
+        if ($memberName !== '' && $spouseName && strcasecmp($memberName, $spouseName) !== 0) {
+            return $memberName.' & '.$spouseName;
+        }
+
+        return $memberName !== '' ? $memberName : (string) $this->title;
+    }
+
     public function displayLabel(): string
     {
+        if ($this->celebration_type === CelebrationType::Other && $this->title) {
+            return $this->title;
+        }
+
+        if ($this->celebration_type === CelebrationType::WeddingAnniversary) {
+            return $this->coupleLabel();
+        }
+
         if ($this->member) {
             return $this->member->full_name;
         }

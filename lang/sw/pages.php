@@ -541,6 +541,8 @@ return [
         'view_member_profile' => 'Angalia Wasifu wa Mwanachama',
         'end_assignment_confirm' => 'Maliza uteuzi huu wa uongozi?',
         'end_assignment' => 'Maliza Uteuzi',
+        'end_assignment_reason' => 'Kwa nini unamaliza uteuzi huu?',
+        'end_assignment_reason_label' => 'Sababu',
         'empty' => 'Hakuna uteuzi wa uongozi uliopatikana.',
         'assign_link' => 'Teua uongozi',
     ],

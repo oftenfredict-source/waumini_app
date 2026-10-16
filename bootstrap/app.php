@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'church.member' => \App\Http\Middleware\EnsureChurchMember::class,
             'church.maintenance' => \App\Http\Middleware\PreventChurchAccessDuringMaintenance::class,
             'church.api' => \App\Http\Middleware\EnsureChurchApiUser::class,
+            'church.pastor' => \App\Http\Middleware\EnsurePastorApiUser::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {

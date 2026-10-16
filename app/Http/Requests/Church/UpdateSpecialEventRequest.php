@@ -26,7 +26,11 @@ class UpdateSpecialEventRequest extends FormRequest
             'category_other' => ['nullable', 'required_if:category,other', 'string', 'max:100'],
             'event_date' => ['required', 'date'],
             'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'end_time' => array_values(array_filter([
+                'nullable',
+                'date_format:H:i',
+                $this->filled('start_time') ? 'after:start_time' : null,
+            ])),
             'speaker' => ['nullable', 'string', 'max:255'],
             'venue' => ['nullable', 'string', 'max:255'],
             'budget_amount' => ['nullable', 'numeric', 'min:0'],

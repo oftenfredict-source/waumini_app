@@ -43,6 +43,10 @@ class UpdateCelebrationRequest extends FormRequest
                 Rule::enum(WeddingType::class),
             ],
             'status' => ['required', Rule::enum(CelebrationStatus::class)],
+            'venue' => ['nullable', 'string', 'max:255'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'special_guest' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

@@ -76,6 +76,30 @@ Login inazuiliwa: **max 5 majaribio kwa dakika** kwa IP moja.
 | `POST` | `/api/member/requests` | Token + member portal | Tuma ombi |
 | `GET` | `/api/member/requests/{id}` | Token + member portal | Ombi moja |
 | `GET` | `/api/member/requests/{id}/certificate` | Token + member portal | PDF ya cheti |
+| `GET` | `/api/pastor/dashboard` | Token + pastor | Dashibodi ya mchungaji |
+| `GET` | `/api/pastor/members` | Token + pastor | Washirika |
+| `GET` | `/api/pastor/members/{id}` | Token + pastor | Mshirika mmoja |
+| `GET` | `/api/pastor/children` | Token + pastor | Watoto |
+| `GET` | `/api/pastor/leaders` | Token + pastor | Viongozi |
+| `GET` | `/api/pastor/leaders/{id}` | Token + pastor | Kiongozi mmoja |
+| `GET` | `/api/pastor/departments` | Token + pastor | Idara |
+| `GET` | `/api/pastor/departments/{id}` | Token + pastor | Idara moja na washirika wake |
+| `GET` | `/api/pastor/announcements` | Token + pastor | Matangazo |
+| `GET` | `/api/pastor/announcements/{id}` | Token + pastor | Tangazo moja |
+| `GET` | `/api/pastor/services` | Token + pastor | Huduma |
+| `GET` | `/api/pastor/services/{id}` | Token + pastor | Huduma moja |
+| `GET` | `/api/pastor/events` | Token + pastor | Matukio maalum |
+| `GET` | `/api/pastor/events/{id}` | Token + pastor | Tukio moja |
+| `GET` | `/api/pastor/attendance` | Token + pastor | Mahudhurio |
+| `GET` | `/api/pastor/bereavements` | Token + pastor | Misiba |
+| `GET` | `/api/pastor/bereavements/{id}` | Token + pastor | Msiba mmoja |
+| `GET` | `/api/pastor/member-requests` | Token + pastor | Maombi ya washirika |
+| `GET` | `/api/pastor/member-requests/{id}` | Token + pastor | Ombi moja |
+| `GET` | `/api/pastor/registrations` | Token + pastor | Maombi ya usajili |
+| `GET` | `/api/pastor/registrations/{id}` | Token + pastor | Usajili mmoja |
+| `GET` | `/api/pastor/branches` | Token + pastor | Matawi (kama yamewashwa) |
+| `GET` | `/api/pastor/finance` | Token + pastor | Muhtasari wa fedha |
+| `GET` | `/api/pastor/finance/approvals` | Token + pastor mkuu | Rekodi zinazosubiri idhini |
 
 ---
 
@@ -474,6 +498,462 @@ Types: `travelling_certificate`, `recommendation_letter`, `baptism_certificate`,
 
 ---
 
+## Pastor API (`/api/pastor/*`)
+
+Hizi ni za **mobile app ya mchungaji**. Kusoma na kuandika kunatumia **validation ileile ya fomu za web**.
+
+### Nani anaingia
+
+Login ni `POST /api/login` ileile. Akaunti lazima iwe:
+
+| `user_type` | `church_role` | Anaingia? |
+|---|---|---|
+| `pastor` | Pastor | Ndiyo, pamoja na idhini za fedha |
+| `assistant_pastor` | Assistant Pastor | Ndiyo, isipokuwa `/api/pastor/finance/approvals` |
+| `member`, `secretary`, `treasurer`, `accountant`, `elder`, `church_admin` | — | Hapana. Wanapata `403` |
+
+Baada ya login, angalia `user.user_type`. Ikiwa ni `pastor` au `assistant_pastor`, fungua skrini ya mchungaji.
+
+```dart
+final dashboard = await dio.get('/pastor/dashboard');
+```
+
+Header:
+
+```http
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+Bila token: `401` `{ "success": false, "message": "Unauthorized" }`.  
+Si mchungaji: `403` `{ "success": false, "message": "This area is for pastors only." }`.
+
+Orodha zote zinarudisha:
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": [],
+  "pagination": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 20,
+    "total": 0
+  }
+}
+```
+
+`page` default `1`. `per_page` default `20`, kikomo `100`. `{id}` ni ID ya database, si member number.
+
+---
+
+### Vitendo (kuandika)
+
+Field za `POST` ni zile zile za fomu ya web. Orodha ya chaguo (membership type, tribe, preacher type, na washirika wa kuchagua) inatoka kwenye:
+
+```
+GET /api/pastor/members/form
+GET /api/pastor/services/form
+```
+
+Picha ya mshirika: `POST /api/pastor/members` kama **multipart**, field `profile_picture`.
+
+| Method | Endpoint | Kitendo |
+|---|---|---|
+| `POST` | `/api/pastor/members` | Sajili mshirika (field zote za fomu ya web, pamoja na mke/mume, familia, na `dependants`) |
+| `POST` | `/api/pastor/children` | Ongeza mtoto |
+| `POST` | `/api/pastor/leaders` | Teua kiongozi |
+| `POST` | `/api/pastor/departments` | Tengeneza idara |
+| `POST` | `/api/pastor/announcements` | Tangazo. `target_type=department` linahitaji `department_id`. `specific` linahitaji `member_ids` |
+| `POST` | `/api/pastor/services` | Huduma. Mhubiri: `preacher_type` = `pastor` / `leader` / `member` / `guest`, na `preacher_member_id` au `preacher_guest_name` + `preacher_guest_phone` |
+| `POST` | `/api/pastor/events` | Tukio maalum |
+| `POST` | `/api/pastor/attendance` | Hifadhi mahudhurio (`source_type`, `source_id`, `member_ids`, `dependant_ids`, `guests_count`) |
+| `POST` | `/api/pastor/bereavements` | Msiba |
+| `POST` | `/api/pastor/member-requests/{id}/respond` | Jibu ombi la mshirika |
+| `POST` | `/api/pastor/registrations/{id}/approve` | Kubali usajili |
+| `POST` | `/api/pastor/registrations/{id}/reject` | Kataa usajili |
+| `POST` | `/api/pastor/finance/tithes` | Rekodi zaka (inasubiri idhini) |
+| `POST` | `/api/pastor/finance/offerings` | Rekodi sadaka |
+| `POST` | `/api/pastor/finance/expenses` | Rekodi matumizi |
+| `POST` | `/api/pastor/finance/pledges` | Rekodi ahadi |
+| `POST` | `/api/pastor/finance/budgets` | Rekodi bajeti |
+| `POST` | `/api/pastor/finance/approvals/approve` | Idhinisha. Body: `{ "type": "tithe", "id": 8, "approval_notes": "optional" }` |
+| `POST` | `/api/pastor/finance/approvals/reject` | Kataa. Body: `{ "type": "tithe", "id": 8, "rejection_reason": "required" }` |
+
+`type` ya idhini: `tithe`, `offering`, `budget`, `expense`, `pledge_payment`. Assistant pastor hawezi approve/reject.
+
+Mfano wa mshirika (sehemu ya lazima; field zingine ni optional kama kwenye web):
+
+```json
+{
+  "membership_type": "permanent",
+  "member_type": "father",
+  "full_name": "Neema Pastor",
+  "gender": "male",
+  "date_of_birth": "1992-04-04",
+  "phone_number": "+255744444444",
+  "envelope_number": "101",
+  "marital_status": "single",
+  "profession": "Teacher",
+  "region": "Dar es Salaam",
+  "is_baptized": true,
+  "baptism_place": "Mwanza"
+}
+```
+
+Ikiwa `marital_status` ni `married`, tuma pia `wedding_type`, `spouse_church_member` (`yes`/`no`), na ama `spouse_member_id` (select) au jina, jinsia, na tarehe ya kuzaliwa ya mwenzi (manual). `member_type=independent` linahitaji `family_parent_type`. Bahasha (`envelope_number`, tarakimu 3) inahitajika kwa umri uleule kama kwenye web.
+
+Field iliyokosekana inarudisha `422` na `errors`.
+
+---
+
+### Dashboard
+
+`GET /api/pastor/dashboard`
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "role": {
+      "label": "Pastor",
+      "user_type": "pastor",
+      "is_pastor": true,
+      "is_assistant_pastor": false
+    },
+    "church": {
+      "id": 3,
+      "name": "Waumini Church",
+      "email": "contact@church.org",
+      "phone": "+255700000000",
+      "currency": "TZS",
+      "pastor_name": "Pastor James"
+    },
+    "active_branch": null,
+    "stats": {
+      "total_members": 120,
+      "active_members": 110,
+      "new_members_month": 4,
+      "children": 30,
+      "departments": 6,
+      "leaders": 12,
+      "monthly_attendance": 80,
+      "upcoming_events_count": 2,
+      "upcoming_services_count": 3,
+      "monthly_income": 500000,
+      "monthly_expenses": 120000,
+      "net_income": 380000,
+      "pending_approvals": 1,
+      "pending_approvals_amount": 15000
+    },
+    "ministry": {
+      "new_members_month": 4,
+      "children": 30,
+      "departments": 6,
+      "leaders": 12,
+      "upcoming_services": 3,
+      "upcoming_events": 2
+    },
+    "finance": {
+      "period": { "year": 2026, "month": 10, "label": "October 2026", "input": "2026-10" },
+      "summary": {
+        "total_income": 500000,
+        "total_expenses": 120000,
+        "net_balance": 380000,
+        "pending_approvals_count": 1,
+        "pending_approvals_amount": 15000
+      },
+      "income_breakdown": [],
+      "recent_transactions": []
+    },
+    "pending_approvals": {
+      "counts": { "tithe": 1, "offering": 0, "budget": 0, "expense": 0, "pledge_payment": 0 },
+      "amounts": { "tithe": 15000, "offering": 0, "budget": 0, "expense": 0, "pledge_payment": 0 },
+      "total_pending": 1,
+      "total_pending_amount": 15000
+    },
+    "announcements": [],
+    "upcoming_events": [],
+    "upcoming_services": []
+  }
+}
+```
+
+`finance` na namba za mapato zipo kwa mwenye ruhusa `finance.view`. `pending_approvals` iko kwa mchungaji mkuu tu (`finance.approve`). Kwa assistant pastor field hiyo ni `null`.
+
+---
+
+### Washirika
+
+```
+GET /api/pastor/members
+GET /api/pastor/members/{id}
+GET /api/pastor/children
+```
+
+| Param | Inatumika | Maelezo |
+|---|---|---|
+| `search` | members, children | Jina, member number, simu, au email. Kwa watoto: jina au mlezi |
+| `name` | members | Jina tu |
+| `member_id` / `member_number` | members | Namba ya mshirika |
+| `phone` | members | Simu |
+| `email` | members | Email |
+| `status` | members | Bila param, washirika **active** tu. Tuma `status` kuona hali nyingine |
+| `branch_id` | members | Tawi, kama user anaweza kuona matawi yote |
+| `page`, `per_page` | zote | Ukurasa |
+
+`GET /api/pastor/members/{id}` inarudisha maelezo ya mshirika, na `departments`, `dependants`, `spouse_member` zikiwepo.
+
+Watoto: `full_name`, `gender`, `date_of_birth`, `relationship`, `is_baptized`, na `member` (mzazi).
+
+---
+
+### Viongozi na idara
+
+```
+GET /api/pastor/leaders
+GET /api/pastor/leaders/{id}
+GET /api/pastor/departments
+GET /api/pastor/departments/{id}
+```
+
+Viongozi ni **active** tu. `include_inactive=1` inaongeza waliostaafu. `search` inatafuta jina la mshirika, member number, simu, au `position_title`.
+
+Kiongozi:
+
+```json
+{
+  "id": 4,
+  "position": "pastor",
+  "position_label": "Pastor",
+  "member": {
+    "id": 45,
+    "full_name": "Jane Member",
+    "member_number": "WL-001",
+    "phone_number": "+255711111111",
+    "profile_picture_url": null
+  },
+  "appointment_date": "2024-01-01",
+  "end_date": null
+}
+```
+
+Idara: `name`, `description`, `status`, `members_count`, `head`, `branch`. Maelezo (`/{id}`) yanaongeza `members` (`id`, `full_name`, `member_number`, `phone_number`, `role`). `status` kwenye query: `active` au `inactive`.
+
+---
+
+### Matangazo, huduma, matukio
+
+```
+GET /api/pastor/announcements
+GET /api/pastor/announcements/{id}
+GET /api/pastor/services
+GET /api/pastor/services/{id}
+GET /api/pastor/events
+GET /api/pastor/events/{id}
+```
+
+| Param | Endpoint | Maelezo |
+|---|---|---|
+| `search` | zote | Kichwa, maudhui, ukumbi, mhubiri, au msemaji |
+| `include_inactive=1` | announcements | Matangazo yasiyo active |
+| `upcoming=1` | services, events | Tarehe ya leo na zijazo tu |
+| `status` | events | `scheduled`, `ongoing`, `completed`, `cancelled` |
+| `branch_id` | services, events | Tawi |
+
+Tangazo: `id`, `title`, `content`, `excerpt`, `type`, `type_label`, `is_pinned`, `start_date`, `end_date`, `department`, `created_at`.
+
+Huduma: `title`, `service_type`, `service_date`, `start_time`, `end_time`, `theme`, `preacher`, `venue`, `status`, `branch`. Maelezo yanaongeza `service_type_label`, `status_label`, `coordinator`, `notes`.
+
+Tukio: `title`, `category`, `category_label`, `event_date`, `start_time`, `end_time`, `speaker`, `venue`, `budget_amount`, `expected_attendance`, `guests_count`, `status`, `description`, `notes`, `branch`.
+
+---
+
+### Mahudhurio
+
+`GET /api/pastor/attendance`
+
+Default ni **mwezi huu** hadi leo. Tuma `from` na `to` (`YYYY-MM-DD`) kubadilisha kipindi.
+
+| Param | Maelezo |
+|---|---|
+| `from`, `to` | Tarehe |
+| `source_type` | `church_service` au `special_event` |
+| `source_id` | ID ya huduma au tukio |
+| `search` | Jina au member number |
+| `branch_id` | Tawi |
+
+Kila rekodi: `id`, `source_type`, `source_id`, `attended_at`, `notes`, `member`, `dependant`, `branch`.
+
+---
+
+### Misiba
+
+```
+GET /api/pastor/bereavements
+GET /api/pastor/bereavements/{id}
+```
+
+`search` inatafuta `deceased_name` au `family_details`. `status`: `open` au `closed`.
+
+Fields: `deceased_name`, `family_details`, `incident_date`, `contribution_start_date`, `contribution_end_date`, `status`, `status_label`, `notes`, `closed_at`, `affected_member`.
+
+---
+
+### Maombi ya washirika
+
+```
+GET /api/pastor/member-requests
+GET /api/pastor/member-requests/{id}
+```
+
+| Param | Maelezo |
+|---|---|
+| `status` | `pending`, `in_review`, `approved`, `rejected`, `completed` |
+| `type` | `travelling_certificate`, `recommendation_letter`, `baptism_certificate`, `baptism_request`, `general_issue`, `prayer_request`, `other` |
+| `search` | Reference, subject, au description |
+| `branch_id` | Tawi |
+
+```json
+{
+  "id": 9,
+  "reference_number": "REQ-001",
+  "type": "prayer_request",
+  "type_label": "Prayer request",
+  "subject": "Prayer",
+  "description": "…",
+  "status": "pending",
+  "status_label": "Pending",
+  "member": {
+    "id": 45,
+    "full_name": "Jane Member",
+    "member_number": "WL-001",
+    "phone_number": "+255711111111"
+  },
+  "assigned_leader": null,
+  "response": null,
+  "responded_at": null,
+  "has_certificate": false,
+  "request_meta": null,
+  "created_at": "2026-10-04T12:00:00+00:00"
+}
+```
+
+---
+
+### Usajili wa washirika
+
+```
+GET /api/pastor/registrations
+GET /api/pastor/registrations/{id}
+```
+
+`status`: `pending`, `approved`, `rejected`. `search`: application number, jina, au simu.
+
+Fields: `application_number`, `full_name`, `phone_number`, `status`, `assigned_envelope_number`, `profile_picture_url`, `registration_data`, `dependants_data`, `member_id`, `rejection_reason`, `reviewed_at`, `branch`, `created_at`.
+
+---
+
+### Matawi
+
+`GET /api/pastor/branches`
+
+Inapatikana tu kanisa lililowasha matawi na mchungaji mwenye `branches.view`. Vinginevyo `403`.
+
+`include_inactive=1` inaonyesha matawi yasiyo active. `search`: jina, code, jina la mchungaji, au jiji.
+
+Fields: `id`, `name`, `code`, `is_headquarters`, `is_active`, `pastor_name`, `phone`, `email`, `address`, `city`.
+
+---
+
+### Fedha
+
+`GET /api/pastor/finance`
+
+Muhtasari wa mwezi huu. Optional: `year` (`2000`–`2100`) na `month` (`1`–`12`).
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "currency": "TZS",
+    "period": { "year": 2026, "month": 10, "label": "October 2026", "input": "2026-10" },
+    "summary": {
+      "total_income": 500000,
+      "total_expenses": 120000,
+      "expenses_year": 900000,
+      "net_balance": 380000,
+      "pending_approvals_count": 1,
+      "pending_approvals_amount": 15000,
+      "active_pledges": 3
+    },
+    "income_breakdown": [
+      { "key": "tithes", "label": "Tithes", "amount": 300000, "percent": 60 }
+    ],
+    "income_trend": [],
+    "recent_transactions": [
+      {
+        "type": "tithe",
+        "label": "Tithe",
+        "member": "Jane Member",
+        "description": "Member tithe",
+        "amount": 15000,
+        "date": "2026-10-01"
+      }
+    ]
+  }
+}
+```
+
+`recent_transactions.type`: `tithe`, `offering`, `pledge`, `bereavement`.
+
+### Idhini za fedha
+
+`GET /api/pastor/finance/approvals`
+
+**Mchungaji mkuu tu.** Assistant pastor anapata `403` `{ "success": false, "message": "Forbidden" }`.
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "currency": "TZS",
+    "counts": { "tithe": 1, "offering": 0, "budget": 0, "expense": 0, "pledge_payment": 0 },
+    "amounts": { "tithe": 15000, "offering": 0, "budget": 0, "expense": 0, "pledge_payment": 0 },
+    "total_pending": 1,
+    "total_pending_amount": 15000,
+    "pending": {
+      "tithe": [
+        {
+          "type": "tithe",
+          "id": 8,
+          "amount": 15000,
+          "date": "2026-10-04",
+          "member": "Jane Member",
+          "description": "Tithe",
+          "status": "pending",
+          "reference_number": null,
+          "notes": null,
+          "created_at": "2026-10-04T12:00:00+00:00"
+        }
+      ],
+      "offering": [],
+      "budget": [],
+      "expense": [],
+      "pledge_payment": []
+    }
+  }
+}
+```
+
+Aina: `tithe`, `offering`, `budget`, `expense`, `pledge_payment`. Kwa budget, `amount` ni `total_budget`.
+
+---
+
 ## CURL
 
 ```bash
@@ -505,3 +985,4 @@ Hii inaunda table `personal_access_tokens` tu (Sanctum). Haibadili data ya membe
 2. Members API inarudisha washirika wa **kanisa la user aliyelogin** tu.
 3. CORS imewekwa kwa `api/*`. App ya native haihitaji CORS; inahitajika hasa kama utatumia web/PWA.
 4. Member dashboard (`/api/member/*`) inahitaji user aliyeunganishwa na rekodi ya `members`. Staff bila member record wanapata `403`.
+5. Pastor API (`/api/pastor/*`) ni ya `pastor` na `assistant_pastor` tu. Login ni endpoint ileile; baada ya token, tumia `/pastor/dashboard`. Assistant pastor hawezi kuita `/pastor/finance/approvals`.

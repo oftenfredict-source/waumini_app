@@ -541,6 +541,8 @@ return [
         'view_member_profile' => 'View Member Profile',
         'end_assignment_confirm' => 'End this leadership assignment?',
         'end_assignment' => 'End Assignment',
+        'end_assignment_reason' => 'Why is this assignment ending?',
+        'end_assignment_reason_label' => 'Reason',
         'empty' => 'No leadership assignments found.',
         'assign_link' => 'Assign leadership',
     ],

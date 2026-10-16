@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MemberIndexRequest extends FormRequest
 {
@@ -23,6 +24,8 @@ class MemberIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
             'branch_id' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', 'string', 'max:30'],
+            'membership_type' => ['nullable', Rule::in(['permanent', 'temporary'])],
         ];
     }
 }

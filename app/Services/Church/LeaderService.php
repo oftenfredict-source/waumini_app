@@ -45,11 +45,18 @@ class LeaderService
         return $leader;
     }
 
-    public function deactivate(Leader $leader): Leader
+    public function deactivate(Leader $leader, string $reason): Leader
     {
+        if (! $leader->isCurrentlyActive()) {
+            throw ValidationException::withMessages([
+                'reason' => 'This leadership assignment is already inactive.',
+            ]);
+        }
+
         $leader->update([
             'is_active' => false,
             'end_date' => $leader->end_date ?? now()->toDateString(),
+            'deactivation_reason' => trim($reason),
         ]);
 
         $leader = $leader->fresh(['member', 'church']);

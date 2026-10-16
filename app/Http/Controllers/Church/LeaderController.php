@@ -95,11 +95,15 @@ class LeaderController extends Controller
         return view('church.leadership.show', compact('leader'));
     }
 
-    public function deactivate(Leader $leader): RedirectResponse
+    public function deactivate(Request $request, Leader $leader): RedirectResponse
     {
         $this->authorize('deactivate', $leader);
 
-        $this->leaderService->deactivate($leader);
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:3', 'max:2000'],
+        ]);
+
+        $this->leaderService->deactivate($leader, $validated['reason']);
 
         return redirect()
             ->route('church.leadership.index')
