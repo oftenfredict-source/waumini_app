@@ -9,6 +9,8 @@ use App\Models\Church;
 use App\Models\Member;
 use App\Models\Offering;
 use App\Models\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class OfferingService
 {
@@ -25,6 +27,19 @@ class OfferingService
         $data['approval_status'] = FinancialApprovalStatus::Pending;
 
         return Offering::create($this->normalizeTypeFields($data));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $entries
+     * @return Collection<int, Offering>
+     */
+    public function createMany(Church $church, array $entries, ?User $recorder = null): Collection
+    {
+        return DB::transaction(function () use ($church, $entries, $recorder) {
+            return collect($entries)
+                ->map(fn (array $data) => $this->create($church, $data, $recorder))
+                ->values();
+        });
     }
 
     public function update(Offering $offering, array $data): Offering

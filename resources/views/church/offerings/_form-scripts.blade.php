@@ -79,7 +79,7 @@
 
     function memberLabel(member) {
         if (member.envelope) {
-            return member.envelope + ' — ' + member.name;
+            return member.envelope + '-' + member.name;
         }
         return member.name;
     }
@@ -114,7 +114,7 @@
                 strong.className = 'text-primary';
                 strong.textContent = member.envelope;
                 btn.appendChild(strong);
-                btn.appendChild(document.createTextNode(' — ' + member.name));
+                btn.appendChild(document.createTextNode('-' + member.name));
             } else {
                 btn.textContent = member.name;
             }

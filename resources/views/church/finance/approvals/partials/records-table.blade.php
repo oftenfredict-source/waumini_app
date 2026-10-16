@@ -9,6 +9,9 @@
                         </th>
                     @endif
                     <th>{{ __('common.member') }}</th>
+                    @if($type === 'offering')
+                        <th>{{ __('finance.purpose') }}</th>
+                    @endif
                     <th>{{ __('common.amount') }}</th>
                     <th>{{ __('common.date') }}</th>
                     <th>{{ __('finance.payment') }}</th>
@@ -47,6 +50,9 @@
                                 @endif
                             @endif
                         </td>
+                        @if($type === 'offering')
+                            <td>{{ $record->offeringTypeLabel() }}</td>
+                        @endif
                         <td>
                             <strong class="text-success">
                                 TZS {{ number_format($type === 'budget' ? (float) $record->total_budget : (float) $record->amount, 2) }}

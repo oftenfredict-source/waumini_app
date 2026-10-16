@@ -32,19 +32,5 @@
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const paymentSelect = document.getElementById('payment_method');
-    const referenceGroup = document.getElementById('referenceGroup');
-    if (!paymentSelect || !referenceGroup) return;
-
-    function toggleReference() {
-        const needsRef = ['bank_transfer', 'mobile_money', 'cheque'].includes(paymentSelect.value);
-        referenceGroup.style.display = needsRef ? '' : 'none';
-    }
-
-    paymentSelect.addEventListener('change', toggleReference);
-    toggleReference();
-});
-</script>
+@include('church.tithes._form-scripts')
 @endpush

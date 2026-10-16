@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Church;
 use App\Enums\FinancePaymentMethod;
 use App\Enums\FinancialApprovalStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Church\StoreTitheRequest;
+use App\Http\Requests\Church\StoreBulkTitheRequest;
 use App\Http\Requests\Church\UpdateTitheRequest;
 use App\Models\Member;
 use App\Models\Tithe;
@@ -67,6 +67,8 @@ class TitheController extends Controller
 
         $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = \'\' THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name');
         $this->branchAccessService->applyBranchScope($membersQuery, $user);
         $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
@@ -98,6 +100,8 @@ class TitheController extends Controller
         $church = $user->church;
         $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = \'\' THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name');
         $this->branchAccessService->applyBranchScope($membersQuery, $user);
         $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);
@@ -108,18 +112,19 @@ class TitheController extends Controller
         ]);
     }
 
-    public function store(StoreTitheRequest $request): RedirectResponse
+    public function store(StoreBulkTitheRequest $request): RedirectResponse
     {
-        $church = $request->user()->church;
-        $tithe = $this->titheService->create(
-            $church,
-            $request->validated(),
+        $tithes = $this->titheService->createMany(
+            $request->user()->church,
+            $request->tithePayloads(),
             $request->user()
         );
 
+        $count = $tithes->count();
+
         return redirect()
-            ->route('church.tithes.show', $tithe)
-            ->with('success', 'Tithe recorded successfully and sent for approval.');
+            ->route('church.tithes.create')
+            ->with('success', trans_choice('pages.tithes.bulk_recorded', $count, ['count' => $count]));
     }
 
     public function show(Tithe $tithe): View
@@ -135,6 +140,8 @@ class TitheController extends Controller
         $church = $user->church;
         $membersQuery = Member::forChurch($church->id)
             ->where('status', 'active')
+            ->orderByRaw('CASE WHEN envelope_number IS NULL OR envelope_number = \'\' THEN 1 ELSE 0 END')
+            ->orderBy('envelope_number')
             ->orderBy('full_name');
         $this->branchAccessService->applyBranchScope($membersQuery, $user);
         $members = $membersQuery->get(['id', 'full_name', 'envelope_number']);

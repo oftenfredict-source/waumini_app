@@ -61,7 +61,7 @@
                 <option value="">{{ __('pages.shared.all_members') }}</option>
                 @foreach($members as $member)
                     <option value="{{ $member->id }}" @selected(($filters['member_id'] ?? '') == $member->id)>
-                        {{ $member->full_name }}
+                        @if($member->envelope_number){{ $member->envelope_number }}-{{ $member->full_name }}@else{{ $member->full_name }}@endif
                     </option>
                 @endforeach
             </select>

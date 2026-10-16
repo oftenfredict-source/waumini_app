@@ -7,7 +7,7 @@ use App\Enums\FinancialApprovalStatus;
 use App\Enums\OfferingContributionType;
 use App\Enums\OfferingType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Church\StoreOfferingRequest;
+use App\Http\Requests\Church\StoreBulkOfferingRequest;
 use App\Http\Requests\Church\UpdateOfferingRequest;
 use App\Models\ChurchService;
 use App\Models\Member;
@@ -135,18 +135,19 @@ class OfferingController extends Controller
         ]);
     }
 
-    public function store(StoreOfferingRequest $request): RedirectResponse
+    public function store(StoreBulkOfferingRequest $request): RedirectResponse
     {
-        $church = $request->user()->church;
-        $offering = $this->offeringService->create(
-            $church,
-            $request->validated(),
+        $offerings = $this->offeringService->createMany(
+            $request->user()->church,
+            $request->offeringPayloads(),
             $request->user()
         );
 
+        $count = $offerings->count();
+
         return redirect()
-            ->route('church.offerings.show', $offering)
-            ->with('success', 'Offering recorded successfully and sent for approval.');
+            ->route('church.offerings.create')
+            ->with('success', trans_choice('pages.offerings.bulk_recorded', $count, ['count' => $count]));
     }
 
     public function show(Offering $offering): View

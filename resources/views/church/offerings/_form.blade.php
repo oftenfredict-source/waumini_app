@@ -64,7 +64,7 @@
                 class="form-control @error('member_id') is-invalid @enderror"
                 autocomplete="off"
                 placeholder="{{ __('pages.offerings.search_envelope') }}"
-                value="{{ $selectedMember ? trim(($selectedMember->envelope_number ? $selectedMember->envelope_number.' — ' : '').$selectedMember->full_name) : '' }}"
+                value="{{ $selectedMember ? ($selectedMember->envelope_number ? $selectedMember->envelope_number.'-'.$selectedMember->full_name : $selectedMember->full_name) : '' }}"
                 @disabled($defaultContribution !== 'member')>
             <div id="member_envelope_results" class="list-group position-absolute w-100 shadow-sm"
                 style="display:none; z-index: 20; max-height: 260px; overflow-y: auto;"></div>

@@ -1,20 +1,38 @@
 @php
     $tithe = $tithe ?? null;
+    $selectedMember = $members->firstWhere('id', (int) old('member_id', $tithe?->member_id));
+    $membersForSearch = $members
+        ->values()
+        ->map(fn ($m) => [
+            'id' => $m->id,
+            'name' => $m->full_name,
+            'envelope' => $m->envelope_number,
+        ]);
+    $selectedMemberLabel = $selectedMember
+        ? ($selectedMember->envelope_number
+            ? $selectedMember->envelope_number.'-'.$selectedMember->full_name
+            : $selectedMember->full_name)
+        : '';
 @endphp
 <div class="row">
     <div class="col-md-6">
-        <div class="form-group">
+        <div class="form-group position-relative">
             <label>{{ __('common.member') }} *</label>
-            <select name="member_id" class="form-control @error('member_id') is-invalid @enderror" required>
-                <option value="">{{ __('pages.shared.select_member') }}</option>
-                @foreach($members as $member)
-                    <option value="{{ $member->id }}" @selected(old('member_id', $tithe?->member_id) == $member->id)>
-                        {{ $member->full_name }}@if($member->envelope_number) ({{ $member->envelope_number }})@endif
-                    </option>
-                @endforeach
-            </select>
-            @error('member_id')<small class="text-danger">{{ $message }}</small>@enderror
+            <input type="hidden" name="member_id" id="tithe_member_id"
+                value="{{ old('member_id', $tithe?->member_id) }}" required>
+            <input type="text"
+                id="tithe_member_search"
+                class="form-control @error('member_id') is-invalid @enderror"
+                autocomplete="off"
+                placeholder="{{ __('pages.offerings.search_envelope') }}"
+                value="{{ $selectedMemberLabel }}"
+                required>
+            <div id="tithe_member_results" class="list-group position-absolute w-100 shadow-sm"
+                style="display:none; z-index: 20; max-height: 260px; overflow-y: auto;"></div>
+            <small class="text-muted">{{ __('pages.offerings.search_envelope_hint') }}</small>
+            @error('member_id')<small class="text-danger d-block">{{ $message }}</small>@enderror
         </div>
+        <script type="application/json" id="titheMembersData">@json($membersForSearch)</script>
     </div>
     <div class="col-md-3">
         <div class="form-group">
@@ -62,13 +80,3 @@
         </div>
     </div>
 </div>
-
-@unless($tithe)
-    <div class="alert alert-info mb-0">
-        <i class="fa fa-info-circle"></i>
-        {!! __('pages.shared.pending_approval_alert', [
-            'items' => __('pages.tithes.items'),
-            'link' => '<a href="' . route('church.finance.approvals') . '">' . __('pages.shared.approval_dashboard') . '</a>',
-        ]) !!}
-    </div>
-@endunless

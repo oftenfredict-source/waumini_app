@@ -7,6 +7,8 @@ use App\Models\Church;
 use App\Models\Member;
 use App\Models\Tithe;
 use App\Models\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TitheService
 {
@@ -18,6 +20,19 @@ class TitheService
         $data['approval_status'] = FinancialApprovalStatus::Pending;
 
         return Tithe::create($data);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $entries
+     * @return Collection<int, Tithe>
+     */
+    public function createMany(Church $church, array $entries, ?User $recorder = null): Collection
+    {
+        return DB::transaction(function () use ($church, $entries, $recorder) {
+            return collect($entries)
+                ->map(fn (array $data) => $this->create($church, $data, $recorder))
+                ->values();
+        });
     }
 
     public function update(Tithe $tithe, array $data): Tithe
