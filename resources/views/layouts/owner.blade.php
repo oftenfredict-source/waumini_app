@@ -12,8 +12,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/owner-metis.css') }}?v=11">
-    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/page-manual.css') }}?v=1">
+    {{-- Inline from resources: live public/css/owner-metis.css currently 404s on deploy. --}}
+    @include('partials.inline-resource-css', ['file' => 'owner-metis.css'])
+    @include('partials.inline-resource-css', ['file' => 'page-manual.css'])
     @stack('styles')
 </head>
 <body data-page="owner" class="admin-layout">
@@ -38,7 +39,7 @@
     @endauth
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ \App\Support\WauminiBrand::publicAsset('js/owner-metis.js') }}?v=2"></script>
+    {!! \App\Support\WauminiBrand::inlineResourceJs('owner-metis.js') !!}
     @include('partials.sweetalert-assets')
     @stack('scripts')
 </body>

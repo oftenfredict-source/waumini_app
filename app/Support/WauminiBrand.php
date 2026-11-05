@@ -39,6 +39,20 @@ class WauminiBrand
     }
 
     /**
+     * Inline script from resources/js (ships with the app; not dependent on /public deploy).
+     */
+    public static function inlineResourceJs(string $filename): string
+    {
+        $path = resource_path('js/'.ltrim($filename, '/'));
+
+        if (! is_file($path)) {
+            return '';
+        }
+
+        return '<script>'.file_get_contents($path).'</script>';
+    }
+
+    /**
      * Public URL for the configured app logo.
      *
      * Does not require the file to exist on the PHP filesystem — production
