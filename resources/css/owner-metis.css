@@ -1,0 +1,525 @@
+/* Owner Metis shell — adapted from metis-v1.0.0 for Waumini Link (owner only) */
+:root {
+  --waumini-brand: #940000;
+  --waumini-brand-dark: #6e0000;
+  --waumini-brand-rgb: 148, 0, 0;
+  --bs-primary: #940000;
+  --bs-primary-rgb: 148, 0, 0;
+  --sidebar-width: 240px;
+  --header-height: 56px;
+  --ink-primary: #18181b;
+  --surface-hover: #f4f4f5;
+  --owner-font: "Inter", "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+}
+
+html, body {
+  height: 100%;
+}
+
+body.admin-layout {
+  margin: 0;
+  font-family: var(--owner-font);
+  font-size: 0.875rem;
+  background: #fafafa;
+  color: #3f3f46;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 2000;
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+}
+
+.admin-app, .admin-wrapper {
+  min-height: 100%;
+}
+
+/* Header — rail above sidebar, toggle at sidebar edge, logo centered in main */
+.admin-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  height: var(--header-height);
+  border-top: 3px solid var(--waumini-brand-dark);
+}
+.admin-header-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 3.75rem minmax(0, 1fr);
+  align-items: stretch;
+  height: 100%;
+  background: #fff;
+  border-bottom: 1px solid #e4e4e7;
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.admin-wrapper.sidebar-collapsed .admin-header-inner {
+  grid-template-columns: 64px 3.75rem minmax(0, 1fr);
+}
+.admin-header-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.65rem;
+  background: #faf2f2;
+  border-right: 1px solid rgba(var(--waumini-brand-rgb), 0.12);
+  min-width: 0;
+}
+.admin-header-toggle {
+  position: relative;
+  z-index: 3;
+  border: 0;
+  border-left: 1px solid rgba(var(--waumini-brand-rgb), 0.12);
+  border-right: 1px solid rgba(var(--waumini-brand-rgb), 0.12);
+  background: rgba(var(--waumini-brand-rgb), 0.08);
+  color: var(--waumini-brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.admin-header-toggle:hover,
+.admin-header-toggle:focus {
+  background: rgba(var(--waumini-brand-rgb), 0.16);
+  color: var(--waumini-brand-dark);
+  outline: none;
+}
+.admin-header-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  padding: 0 1rem;
+  background: #fff;
+}
+.admin-header-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  text-decoration: none;
+}
+.admin-header-brand img {
+  height: 34px;
+  max-width: 100%;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+.admin-header-brand-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--waumini-brand);
+  text-align: center;
+  line-height: 1.1;
+}
+.admin-wrapper.sidebar-collapsed .admin-header-brand img {
+  height: 26px;
+}
+.admin-header-tools {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.admin-header .btn-outline-secondary {
+  border-color: #e4e4e7;
+  color: #52525b;
+}
+.admin-header .btn-outline-secondary:hover {
+  background: #f4f4f5;
+  border-color: #d4d4d8;
+  color: #18181b;
+}
+.admin-header .dropdown-menu {
+  position: absolute;
+}
+
+@media (max-width: 991.98px) {
+  .admin-header-inner {
+    grid-template-columns: auto 3.75rem minmax(0, 1fr);
+  }
+  .admin-wrapper.sidebar-collapsed .admin-header-inner {
+    grid-template-columns: auto 3.75rem minmax(0, 1fr);
+  }
+  .admin-header-rail {
+    display: flex;
+    min-width: 4.5rem;
+  }
+}
+
+/* Legacy class kept for any leftover markup */
+.hamburger-menu {
+  border: 1px solid #e4e4e7;
+  background: #fff;
+  color: #52525b;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.hamburger-menu:hover {
+  background: #f4f4f5;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  background: #faf2f2;
+  border-right: 1px solid rgba(var(--waumini-brand-rgb), 0.12);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1035;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.admin-sidebar .sidebar-content {
+  padding: 1rem 0.75rem;
+}
+.sidebar-nav {
+  padding: 0;
+}
+.sidebar-nav .nav-link {
+  position: relative;
+  color: #5c2a2a;
+  border-radius: 0.5rem;
+  margin-bottom: 0.125rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  padding: 0.625rem 0.75rem;
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.sidebar-nav .nav-link i {
+  width: 1.25rem;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+  color: rgba(var(--waumini-brand-rgb), 0.72);
+}
+.sidebar-nav .nav-link:hover {
+  background: rgba(var(--waumini-brand-rgb), 0.08);
+  color: var(--waumini-brand);
+}
+.sidebar-nav .nav-link:hover i {
+  color: var(--waumini-brand);
+}
+.sidebar-nav .nav-link.active {
+  background: rgba(var(--waumini-brand-rgb), 0.12);
+  color: var(--waumini-brand);
+  font-weight: 600;
+}
+.sidebar-nav .nav-link.active i {
+  color: var(--waumini-brand);
+}
+.sidebar-nav .nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 0.3125rem;
+  bottom: 0.3125rem;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--waumini-brand);
+}
+.sidebar-nav .nav-section {
+  display: block;
+  padding: 0.85rem 0.75rem 0.35rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(var(--waumini-brand-rgb), 0.55);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 9, 11, 0.35);
+  z-index: 1034;
+}
+.sidebar-backdrop.show {
+  display: block;
+}
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    z-index: 1041;
+  }
+  .admin-sidebar.show {
+    transform: translateX(0);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+  }
+  .admin-main {
+    margin-left: 0 !important;
+  }
+}
+
+.admin-wrapper.sidebar-collapsed .admin-sidebar {
+  width: 64px;
+}
+.admin-wrapper.sidebar-collapsed .admin-sidebar .nav-link span,
+.admin-wrapper.sidebar-collapsed .admin-sidebar .nav-section {
+  display: none;
+}
+.admin-wrapper.sidebar-collapsed .admin-main {
+  margin-left: 64px;
+}
+@media (max-width: 991.98px) {
+  .admin-wrapper.sidebar-collapsed .admin-sidebar {
+    width: var(--sidebar-width);
+  }
+  .admin-wrapper.sidebar-collapsed .admin-sidebar .nav-link span {
+    display: inline;
+  }
+}
+
+/* Main */
+.admin-main {
+  margin-top: var(--header-height);
+  margin-left: var(--sidebar-width);
+  min-height: calc(100vh - var(--header-height));
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+}
+.admin-main > .container-fluid {
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+/* Stats cards (Metis) */
+.stats-card {
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  box-shadow: none;
+  background: #fff;
+  height: 100%;
+}
+.stats-card .card-body {
+  padding: 1rem 1.15rem;
+}
+.stats-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+.owner-panel-card {
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  background: #fff;
+  box-shadow: none;
+  height: 100%;
+}
+.owner-panel-card .card-header {
+  background: transparent;
+  border-bottom: 1px solid #e4e4e7;
+  padding: 0.85rem 1.15rem;
+  font-weight: 600;
+}
+.owner-panel-card .card-body {
+  padding: 1.15rem;
+}
+
+/* Page title (replaces Vali app-title look inside Metis) */
+body.admin-layout .app-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: transparent !important;
+  margin: 0 0 1.25rem !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  min-height: 0 !important;
+}
+body.admin-layout .app-title h1 {
+  font-size: 1.35rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  color: #18181b;
+}
+body.admin-layout .app-title p {
+  margin: 0.2rem 0 0 !important;
+  color: #71717a !important;
+  font-style: normal !important;
+}
+body.admin-layout .app-title .app-breadcrumb {
+  margin: 0 !important;
+  background: transparent;
+  padding: 0;
+}
+body.admin-layout .app-breadcrumb .breadcrumb-item a {
+  color: var(--waumini-brand);
+  text-decoration: none;
+}
+
+/* Vali → Metis compatibility for existing owner pages */
+body.admin-layout .tile {
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  padding: 1.15rem;
+  margin-bottom: 1.25rem;
+  box-shadow: none;
+}
+body.admin-layout .tile .tile-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.85rem;
+  color: #18181b;
+}
+body.admin-layout .widget-small {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  min-height: 80px;
+}
+body.admin-layout .widget-small .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  color: #fff !important;
+  background: var(--waumini-brand);
+}
+body.admin-layout .widget-small.primary .icon { background: var(--waumini-brand); }
+body.admin-layout .widget-small.info .icon { background: #0891b2; }
+body.admin-layout .widget-small.warning .icon { background: #d97706; }
+body.admin-layout .widget-small.danger .icon { background: #dc2626; }
+body.admin-layout .widget-small.success .icon { background: #16a34a; }
+body.admin-layout .widget-small .info {
+  padding: 0.85rem 1rem;
+  flex: 1;
+}
+body.admin-layout .widget-small .info h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #71717a;
+  margin: 0 0 0.25rem;
+}
+body.admin-layout .widget-small .info p {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+body.admin-layout .btn-primary {
+  --bs-btn-bg: #940000;
+  --bs-btn-border-color: #940000;
+  --bs-btn-hover-bg: #6e0000;
+  --bs-btn-hover-border-color: #6e0000;
+  --bs-btn-active-bg: #6e0000;
+  --bs-btn-active-border-color: #6e0000;
+}
+body.admin-layout .text-primary,
+body.admin-layout .text-primary-emphasis {
+  color: var(--waumini-brand) !important;
+}
+body.admin-layout .bg-primary {
+  background-color: var(--waumini-brand) !important;
+}
+
+/* Spacing helpers used by older BS4 markup */
+body.admin-layout .mr-1 { margin-right: 0.25rem !important; }
+body.admin-layout .mr-2 { margin-right: 0.5rem !important; }
+body.admin-layout .ml-1 { margin-left: 0.25rem !important; }
+body.admin-layout .ml-2 { margin-left: 0.5rem !important; }
+body.admin-layout .pr-2 { padding-right: 0.5rem !important; }
+body.admin-layout .pl-2 { padding-left: 0.5rem !important; }
+body.admin-layout .float-right { float: right !important; }
+body.admin-layout .float-left { float: left !important; }
+body.admin-layout .text-right { text-align: right !important; }
+body.admin-layout .font-weight-bold { font-weight: 700 !important; }
+body.admin-layout .badge-success { background: #16a34a; }
+body.admin-layout .badge-warning { background: #d97706; }
+body.admin-layout .badge-danger { background: #dc2626; }
+body.admin-layout .badge-info { background: #0891b2; }
+body.admin-layout .badge-primary { background: var(--waumini-brand); }
+body.admin-layout .badge-secondary { background: #71717a; }
+body.admin-layout .form-control,
+body.admin-layout .form-select,
+body.admin-layout select.form-control {
+  border-radius: 0.375rem;
+}
+
+/* Page manual FAB stays above Metis chrome */
+.page-manual-fab {
+  z-index: 1060;
+}
+
+.owner-chart-box {
+  position: relative;
+  height: 260px;
+}
+.owner-chart-box canvas {
+  max-height: 260px;
+}
+
+/* Settings tab pills */
+.owner-settings-nav .nav-link {
+  color: #52525b;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.owner-settings-nav .nav-link:hover {
+  color: var(--waumini-brand);
+  background: rgba(var(--waumini-brand-rgb), 0.06);
+}
+.owner-settings-nav .nav-link.active {
+  color: #fff !important;
+  background: var(--waumini-brand) !important;
+  border-color: var(--waumini-brand);
+}
+.owner-settings-card > .card-header {
+  background: transparent;
+}
+
+/* Pinned action panel on church show (JS toggles .is-fixed) */
+.owner-sticky-sentinel {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+.owner-sticky-actions.is-fixed {
+  position: fixed;
+  z-index: 1020;
+  max-height: calc(100vh - var(--header-height) - 2rem);
+  overflow-y: auto;
+}

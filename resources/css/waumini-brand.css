@@ -1,0 +1,691 @@
+:root {
+  --primary: #940000;
+  --waumini-brand: #940000;
+  --waumini-brand-hover: #750000;
+  --waumini-brand-active: #600000;
+  --waumini-brand-darkest: #550000;
+  --waumini-brand-logo: #750000;
+  --waumini-brand-soft: #fff0f0;
+  --waumini-brand-rgb: 148, 0, 0;
+  --waumini-font: "Century Gothic", CenturyGothic, "Apple SD Gothic Neo", "Trebuchet MS", "Segoe UI", Roboto, sans-serif;
+  --font-family-sans-serif: var(--waumini-font);
+}
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea,
+.btn,
+.form-control,
+.dropdown-menu,
+.app-menu__label,
+.app-title h1,
+.tile,
+.login-content,
+.login-content .login-box {
+  font-family: var(--waumini-font);
+}
+
+.app-header__logo,
+.login-content .logo h1 {
+  font-family: var(--waumini-font);
+  font-weight: 400;
+}
+
+::selection,
+::-moz-selection {
+  background-color: var(--waumini-brand-active);
+}
+
+a {
+  color: var(--waumini-brand);
+}
+
+a:hover {
+  color: var(--waumini-brand-hover);
+}
+
+.btn-primary {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-primary:hover {
+  background-color: var(--waumini-brand-hover);
+  border-color: var(--waumini-brand-active);
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.5);
+}
+
+.btn-primary.disabled,
+.btn-primary:disabled {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active,
+.show > .btn-primary.dropdown-toggle {
+  background-color: var(--waumini-brand-active);
+  border-color: var(--waumini-brand-darkest);
+}
+
+.btn-primary:not(:disabled):not(.disabled):active:focus,
+.btn-primary:not(:disabled):not(.disabled).active:focus,
+.show > .btn-primary.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.5);
+}
+
+.btn-outline-primary {
+  color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.btn-outline-primary:focus,
+.btn-outline-primary.focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.5);
+}
+
+.btn-outline-primary:not(:disabled):not(.disabled):active,
+.btn-outline-primary:not(:disabled):not(.disabled).active,
+.show > .btn-outline-primary.dropdown-toggle {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.bg-primary {
+  background-color: var(--waumini-brand) !important;
+}
+
+a.bg-primary:hover,
+a.bg-primary:focus,
+button.bg-primary:hover,
+button.bg-primary:focus {
+  background-color: var(--waumini-brand-active) !important;
+}
+
+.text-primary {
+  color: var(--waumini-brand) !important;
+}
+
+a.text-primary:hover,
+a.text-primary:focus {
+  color: var(--waumini-brand-active) !important;
+}
+
+.border-primary {
+  border-color: var(--waumini-brand) !important;
+}
+
+.badge-primary {
+  background-color: var(--waumini-brand);
+}
+
+.page-item.active .page-link {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.page-link {
+  color: var(--waumini-brand);
+}
+
+.page-link:hover {
+  color: var(--waumini-brand-hover);
+}
+
+.custom-control-input:checked ~ .custom-control-label::before,
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before,
+.custom-radio .custom-control-input:checked ~ .custom-control-label::before {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.custom-control-input:focus ~ .custom-control-label::before {
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.25);
+}
+
+.form-control:focus {
+  border-color: var(--waumini-brand);
+  box-shadow: 0 0 0 0.2rem rgba(var(--waumini-brand-rgb), 0.25);
+}
+
+.animated-checkbox input[type="checkbox"]:checked + .label-text:before,
+.animated-radio input[type="radio"]:checked + .label-text:before {
+  color: var(--waumini-brand);
+}
+
+.app-header {
+  background-color: var(--waumini-brand);
+}
+
+@media (min-width: 768px) {
+  .app-header__logo {
+    background-color: var(--waumini-brand-logo);
+  }
+}
+
+.app-header__logo--brand-image {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  line-height: normal;
+  overflow: hidden;
+  background-color: #fff !important;
+}
+
+.app-header__brand-logo {
+  display: block;
+  max-height: 40px;
+  max-width: 210px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.app-sidebar__user-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--waumini-brand-rgb), 0.12);
+  color: var(--waumini-brand);
+  font-size: 18px;
+}
+
+.app-sidebar__toggle:focus,
+.app-sidebar__toggle:hover {
+  background-color: var(--waumini-brand-active);
+}
+
+.app-sidebar,
+.treeview-menu {
+  background-color: var(--waumini-brand-soft, #fff0f0);
+}
+
+.app-sidebar__user {
+  color: var(--waumini-brand-darkest);
+}
+
+.app-menu__item,
+.treeview-item {
+  color: var(--waumini-brand-darkest);
+  font-weight: 700;
+}
+
+.app-menu__section {
+  margin: 12px 8px 10px;
+  padding: 13px 16px;
+  border-radius: 5px;
+  background-color: var(--waumini-brand);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(var(--waumini-brand-rgb), 0.18);
+}
+
+.app-menu__item.active,
+.app-menu__item:hover,
+.app-menu__item:focus,
+.treeview.is-expanded [data-toggle='treeview'],
+.treeview-item.active,
+.treeview-item:hover,
+.treeview-item:focus {
+  background-color: #ffe0e0;
+  color: var(--waumini-brand-darkest);
+}
+
+.app-menu__item.active,
+.treeview.is-expanded [data-toggle='treeview'] {
+  border-left-color: var(--waumini-brand);
+}
+
+.widget-small.primary {
+  background-color: var(--waumini-brand);
+}
+
+.widget-small.primary.coloured-icon .icon {
+  background-color: var(--waumini-brand);
+}
+
+.material-half-bg .cover {
+  background-color: var(--waumini-brand);
+}
+
+.path {
+  stroke: var(--waumini-brand);
+}
+
+.login-content .logo h1 {
+  color: var(--waumini-brand);
+}
+
+.card.border-primary {
+  border-color: var(--waumini-brand) !important;
+}
+
+.list-group-item.active {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: var(--waumini-brand);
+}
+
+.progress-bar {
+  background-color: var(--waumini-brand);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: var(--waumini-brand);
+}
+
+.datepicker table tr td.active,
+.datepicker table tr td.active.highlighted,
+.datepicker table tr td.active:hover,
+.datepicker table tr td.active.highlighted:hover,
+.datepicker table tr td.active:active,
+.datepicker table tr td.active.highlighted:active,
+.datepicker table tr td.active.active,
+.datepicker table tr td.active.highlighted.active {
+  background-color: var(--waumini-brand);
+  border-color: var(--waumini-brand-logo);
+}
+
+.datepicker table tr td.active:active:hover,
+.datepicker table tr td.active.highlighted:active:hover,
+.datepicker table tr td.active.active:hover,
+.datepicker table tr td.active.highlighted.active:hover,
+.datepicker table tr td.active:active:focus,
+.datepicker table tr td.active.highlighted:active:focus,
+.datepicker table tr td.active.active:focus,
+.datepicker table tr td.active.highlighted.active:focus {
+  background-color: var(--waumini-brand-hover);
+  border-color: var(--waumini-brand-logo);
+}
+
+.toggle.lg input[type="checkbox"]:checked + .button-indecator:before,
+.toggle input[type="checkbox"]:checked + .button-indecator:before {
+  color: var(--waumini-brand);
+}
+
+.toggle.lg input[type="checkbox"]:checked + .button-indecator:after,
+.toggle input[type="checkbox"]:checked + .button-indecator:after {
+  background-color: var(--waumini-brand);
+}
+
+.app-nav__notification {
+  position: relative;
+}
+
+.app-nav__notification > .app-nav__item {
+  position: relative;
+}
+
+.app-nav__notification-badge {
+  position: absolute;
+  top: 6px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: #dc3545;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.chat .message.me .message-body {
+  background-color: var(--waumini-brand);
+}
+
+.chat .message.me .message-body:before {
+  border-color: transparent var(--waumini-brand) transparent transparent;
+}
+
+.chat .message-input {
+  border-color: var(--waumini-brand);
+}
+
+/* Compact page header — contained, not full-bleed (avoids tall empty strip) */
+body.app .app-title {
+  margin: 0 0 1rem !important;
+  padding: 0.65rem 1rem !important;
+  min-height: 0 !important;
+  align-items: center;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+body.app .app-title h1 {
+  font-size: 1.15rem !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+body.app .app-title h1 .fa {
+  margin-right: 0.3rem;
+  font-size: 1em;
+}
+
+body.app .app-title p {
+  margin: 0.15rem 0 0 !important;
+  margin-bottom: 0 !important;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+body.app .app-title .app-breadcrumb {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.25;
+}
+
+@media (max-width: 480px) {
+  body.app .app-title {
+    margin: 0 0 0.85rem !important;
+    padding: 0.6rem 0.85rem !important;
+  }
+}
+
+/* Branch switcher — match other header nav items */
+.app-nav .branch-switcher.dropdown {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.branch-switcher__toggle {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 50px;
+  box-sizing: border-box;
+  padding: 0 15px !important;
+  line-height: 20px !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  background: transparent !important;
+}
+
+.branch-switcher__toggle:hover,
+.branch-switcher__toggle:focus {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: #f6f6f6 !important;
+}
+
+.branch-switcher__text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch-switcher__caret {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.branch-switcher--active .branch-switcher__toggle,
+.branch-switcher--active .branch-switcher__toggle:hover,
+.branch-switcher--active .branch-switcher__toggle:focus {
+  background: rgba(0, 0, 0, 0.12) !important;
+  color: #fff !important;
+}
+
+.app-nav .branch-switcher .dropdown-menu.branch-switcher__menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  left: auto !important;
+  z-index: 2000 !important;
+  float: none !important;
+  min-width: 260px;
+  max-width: min(320px, calc(100vw - 1.5rem));
+  margin: 0 !important;
+  padding: 0.4rem 0 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-radius: 0.5rem !important;
+  background: #fff !important;
+  background-clip: padding-box !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+}
+
+.branch-switcher__heading {
+  display: block;
+  padding: 0.45rem 1rem 0.35rem;
+  margin: 0;
+  color: #343a40;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.branch-switcher__divider {
+  margin: 0.35rem 0;
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+.app-nav .branch-switcher .branch-switcher__menu .dropdown-item.branch-switcher__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #212529;
+  text-align: left;
+  white-space: normal;
+}
+
+.app-nav .branch-switcher .branch-switcher__menu .dropdown-item.branch-switcher__item:hover,
+.app-nav .branch-switcher .branch-switcher__menu .dropdown-item.branch-switcher__item:focus {
+  background: rgba(var(--waumini-brand-rgb), 0.08) !important;
+  color: var(--waumini-brand) !important;
+}
+
+.app-nav .branch-switcher .branch-switcher__menu .dropdown-item.branch-switcher__item.active,
+.app-nav .branch-switcher .branch-switcher__menu .dropdown-item.branch-switcher__item:active {
+  background: rgba(var(--waumini-brand-rgb), 0.12) !important;
+  color: var(--waumini-brand) !important;
+  font-weight: 600;
+}
+
+.branch-switcher__item-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.branch-switcher__item-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.25;
+}
+
+.branch-switcher__item-code {
+  display: block;
+  color: #6c757d;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.branch-switcher__item.active .branch-switcher__item-code {
+  color: rgba(var(--waumini-brand-rgb), 0.75);
+}
+
+.branch-switcher__badge {
+  flex: 0 0 auto;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(var(--waumini-brand-rgb), 0.12);
+  color: var(--waumini-brand);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.branch-switcher__exit .fa {
+  margin-right: 0.35rem;
+  color: #6c757d;
+}
+
+.branch-switcher__exit .branch-switcher__item-main {
+  flex-direction: row;
+  align-items: center;
+}
+
+/* Branch context — fixed under top bar, content column only */
+.branch-context-bar {
+  --branch-bar-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+  position: fixed;
+  top: 50px;
+  left: 230px;
+  right: 0;
+  z-index: 1025;
+  height: var(--branch-bar-height);
+  min-height: var(--branch-bar-height);
+  padding: 0 1.25rem;
+  background: #f7f0f0;
+  border-bottom: 1px solid rgba(148, 0, 0, 0.18);
+  color: #4a1a1a;
+  box-sizing: border-box;
+}
+
+.app.sidenav-toggled .branch-context-bar {
+  left: 0;
+}
+
+/* Clear fixed header + branch bar; keep page title tight underneath */
+body.app.has-branch-context .app-content {
+  margin-top: calc(50px + 32px) !important;
+  padding-top: 0 !important;
+}
+
+body.app.has-branch-context .app-title {
+  margin: 0.75rem 0 1rem !important;
+  padding: 0.65rem 1rem !important;
+}
+
+body.app.has-branch-context .app-content > .dash-hero:first-child,
+body.app.has-branch-context .dash-hero {
+  margin-top: 0 !important;
+}
+
+.branch-context-bar__info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.branch-context-bar__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--waumini-brand);
+  flex-shrink: 0;
+}
+
+.branch-context-bar__label {
+  color: #7a4a4a;
+}
+
+.branch-context-bar__name {
+  font-weight: 600;
+  color: var(--waumini-brand-darkest);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.branch-context-bar__code {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(148, 0, 0, 0.1);
+  color: var(--waumini-brand);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.branch-context-bar__exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(148, 0, 0, 0.28);
+  background: #fff;
+  color: var(--waumini-brand);
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.branch-context-bar__exit:hover {
+  background: var(--waumini-brand);
+  color: #fff;
+}
+
+@media (max-width: 767.98px) {
+  .branch-context-bar {
+    left: 0;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  body.app.has-branch-context .app-content {
+    margin-top: calc(50px + 32px) !important;
+    padding-top: 0 !important;
+  }
+}
