@@ -19,6 +19,9 @@
         var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
         if (!nodes.length) return;
 
+        // Enable hide-until-visible only after JS is confirmed running.
+        document.documentElement.classList.add('js-reveal');
+
         if (reduceMotion || !('IntersectionObserver' in window)) {
             nodes.forEach(function (el) {
                 el.classList.add('is-visible');

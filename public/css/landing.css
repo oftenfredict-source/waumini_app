@@ -56,14 +56,20 @@ body.landing-page {
 .landing-hide-mobile { display: none; }
 .landing-hide-desktop { display: inline-flex; }
 
-/* Reveal */
+/* Reveal — always visible by default so a missing/blocked landing.js
+   cannot leave the page as empty white space on live. */
 .reveal {
+    opacity: 1;
+    transform: none;
+}
+
+html.js-reveal .reveal:not(.is-visible) {
     opacity: 0;
     transform: translateY(1.25rem);
     transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
-.reveal.is-visible {
+html.js-reveal .reveal.is-visible {
     opacity: 1;
     transform: none;
 }
@@ -1345,6 +1351,8 @@ body.landing-page {
     html { scroll-behavior: auto; }
 
     .reveal,
+    html.js-reveal .reveal,
+    html.js-reveal .reveal:not(.is-visible),
     .landing-mock,
     .landing-hero-orb,
     .landing-mock-chart-bars span {
