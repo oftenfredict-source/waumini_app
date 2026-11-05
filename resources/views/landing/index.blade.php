@@ -88,7 +88,7 @@
     <title>{{ $appName }} — {{ __('landing.tagline') }}</title>
     <meta name="description" content="{{ $appName }} {{ __('landing.meta_description') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{{ $landingCss }}?v=26">
+    <link rel="stylesheet" href="{{ $landingCss }}?v=27">
     <link rel="icon" href="{{ $logoUrl ?? \App\Support\WauminiBrand::publicAsset('waumini_link_logo.png') }}" type="image/png">
     <style>
         :root { --brand: {{ $brand }}; --brand-dark: #6e0000; --nav-height: 4.25rem; }
@@ -99,9 +99,7 @@
     x-data="{
         open: false,
         scrolled: false,
-        activeSection: 'home',
-        activeFeature: 'members',
-        features: {{ \Illuminate\Support\Js::from($features) }}
+        activeSection: 'home'
     }"
     @scroll.window="scrolled = (window.pageYOffset || document.documentElement.scrollTop) > 24"
     :class="{ 'is-scrolled': scrolled }"
@@ -228,57 +226,16 @@
                 <p>{{ __('landing.features_lead') }}</p>
             </div>
 
-            <div class="landing-feature-showcase reveal" data-reveal>
-                <div class="landing-feature-tabs" role="tablist" aria-label="{{ __('landing.features') }}">
-                    <template x-for="feature in features" :key="feature.id">
-                        <button
-                            type="button"
-                            class="landing-feature-tab"
-                            role="tab"
-                            :id="'feature-tab-' + feature.id"
-                            :aria-selected="(activeFeature === feature.id).toString()"
-                            :class="{ 'is-active': activeFeature === feature.id }"
-                            @click="activeFeature = feature.id"
-                            @mouseenter="activeFeature = feature.id"
-                        >
-                            <span class="landing-feature-tab-icon"><i class="fa" :class="feature.icon"></i></span>
-                            <span class="landing-feature-tab-copy">
-                                <strong x-text="feature.title"></strong>
-                                <small x-text="feature.desc"></small>
-                            </span>
-                        </button>
-                    </template>
-                </div>
-
-                <div
-                    class="landing-feature-preview"
-                    role="tabpanel"
-                    :aria-labelledby="'feature-tab-' + activeFeature"
-                >
-                    <template x-for="feature in features.filter(f => f.id === activeFeature)" :key="feature.id">
-                        <div class="landing-feature-preview-inner">
-                            <div class="landing-feature-preview-badge">
-                                <i class="fa" :class="feature.icon"></i>
-                            </div>
-                            <h3 x-text="feature.title"></h3>
-                            <p x-text="feature.preview"></p>
-                            <div class="landing-feature-preview-stats">
-                                <template x-for="(stat, index) in feature.stats" :key="index">
-                                    <div class="landing-feature-stat">
-                                        <strong x-text="stat.value"></strong>
-                                        <span x-text="stat.label"></span>
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="landing-feature-preview-viz" aria-hidden="true">
-                                <div class="landing-feature-viz-row"></div>
-                                <div class="landing-feature-viz-row short"></div>
-                                <div class="landing-feature-viz-row mid"></div>
-                                <div class="landing-feature-viz-pulse"></div>
-                            </div>
+            <div class="landing-feature-grid">
+                @foreach($features as $feature)
+                    <article class="landing-feature-card reveal" data-reveal>
+                        <div class="landing-feature-card-icon" aria-hidden="true">
+                            <i class="fa {{ $feature['icon'] }}"></i>
                         </div>
-                    </template>
-                </div>
+                        <h3>{{ $feature['title'] }}</h3>
+                        <p>{{ $feature['desc'] }}</p>
+                    </article>
+                @endforeach
             </div>
         </div>
     </section>
