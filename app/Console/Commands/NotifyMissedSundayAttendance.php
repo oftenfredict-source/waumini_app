@@ -28,6 +28,8 @@ class NotifyMissedSundayAttendance extends Command
 
             if ($result['notified'] > 0) {
                 $this->line("Church #{$church->id} ({$church->name}): notified {$result['notified']} member(s).");
+            } elseif (! empty($result['reason'])) {
+                $this->line("Church #{$church->id} ({$church->name}): {$result['reason']}");
             }
         }
 

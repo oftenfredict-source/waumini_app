@@ -50,10 +50,41 @@ class MemberRequestPolicy
 
     public function downloadCertificate(User $user, MemberRequest $memberRequest): bool
     {
-        if (! $memberRequest->hasDownloadableCertificate()) {
+        if ($memberRequest->church_id !== $user->church_id) {
             return false;
         }
 
-        return $this->view($user, $memberRequest);
+        if (! $memberRequest->type->generatesCertificate()) {
+            return false;
+        }
+
+        // Member portal: only after staff releases the certificate.
+        if ($user->hasLinkedMember() && $user->member_id === $memberRequest->member_id && ! $user->can('member_requests.manage')) {
+            return $memberRequest->hasDownloadableCertificate();
+        }
+
+        if ($user->can('member_requests.view') || $this->respond($user, $memberRequest)) {
+            return true;
+        }
+
+        return $memberRequest->hasDownloadableCertificate() && $this->view($user, $memberRequest);
+    }
+
+    public function previewCertificate(User $user, MemberRequest $memberRequest): bool
+    {
+        if (! $memberRequest->type->generatesCertificate()) {
+            return false;
+        }
+
+        return $this->respond($user, $memberRequest) || $user->can('member_requests.view');
+    }
+
+    public function releaseCertificate(User $user, MemberRequest $memberRequest): bool
+    {
+        if (! $memberRequest->type->generatesCertificate()) {
+            return false;
+        }
+
+        return $this->respond($user, $memberRequest);
     }
 }

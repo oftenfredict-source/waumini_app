@@ -1,126 +1,45 @@
-@php $vali = \App\Support\WauminiBrand::publicAsset('vali-master/docs'); @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#940000">
     <title>@yield('title', __('owner.dashboard')) - {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ $vali }}/css/main.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    @include('partials.brand-styles')
+    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/owner-metis.css') }}?v=11">
+    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/page-manual.css') }}?v=1">
     @stack('styles')
 </head>
-<body class="app sidebar-mini">
-    <header class="app-header">
-        <a class="app-header__logo" href="{{ route('owner.dashboard') }}">{{ config('app.name') }}</a>
-        <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="{{ __('common.hide_sidebar') }}"></a>
-        <ul class="app-nav">
-            @include('partials.locale-switcher')
-            <li class="dropdown">
-                <a class="app-nav__item" href="#" data-toggle="dropdown">
-                    <i class="fa fa-user fa-lg"></i>
-                </a>
-                <ul class="dropdown-menu settings-menu dropdown-menu-right">
-                    <li><span class="dropdown-item-text">{{ auth()->user()->name }}</span></li>
-                    <li>
-                        <form action="{{ route('owner.logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="dropdown-item">
-                                <i class="fa fa-sign-out fa-lg"></i> {{ __('common.logout') }}
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </header>
+<body data-page="owner" class="admin-layout">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <div class="app-sidebar__overlay" data-toggle="sidebar"></div>
-    <aside class="app-sidebar">
-        <div class="app-sidebar__user">
-            <img class="app-sidebar__user-avatar" src="https://s3.amazonaws.com/uifaces/faces/twitter/jsa/48.jpg" alt="{{ __('common.user') }}">
-            <div>
-                <p class="app-sidebar__user-name">{{ auth()->user()->name }}</p>
-                <p class="app-sidebar__user-designation">{{ __('owner.super_admin') }}</p>
-            </div>
+    <div class="admin-app">
+        <div class="admin-wrapper" id="admin-wrapper">
+            @include('owner.partials.header')
+            @include('owner.partials.sidebar')
+
+            <main id="main-content" class="admin-main">
+                <div class="container-fluid">
+                    @include('partials.sweetalert-flash')
+                    @yield('content')
+                </div>
+            </main>
         </div>
-        <ul class="app-menu">
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.dashboard')) active @endif" href="{{ route('owner.dashboard') }}">
-                    <i class="app-menu__icon fa fa-dashboard"></i>
-                    <span class="app-menu__label">{{ __('owner.overview') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.churches.*')) active @endif" href="{{ route('owner.churches.index') }}">
-                    <i class="app-menu__icon fa fa-building"></i>
-                    <span class="app-menu__label">{{ __('owner.churches') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.subscriptions.*')) active @endif" href="{{ route('owner.subscriptions.index') }}">
-                    <i class="app-menu__icon fa fa-credit-card"></i>
-                    <span class="app-menu__label">{{ __('owner.subscriptions') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.payments.*')) active @endif" href="{{ route('owner.payments.index') }}">
-                    <i class="app-menu__icon fa fa-money"></i>
-                    <span class="app-menu__label">{{ __('owner.payments') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.invoices.*')) active @endif" href="{{ route('owner.invoices.index') }}">
-                    <i class="app-menu__icon fa fa-file-text-o"></i>
-                    <span class="app-menu__label">{{ __('owner.invoices') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.revenue.*')) active @endif" href="{{ route('owner.revenue.index') }}">
-                    <i class="app-menu__icon fa fa-bar-chart"></i>
-                    <span class="app-menu__label">{{ __('owner.revenue') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.sms-usage.*')) active @endif" href="{{ route('owner.sms-usage.index') }}">
-                    <i class="app-menu__icon fa fa-commenting"></i>
-                    <span class="app-menu__label">{{ __('owner.sms_usage') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.users.*')) active @endif" href="{{ route('owner.users.index') }}">
-                    <i class="app-menu__icon fa fa-users"></i>
-                    <span class="app-menu__label">{{ __('owner.users_roles') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.support.*')) active @endif" href="{{ route('owner.support.index') }}">
-                    <i class="app-menu__icon fa fa-life-ring"></i>
-                    <span class="app-menu__label">{{ __('owner.support') }}</span>
-                </a>
-            </li>
-            <li>
-                <a class="app-menu__item @if(request()->routeIs('owner.settings.*')) active @endif" href="{{ route('owner.settings.index') }}">
-                    <i class="app-menu__icon fa fa-cog"></i>
-                    <span class="app-menu__label">{{ __('owner.settings') }}</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
+    </div>
 
-    <main class="app-content">
-        @include('partials.sweetalert-flash')
-        @yield('content')
-    </main>
+    @auth
+        @include('partials.page-manual')
+    @endauth
 
-    <script src="{{ $vali }}/js/jquery-3.2.1.min.js"></script>
-    <script src="{{ $vali }}/js/popper.min.js"></script>
-    <script src="{{ $vali }}/js/bootstrap.min.js"></script>
-    <script src="{{ $vali }}/js/main.js"></script>
-    <script src="{{ $vali }}/js/plugins/pace.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ \App\Support\WauminiBrand::publicAsset('js/owner-metis.js') }}?v=2"></script>
     @include('partials.sweetalert-assets')
-    @include('partials.mobile-admin')
     @stack('scripts')
 </body>
 </html>

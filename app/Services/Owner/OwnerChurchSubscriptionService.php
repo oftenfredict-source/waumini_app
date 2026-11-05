@@ -130,6 +130,7 @@ class OwnerChurchSubscriptionService
                 'paid_at' => $paidAt,
                 'metadata' => [
                     'type' => 'installation',
+                    'covers' => 'first_year',
                     'package' => $package->slug,
                     'notes' => $notes,
                 ],
@@ -145,6 +146,7 @@ class OwnerChurchSubscriptionService
                 'paid_at' => $paidAt,
                 'metadata' => [
                     'type' => 'yearly',
+                    'covers' => 'renewal_year',
                     'package' => $package->slug,
                     'notes' => $notes,
                 ],

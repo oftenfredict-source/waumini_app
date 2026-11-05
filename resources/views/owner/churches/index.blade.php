@@ -15,10 +15,11 @@
 </div>
 
 <div class="tile">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-        <form method="GET" class="form-inline">
-            <input type="text" name="search" class="form-control mr-2 mb-2" placeholder="{{ __('owner.church.search_placeholder') }}" value="{{ $filters['search'] ?? '' }}">
-            <select name="status" class="form-control mr-2 mb-2">
+    <div class="d-flex justify-content-between align-items-center gap-3 mb-3 flex-wrap">
+        <form method="GET" class="d-flex align-items-center flex-nowrap gap-2 flex-grow-1" style="min-width:0;">
+            <input type="text" name="search" class="form-control" style="min-width:10rem;max-width:18rem;"
+                   placeholder="{{ __('owner.church.search_placeholder') }}" value="{{ $filters['search'] ?? '' }}">
+            <select name="status" class="form-select" style="width:auto;min-width:9rem;">
                 <option value="">{{ __('pages.shared.all_statuses') }}</option>
                 @foreach($statuses as $status)
                     <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>
@@ -26,11 +27,13 @@
                     </option>
                 @endforeach
             </select>
-            <button type="submit" class="btn btn-primary mb-2"><i class="fa fa-search"></i> {{ __('common.filter') }}</button>
+            <button type="submit" class="btn btn-primary text-nowrap">
+                <i class="bi bi-funnel me-1"></i> {{ __('common.filter') }}
+            </button>
         </form>
         @can('create', App\Models\Church::class)
-            <a href="{{ route('owner.churches.create') }}" class="btn btn-primary mb-2">
-                <i class="fa fa-plus"></i> {{ __('owner.church.add') }}
+            <a href="{{ route('owner.churches.create') }}" class="btn btn-primary text-nowrap">
+                <i class="bi bi-plus-lg me-1"></i> {{ __('owner.church.add') }}
             </a>
         @endcan
     </div>

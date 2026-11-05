@@ -26,6 +26,8 @@ use App\Models\Expense;
 use App\Models\SpecialEvent;
 use App\Models\Tithe;
 use App\Models\SubscriptionPackage;
+use App\Models\DemoRequest;
+use App\Models\OwnerFile;
 use App\Models\SupportTicket;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -53,6 +55,8 @@ use App\Policies\PromiseGuestPolicy;
 use App\Policies\SpecialEventPolicy;
 use App\Policies\TithePolicy;
 use App\Policies\SubscriptionPackagePolicy;
+use App\Policies\DemoRequestPolicy;
+use App\Policies\OwnerFilePolicy;
 use App\Policies\SupportTicketPolicy;
 use App\Policies\SystemSettingPolicy;
 use App\Policies\UserPolicy;
@@ -122,6 +126,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Invoice::class, InvoicePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(SupportTicket::class, SupportTicketPolicy::class);
+        Gate::policy(DemoRequest::class, DemoRequestPolicy::class);
+        Gate::policy(OwnerFile::class, OwnerFilePolicy::class);
         Gate::policy(SystemSetting::class, SystemSettingPolicy::class);
         Paginator::useBootstrap();
 

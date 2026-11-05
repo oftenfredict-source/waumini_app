@@ -44,6 +44,7 @@ class ChurchSubscriptionService
                     SubscriptionStatus::Trial->value,
                     SubscriptionStatus::Active->value,
                     SubscriptionStatus::PastDue->value,
+                    SubscriptionStatus::Expired->value,
                 ])
                 ->update([
                     'status' => SubscriptionStatus::Cancelled->value,
@@ -63,15 +64,63 @@ class ChurchSubscriptionService
                 'auto_renew' => true,
             ]);
 
-            if (in_array($church->status, [ChurchStatus::Trial, ChurchStatus::Pending], true)) {
-                $church->update(['status' => ChurchStatus::Active]);
+            if (in_array($church->status, [
+                ChurchStatus::Trial,
+                ChurchStatus::Pending,
+                ChurchStatus::Expired,
+                ChurchStatus::Suspended,
+            ], true)) {
+                $settings = $church->settings ?? [];
+                unset($settings['trial_expired_notified_at'], $settings['trial_reminder_sent_on']);
+
+                $church->update([
+                    'status' => ChurchStatus::Active,
+                    'suspended_at' => null,
+                    'suspended_reason' => null,
+                    'trial_ends_at' => null,
+                    'settings' => $settings,
+                ]);
             }
 
             $package->load('features');
-            $this->packageFeatureService->applyToChurch($church, $package);
+            $this->packageFeatureService->applyToChurch($church->fresh(), $package);
 
             return $subscription->load('package');
         });
+    }
+
+    /**
+     * Renew/activate subscription after a subscription payment (e.g. expired church pays).
+     */
+    public function renewFromPayment(Church $church, ?SubscriptionPackage $package = null): ChurchSubscription
+    {
+        $package ??= $this->resolvePackageForRenewal($church);
+
+        if (! $package) {
+            throw new \InvalidArgumentException('No subscription package found to activate for this church.');
+        }
+
+        return $this->upgrade($church->fresh(), $package);
+    }
+
+    public function resolvePackageForRenewal(Church $church): ?SubscriptionPackage
+    {
+        $church->loadMissing(['activeSubscription.package']);
+
+        if ($church->activeSubscription?->package) {
+            return $church->activeSubscription->package;
+        }
+
+        return $church->subscriptions()
+            ->with('package')
+            ->latest('id')
+            ->first()
+            ?->package;
+    }
+
+    public function shouldActivateFromPaymentType(?string $type): bool
+    {
+        return in_array($type, ['yearly', 'installation'], true);
     }
 
     public function termsAndConditions(): string

@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Enums\ChurchStatus;
+use App\Services\Church\MissedAttendanceNotificationService;
+use App\Services\Owner\TrialExpiryService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,14 +31,23 @@ class EnsureChurchApiUser
             ], 403);
         }
 
+        app(TrialExpiryService::class)->expireChurchIfDue($church->fresh(), notify: true);
+        $church->refresh();
+
         if (in_array($church->status, [ChurchStatus::Suspended, ChurchStatus::Expired], true)) {
+            $message = $church->status === ChurchStatus::Expired
+                ? __('auth.trial_expired_login')
+                : 'This church account is '.$church->status->value.'. Contact platform support.';
+
             return response()->json([
                 'success' => false,
-                'message' => 'This church account is '.$church->status->value.'. Contact platform support.',
+                'message' => $message,
+                'code' => $church->status === ChurchStatus::Expired ? 'trial_expired' : $church->status->value,
             ], 403);
         }
 
         app()->instance('currentChurch', $church);
+        app(MissedAttendanceNotificationService::class)->dispatchDaily($church);
 
         return $next($request);
     }

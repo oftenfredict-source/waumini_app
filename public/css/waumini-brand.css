@@ -5,6 +5,7 @@
   --waumini-brand-active: #600000;
   --waumini-brand-darkest: #550000;
   --waumini-brand-logo: #750000;
+  --waumini-brand-soft: #fff0f0;
   --waumini-brand-rgb: 148, 0, 0;
   --waumini-font: "Century Gothic", CenturyGothic, "Apple SD Gothic Neo", "Trebuchet MS", "Segoe UI", Roboto, sans-serif;
   --font-family-sans-serif: var(--waumini-font);
@@ -181,6 +182,7 @@ a.text-primary:focus {
   padding: 6px 12px;
   line-height: normal;
   overflow: hidden;
+  background-color: #fff !important;
 }
 
 .app-header__brand-logo {
@@ -208,7 +210,7 @@ a.text-primary:focus {
 
 .app-sidebar,
 .treeview-menu {
-  background-color: #fff0f0;
+  background-color: var(--waumini-brand-soft, #fff0f0);
 }
 
 .app-sidebar__user {
@@ -363,17 +365,19 @@ a.text-primary:focus {
   border-color: var(--waumini-brand);
 }
 
-/* Compact page header (Branches, Members, etc.) */
+/* Compact page header — contained, not full-bleed (avoids tall empty strip) */
 body.app .app-title {
-  margin: -30px -30px 12px !important;
-  padding: 8px 30px !important;
+  margin: 0 0 1rem !important;
+  padding: 0.65rem 1rem !important;
   min-height: 0 !important;
   align-items: center;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 body.app .app-title h1 {
-  font-size: 1.2rem !important;
-  line-height: 1.2 !important;
+  font-size: 1.15rem !important;
+  line-height: 1.25 !important;
   margin: 0 !important;
 }
 
@@ -383,7 +387,7 @@ body.app .app-title h1 .fa {
 }
 
 body.app .app-title p {
-  margin: 0.1rem 0 0 !important;
+  margin: 0.15rem 0 0 !important;
   margin-bottom: 0 !important;
   font-size: 0.8125rem;
   line-height: 1.25;
@@ -397,8 +401,8 @@ body.app .app-title .app-breadcrumb {
 
 @media (max-width: 480px) {
   body.app .app-title {
-    margin: -15px -15px 10px !important;
-    padding: 8px 15px !important;
+    margin: 0 0 0.85rem !important;
+    padding: 0.6rem 0.85rem !important;
   }
 }
 
@@ -600,10 +604,8 @@ body.app.has-branch-context .app-content {
 }
 
 body.app.has-branch-context .app-title {
-  margin-top: 0 !important;
-  margin-bottom: 10px !important;
-  padding-top: 8px !important;
-  padding-bottom: 8px !important;
+  margin: 0.75rem 0 1rem !important;
+  padding: 0.65rem 1rem !important;
 }
 
 body.app.has-branch-context .app-content > .dash-hero:first-child,

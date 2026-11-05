@@ -11,6 +11,7 @@ return [
     ],
 
     'dashboard' => 'Dashboard',
+    'user_manual' => 'User Manual',
     'branches' => 'Branches',
     'view_branches' => 'View Branches',
     'add_branch' => 'Add Branch',
@@ -56,6 +57,7 @@ return [
     'otp_management' => 'OTP Management',
     'sms_store' => 'SMS Store',
     'upgrade_plan' => 'Upgrade Plan',
+    'support_tickets' => 'Support Tickets',
     'terms_conditions' => 'Terms & Conditions',
     'my_profile' => 'My Profile',
     'my_requests' => 'My Requests',

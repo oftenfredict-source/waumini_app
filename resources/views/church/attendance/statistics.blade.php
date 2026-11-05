@@ -175,7 +175,7 @@
                                 <td>{{ $member['envelope_number'] ?: '—' }}</td>
                                 <td>
                                     {{ $member['full_name'] }}
-                                    @if($member['consecutive_misses'] >= 3)
+                                    @if($member['consecutive_misses'] >= 3 && $member['phone_number'])
                                         <span class="badge badge-danger">{{ __('pages.attendance.sms_eligible') }}</span>
                                     @endif
                                 </td>

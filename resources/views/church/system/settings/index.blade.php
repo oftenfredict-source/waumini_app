@@ -35,6 +35,8 @@
             @include('church.system.settings.tabs.notifications')
         @elseif($tab === 'security')
             @include('church.system.settings.tabs.security')
+        @elseif($tab === 'official')
+            @include('church.system.settings.tabs.official')
         @endif
     </div>
 </div>

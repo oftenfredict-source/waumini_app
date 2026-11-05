@@ -26,6 +26,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'subscriptions.manage',
             'payments.view',
             'payments.manage',
+            'files.view',
+            'files.manage',
             'users.view',
             'users.manage',
             'settings.manage',
@@ -45,6 +47,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'churches.view',
             'subscriptions.view',
             'payments.view',
+            'files.view',
         ]);
 
         Role::firstOrCreate(['name' => 'church_admin', 'guard_name' => 'web']);

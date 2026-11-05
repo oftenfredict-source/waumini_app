@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Church;
 
+use App\Enums\ChurchStatus;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Church\LeadershipStaffAccessService;
 use App\Services\Church\LoginOtpService;
 use App\Services\Owner\ChurchImpersonationService;
+use App\Services\Owner\TrialExpiryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +21,7 @@ class LoginController extends Controller
     public function __construct(
         private readonly LoginOtpService $loginOtpService,
         private readonly ChurchImpersonationService $impersonationService,
+        private readonly TrialExpiryService $trialExpiryService,
     ) {}
 
     public function showLoginForm(): View|RedirectResponse
@@ -71,8 +74,18 @@ class LoginController extends Controller
             return back()->with('error', 'Your account is not linked to a church.');
         }
 
-        if ($church->status->value === 'suspended') {
+        if ($church->status === ChurchStatus::Suspended) {
             return back()->with('error', 'This church has been suspended. Contact platform support.');
+        }
+
+        $this->trialExpiryService->expireChurchIfDue($church->fresh(), notify: true);
+        $church->refresh();
+
+        if ($church->status === ChurchStatus::Expired) {
+            return back()
+                ->withInput($request->only('email'))
+                ->with('trial_expired', true)
+                ->with('error', __('auth.trial_expired_login'));
         }
 
         if ($this->loginOtpService->isEnabledForChurch($church)) {

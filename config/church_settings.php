@@ -27,9 +27,15 @@ return [
             'icon' => 'fa-shield',
             'description' => 'Session and login security preferences.',
         ],
+        'official' => [
+            'name' => 'Official tools',
+            'icon' => 'fa-stamp',
+            'description' => 'Church seal, pastor signature, and tools used on certificates.',
+        ],
     ],
 
     'defaults' => [
+        'brand_color' => '#940000',
         'date_format' => 'd/m/Y',
         'locale' => 'en',
         'child_max_age' => 13,
@@ -72,5 +78,16 @@ return [
         'm/d/Y' => 'MM/DD/YYYY',
         'Y-m-d' => 'YYYY-MM-DD',
         'd-m-Y' => 'DD-MM-YYYY',
+    ],
+
+    'brand_presets' => [
+        '#940000' => 'Waumini Red',
+        '#0f766e' => 'Teal',
+        '#1d4ed8' => 'Blue',
+        '#166534' => 'Green',
+        '#9a3412' => 'Orange',
+        '#6b21a8' => 'Purple',
+        '#0e7490' => 'Cyan',
+        '#1e3a5f' => 'Navy',
     ],
 ];

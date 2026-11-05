@@ -1,4 +1,7 @@
-@php $vali = \App\Support\WauminiBrand::publicAsset('vali-master/docs'); @endphp
+@php
+    $vali = \App\Support\WauminiBrand::publicAsset('vali-master/docs');
+    $brandPalette = auth()->user()->church?->brandPalette() ?? \App\Support\WauminiBrand::palette();
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -7,7 +10,8 @@
     <title>@yield('title', __('common.dashboard')) - {{ auth()->user()->church?->name ?? config('app.name') }}</title>
     <link rel="stylesheet" href="{{ $vali }}/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    @include('partials.brand-styles')
+    @include('partials.brand-styles', ['brandPalette' => $brandPalette])
+    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/page-manual.css') }}?v=1">
     @stack('styles')
 </head>
 <body class="app sidebar-mini{{ ($isInBranchContext ?? false) ? ' has-branch-context' : '' }}">
@@ -69,6 +73,10 @@
         @include('partials.sweetalert-flash')
         @yield('content')
     </main>
+
+    @auth
+        @include('partials.page-manual')
+    @endauth
 
     <script src="{{ $vali }}/js/jquery-3.2.1.min.js"></script>
     <script src="{{ $vali }}/js/popper.min.js"></script>

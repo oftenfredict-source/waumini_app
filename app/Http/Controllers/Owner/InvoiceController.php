@@ -109,12 +109,16 @@ class InvoiceController extends Controller
 
     public function markPaid(MarkInvoicePaidRequest $request, Invoice $invoice): RedirectResponse
     {
-        $this->invoiceService->markPaid(
+        $paid = $this->invoiceService->markPaid(
             $invoice,
             $request->user(),
             $request->paymentInput(),
         );
 
-        return back()->with('success', __('owner.inv.marked_paid_success', ['number' => $invoice->invoice_number]));
+        $activated = (bool) data_get($paid->payment?->metadata, 'subscription_activated');
+
+        return back()->with('success', $activated
+            ? __('owner.inv.marked_paid_activated', ['number' => $invoice->invoice_number])
+            : __('owner.inv.marked_paid_success', ['number' => $invoice->invoice_number]));
     }
 }

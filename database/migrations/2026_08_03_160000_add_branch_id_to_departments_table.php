@@ -87,9 +87,7 @@ return new class extends Migration
 
     private function hasIndex(string $name): bool
     {
-        return DB::select(
-            'SHOW INDEX FROM departments WHERE Key_name = ?',
-            [$name]
-        ) !== [];
+        return collect(Schema::getIndexes('departments'))
+            ->contains(fn (array $index) => ($index['name'] ?? null) === $name);
     }
 };

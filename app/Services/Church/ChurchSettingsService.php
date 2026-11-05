@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\SystemSetting;
 use App\Services\Church\MemberIdPrefixService;
 use App\Services\Owner\AuditLogService;
+use App\Support\WauminiBrand;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
@@ -39,6 +40,14 @@ class ChurchSettingsService
             'denomination' => $church->denomination,
             'pastor_name' => $church->pastor_name,
             'church_logo_url' => $church->logoUrl(),
+            'church_seal_url' => $church->sealUrl(),
+            'pastor_signature_url' => $church->pastorSignatureUrl(),
+            'certificate_template_urls' => [
+                'baptism_certificate' => $church->certificateTemplateUrl('baptism_certificate'),
+                'travelling_certificate' => $church->certificateTemplateUrl('travelling_certificate'),
+                'recommendation_letter' => $church->certificateTemplateUrl('recommendation_letter'),
+            ],
+            'brand_color' => $church->brandColor(),
             'timezone' => $church->timezone ?? 'UTC',
             'currency' => $church->currency ?? 'TZS',
             'locale' => $church->locale ?? 'en',
@@ -157,10 +166,12 @@ class ChurchSettingsService
                     'currency' => ['required', 'string', Rule::in(array_keys(config('currencies')))],
                     'locale' => ['required', 'string', 'max:10'],
                     'date_format' => ['required', 'string', Rule::in(array_keys(config('church_settings.date_formats')))],
+                    'brand_color' => ['required', 'string', 'regex:/^#?(?:[A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/'],
                     'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
                 ])->validate(),
                 [
                     'remove_logo' => filter_var($input['remove_logo'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'brand_color' => WauminiBrand::normalizeHex($input['brand_color'] ?? null),
                 ],
             ),
             'membership' => $this->normalizeMembershipTab(
@@ -229,6 +240,22 @@ class ChurchSettingsService
                     'otp_login_enabled' => filter_var($input['otp_login_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 ],
             ),
+            'official' => array_merge(
+                validator($input, [
+                    'seal' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+                    'pastor_signature' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+                    'template_baptism_certificate' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+                    'template_travelling_certificate' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+                    'template_recommendation_letter' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+                ])->validate(),
+                [
+                    'remove_seal' => filter_var($input['remove_seal'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'remove_pastor_signature' => filter_var($input['remove_pastor_signature'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'remove_template_baptism_certificate' => filter_var($input['remove_template_baptism_certificate'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'remove_template_travelling_certificate' => filter_var($input['remove_template_travelling_certificate'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'remove_template_recommendation_letter' => filter_var($input['remove_template_recommendation_letter'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                ],
+            ),
             default => abort(404),
         };
 
@@ -277,6 +304,39 @@ class ChurchSettingsService
 
             $settings = array_merge($church->settings ?? [], [
                 'date_format' => $data['date_format'],
+                'brand_color' => WauminiBrand::normalizeHex($data['brand_color'] ?? null),
+            ]);
+        } elseif ($tab === 'official') {
+            if (! empty($data['remove_seal'])) {
+                $this->deleteSeal($church);
+            }
+
+            if ($request?->hasFile('seal')) {
+                $this->uploadSeal($church, $request->file('seal'));
+            }
+
+            if (! empty($data['remove_pastor_signature'])) {
+                $this->deletePastorSignature($church);
+            }
+
+            if ($request?->hasFile('pastor_signature')) {
+                $this->uploadPastorSignature($church, $request->file('pastor_signature'));
+            }
+
+            foreach (['baptism_certificate', 'travelling_certificate', 'recommendation_letter'] as $templateType) {
+                if (! empty($data["remove_template_{$templateType}"])) {
+                    $this->deleteCertificateTemplate($church, $templateType);
+                }
+
+                if ($request?->hasFile("template_{$templateType}")) {
+                    $this->uploadCertificateTemplate($church, $templateType, $request->file("template_{$templateType}"));
+                }
+            }
+
+            $church->refresh();
+
+            $settings = array_merge($church->settings ?? [], [
+                'official_tools_updated_at' => now()->toIso8601String(),
             ]);
         } else {
             $settings = array_merge($church->settings ?? [], $data);
@@ -518,5 +578,72 @@ class ChurchSettingsService
             Storage::disk('public')->delete($church->logo_path);
             $church->update(['logo_path' => null]);
         }
+    }
+
+    private function uploadSeal(Church $church, UploadedFile $seal): void
+    {
+        $this->deleteSeal($church);
+
+        $church->update([
+            'seal_path' => $seal->store("churches/{$church->id}/official", 'public'),
+        ]);
+    }
+
+    private function deleteSeal(Church $church): void
+    {
+        if ($church->seal_path) {
+            Storage::disk('public')->delete($church->seal_path);
+            $church->update(['seal_path' => null]);
+        }
+    }
+
+    private function uploadPastorSignature(Church $church, UploadedFile $signature): void
+    {
+        $this->deletePastorSignature($church);
+
+        $church->update([
+            'pastor_signature_path' => $signature->store("churches/{$church->id}/official", 'public'),
+        ]);
+    }
+
+    private function deletePastorSignature(Church $church): void
+    {
+        if ($church->pastor_signature_path) {
+            Storage::disk('public')->delete($church->pastor_signature_path);
+            $church->update(['pastor_signature_path' => null]);
+        }
+    }
+
+    private function uploadCertificateTemplate(Church $church, string $type, UploadedFile $file): void
+    {
+        $this->deleteCertificateTemplate($church, $type);
+
+        $path = $file->store("churches/{$church->id}/certificate-templates", 'public');
+        $templates = $church->fresh()->certificateTemplates();
+        $templates[$type] = $path;
+
+        $church->update([
+            'settings' => array_merge($church->settings ?? [], [
+                'certificate_templates' => $templates,
+            ]),
+        ]);
+    }
+
+    private function deleteCertificateTemplate(Church $church, string $type): void
+    {
+        $templates = $church->certificateTemplates();
+
+        if (empty($templates[$type])) {
+            return;
+        }
+
+        Storage::disk('public')->delete($templates[$type]);
+        unset($templates[$type]);
+
+        $church->update([
+            'settings' => array_merge($church->settings ?? [], [
+                'certificate_templates' => $templates,
+            ]),
+        ]);
     }
 }

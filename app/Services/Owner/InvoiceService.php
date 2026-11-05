@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Services\Church\ChurchSubscriptionService;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -14,6 +15,7 @@ class InvoiceService
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly ChurchSubscriptionService $subscriptionService,
     ) {}
 
     public function generate(Church $church, string $type, ?float $amount, User $actor, string $invoiceNumber): Invoice
@@ -109,14 +111,26 @@ class InvoiceService
         }
 
         return DB::transaction(function () use ($invoice, $actor, $paymentInput) {
-            $invoice->loadMissing(['church', 'subscription']);
+            $invoice->loadMissing(['church', 'subscription.package']);
 
             $method = (string) ($paymentInput['method'] ?? 'cash');
             $paidAt = now();
 
+            $subscriptionId = $invoice->church_subscription_id;
+            $activated = false;
+
+            if ($this->subscriptionService->shouldActivateFromPaymentType($invoice->type)) {
+                $package = $invoice->subscription?->package
+                    ?? $this->subscriptionService->resolvePackageForRenewal($invoice->church);
+
+                $subscription = $this->subscriptionService->renewFromPayment($invoice->church, $package);
+                $subscriptionId = $subscription->id;
+                $activated = true;
+            }
+
             $payment = Payment::create([
                 'church_id' => $invoice->church_id,
-                'church_subscription_id' => $invoice->church_subscription_id,
+                'church_subscription_id' => $subscriptionId,
                 'amount' => $invoice->total_amount,
                 'currency' => $invoice->currency,
                 'method' => $method,
@@ -126,9 +140,11 @@ class InvoiceService
                 'paid_at' => $paidAt,
                 'metadata' => [
                     'type' => $invoice->type,
+                    'covers' => $invoice->type === Invoice::TYPE_INSTALLATION ? 'first_year' : 'renewal_year',
                     'invoice_id' => $invoice->id,
                     'invoice_number' => $invoice->invoice_number,
                     'notes' => $paymentInput['notes'] ?? null,
+                    'subscription_activated' => $activated,
                 ],
             ]);
 
@@ -136,6 +152,7 @@ class InvoiceService
                 'status' => Invoice::STATUS_PAID,
                 'payment_id' => $payment->id,
                 'paid_at' => $paidAt,
+                'church_subscription_id' => $subscriptionId,
             ]);
 
             $this->auditLogService->log(
@@ -145,6 +162,8 @@ class InvoiceService
                 [
                     'status' => Invoice::STATUS_PAID,
                     'payment_id' => $payment->id,
+                    'subscription_id' => $subscriptionId,
+                    'subscription_activated' => $activated,
                     'owner_id' => $actor->id,
                 ],
                 $invoice->church_id,

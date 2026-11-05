@@ -10,6 +10,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('members:process-aged-out-children')->daily();
 Schedule::command('attendance:notify-missed-sundays')->dailyAt('08:00');
+Schedule::command('trials:process-expiry')->dailyAt('07:30');
 Schedule::command('backup:keep-google-token')->weeklyOn(1, '03:15');
 
 try {

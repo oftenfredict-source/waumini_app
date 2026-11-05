@@ -56,11 +56,5 @@
         <p>{{ __('certificates.god_bless') }}</p>
     </div>
 
-    <div class="signature">
-        <div class="signature-line">
-            <strong>{{ $signatoryName }}</strong><br>
-            {{ $signatoryTitle }}<br>
-            {{ $church->name }}
-        </div>
-    </div>
+    @include('church.certificates.partials.signature-block')
 @endsection

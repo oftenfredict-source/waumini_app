@@ -1,15 +1,26 @@
+@php
+    $brand = $brandColor ?? '#940000';
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <title>{{ $title ?? __('certificates.default_title') }}</title>
     <style>
-        @page { margin: 36px 42px; }
+        @page { margin: 28px 32px; }
         body {
             font-family: DejaVu Sans, sans-serif;
             color: #222;
             font-size: 12px;
             line-height: 1.55;
+        }
+        .frame {
+            border: 2px solid {{ $brand }};
+            padding: 10px;
+        }
+        .frame-inner {
+            border: 1px solid {{ $brand }};
+            padding: 22px 24px 18px;
         }
         .church-logo {
             max-height: 70px;
@@ -19,12 +30,12 @@
         }
         .header {
             text-align: center;
-            border-bottom: 3px solid #940000;
+            border-bottom: 3px solid {{ $brand }};
             padding-bottom: 14px;
-            margin-bottom: 22px;
+            margin-bottom: 18px;
         }
         .church-name {
-            color: #940000;
+            color: {{ $brand }};
             font-size: 22px;
             font-weight: bold;
             margin: 0 0 4px;
@@ -38,15 +49,15 @@
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-            color: #940000;
-            margin: 18px 0 20px;
+            color: {{ $brand }};
+            margin: 14px 0 16px;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
         .ref-line {
             text-align: right;
             font-size: 11px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .content p {
             margin: 0 0 12px;
@@ -74,13 +85,34 @@
             font-weight: bold;
         }
         .signature {
-            margin-top: 42px;
+            margin-top: 36px;
+        }
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .signature-image {
+            max-height: 55px;
+            max-width: 180px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .seal-image {
+            max-height: 95px;
+            max-width: 95px;
+            display: block;
+            margin: 0 auto 4px;
+        }
+        .seal-caption {
+            font-size: 10px;
+            color: #555;
+            text-align: center;
         }
         .signature-line {
             width: 240px;
             border-top: 1px solid #333;
             padding-top: 6px;
-            margin-top: 48px;
+            margin-top: 8px;
         }
         .footer {
             margin-top: 28px;
@@ -91,7 +123,7 @@
             padding-top: 10px;
         }
         .stamp {
-            color: #940000;
+            color: {{ $brand }};
             font-size: 10px;
             font-weight: bold;
             margin-top: 8px;
@@ -99,6 +131,8 @@
     </style>
 </head>
 <body>
+<div class="frame">
+<div class="frame-inner">
     <div class="header">
         @if(!empty($churchLogoBase64))
             <img src="{{ $churchLogoBase64 }}" alt="{{ $displayName ?? $church->name }}" class="church-logo">
@@ -118,5 +152,7 @@
         {{ __('certificates.issued_via') }} &bull; {{ $memberRequest->reference_number }}
         <div class="stamp">{{ __('certificates.official_document') }}</div>
     </div>
+</div>
+</div>
 </body>
 </html>

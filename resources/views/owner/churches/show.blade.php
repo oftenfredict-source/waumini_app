@@ -15,7 +15,7 @@
 </div>
 
 
-<div class="row">
+<div class="row align-items-start">
     <div class="col-md-8">
         <div class="tile">
             <h3 class="tile-title">{{ __('owner.church.church_details') }}</h3>
@@ -94,69 +94,74 @@
     </div>
 
     <div class="col-md-4">
-        <div class="tile">
-            <h3 class="tile-title">{{ __('owner.church.actions') }}</h3>
-            <div class="d-flex flex-column">
-                @can('impersonate', $church)
-                    @if($church->adminUser)
-                        <form method="POST" action="{{ route('owner.churches.impersonate', $church) }}"
-                            data-swal-confirm="{{ __('owner.church.enter_church_confirm') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-primary btn-block mb-2">
-                                <i class="fa fa-sign-in"></i> {{ __('owner.church.enter_church') }}
-                            </button>
-                        </form>
+        <div class="owner-sticky-actions">
+            <div class="tile mb-0">
+                <h3 class="tile-title">{{ __('owner.church.actions') }}</h3>
+                <div class="d-grid gap-2">
+                    @can('impersonate', $church)
+                        @if($church->adminUser)
+                            <form method="POST" action="{{ route('owner.churches.impersonate', $church) }}"
+                                class="d-grid"
+                                data-swal-confirm="{{ __('owner.church.enter_church_confirm') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> {{ __('owner.church.enter_church') }}
+                                </button>
+                            </form>
+                        @endif
+                    @endcan
+
+                    <a href="{{ route('owner.churches.edit', $church) }}" class="btn btn-warning">
+                        <i class="bi bi-pencil-square me-1"></i> {{ __('owner.church.edit_church') }}
+                    </a>
+
+                    @if($church->status === \App\Enums\ChurchStatus::Suspended)
+                        @can('activate', $church)
+                            <form method="POST" action="{{ route('owner.churches.activate', $church) }}" class="d-grid">
+                                @csrf
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-lg me-1"></i> {{ __('owner.church.activate') }}
+                                </button>
+                            </form>
+                        @endcan
+                    @else
+                        @can('suspend', $church)
+                            <form method="POST" action="{{ route('owner.churches.suspend', $church) }}"
+                                class="d-grid"
+                                data-swal-confirm="{{ __('owner.church.suspend_confirm') }}"
+                                data-swal-delete>
+                                @csrf
+                                <input type="hidden" name="reason" value="{{ __('owner.church.suspended_by') }}">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-pause-fill me-1"></i> {{ __('owner.church.suspend') }}
+                                </button>
+                            </form>
+                        @endcan
                     @endif
-                @endcan
 
-                <a href="{{ route('owner.churches.edit', $church) }}" class="btn btn-warning btn-block mb-2">
-                    <i class="fa fa-edit"></i> {{ __('owner.church.edit_church') }}
-                </a>
-
-                @if($church->status === \App\Enums\ChurchStatus::Suspended)
-                    @can('activate', $church)
-                        <form method="POST" action="{{ route('owner.churches.activate', $church) }}">
+                    @can('delete', $church)
+                        <form method="POST" action="{{ route('owner.churches.destroy', $church) }}"
+                            class="d-grid"
+                            data-swal-confirm="{{ __('owner.church.delete_confirm') }}"
+                            data-swal-delete
+                            data-swal-confirm-text="{{ __('common.yes_delete') }}">
                             @csrf
-                            <button type="submit" class="btn btn-success btn-block mb-2">
-                                <i class="fa fa-check"></i> {{ __('owner.church.activate') }}
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i> {{ __('owner.church.delete') }}
                             </button>
                         </form>
                     @endcan
-                @else
-                    @can('suspend', $church)
-                        <form method="POST" action="{{ route('owner.churches.suspend', $church) }}"
-                            data-swal-confirm="{{ __('owner.church.suspend_confirm') }}"
-                            data-swal-delete>
-                            @csrf
-                            <input type="hidden" name="reason" value="{{ __('owner.church.suspended_by') }}">
-                            <button type="submit" class="btn btn-warning btn-block mb-2">
-                                <i class="fa fa-pause"></i> {{ __('owner.church.suspend') }}
-                            </button>
-                        </form>
-                    @endcan
-                @endif
-
-                @can('delete', $church)
-                    <form method="POST" action="{{ route('owner.churches.destroy', $church) }}"
-                        data-swal-confirm="{{ __('owner.church.delete_confirm') }}"
-                        data-swal-delete
-                        data-swal-confirm-text="{{ __('common.yes_delete') }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-block">
-                            <i class="fa fa-trash"></i> {{ __('owner.church.delete') }}
-                        </button>
-                    </form>
-                @endcan
+                </div>
             </div>
+
+            @if($church->suspended_reason)
+                <div class="tile mt-3 mb-0">
+                    <h3 class="tile-title">{{ __('owner.church.suspension_reason') }}</h3>
+                    <p class="text-danger mb-0">{{ $church->suspended_reason }}</p>
+                </div>
+            @endif
         </div>
-
-        @if($church->suspended_reason)
-            <div class="tile">
-                <h3 class="tile-title">{{ __('owner.church.suspension_reason') }}</h3>
-                <p class="text-danger">{{ $church->suspended_reason }}</p>
-            </div>
-        @endif
     </div>
 </div>
 @endsection

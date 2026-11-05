@@ -11,6 +11,7 @@ return [
     ],
 
     'dashboard' => 'Dashibodi',
+    'user_manual' => 'Mwongozo wa Mtumiaji',
     'branches' => 'Matawi',
     'view_branches' => 'Angalia Matawi',
     'add_branch' => 'Ongeza Tawi',
@@ -56,6 +57,7 @@ return [
     'otp_management' => 'Usimamizi wa OTP',
     'sms_store' => 'Hifadhi ya SMS',
     'upgrade_plan' => 'Boresha Mpango',
+    'support_tickets' => 'Tiketi za Msaada',
     'terms_conditions' => 'Masharti na Vigezo',
     'my_profile' => 'Wasifu Wangu',
     'my_requests' => 'Maombi Yangu',

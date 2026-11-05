@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ChurchStatus;
 use App\Support\TenantDomain;
+use App\Support\WauminiBrand;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,8 @@ class Church extends Model
         'denomination',
         'pastor_name',
         'logo_path',
+        'seal_path',
+        'pastor_signature_path',
         'status',
         'trial_ends_at',
         'suspended_at',
@@ -169,5 +172,128 @@ class Church extends Model
         $path = Storage::disk('public')->path($this->logo_path);
 
         return is_file($path) ? $path : null;
+    }
+
+    public function sealUrl(): ?string
+    {
+        return $this->seal_path
+            ? asset('storage/'.$this->seal_path)
+            : null;
+    }
+
+    public function sealAbsolutePath(): ?string
+    {
+        if (! $this->seal_path) {
+            return null;
+        }
+
+        $path = Storage::disk('public')->path($this->seal_path);
+
+        return is_file($path) ? $path : null;
+    }
+
+    public function pastorSignatureUrl(): ?string
+    {
+        return $this->pastor_signature_path
+            ? asset('storage/'.$this->pastor_signature_path)
+            : null;
+    }
+
+    public function pastorSignatureAbsolutePath(): ?string
+    {
+        if (! $this->pastor_signature_path) {
+            return null;
+        }
+
+        $path = Storage::disk('public')->path($this->pastor_signature_path);
+
+        return is_file($path) ? $path : null;
+    }
+
+    public function hasOfficialSeal(): bool
+    {
+        return (bool) $this->sealAbsolutePath();
+    }
+
+    public function hasPastorSignature(): bool
+    {
+        return (bool) $this->pastorSignatureAbsolutePath();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function certificateTemplates(): array
+    {
+        $stored = is_array($this->settings) ? ($this->settings['certificate_templates'] ?? []) : [];
+
+        if (! is_array($stored)) {
+            return [];
+        }
+
+        $templates = [];
+        foreach ($stored as $type => $path) {
+            if (is_string($type) && is_string($path) && $path !== '') {
+                $templates[$type] = $path;
+            }
+        }
+
+        return $templates;
+    }
+
+    public function certificateTemplatePath(string $type): ?string
+    {
+        return $this->certificateTemplates()[$type] ?? null;
+    }
+
+    public function certificateTemplateUrl(string $type): ?string
+    {
+        $path = $this->certificateTemplatePath($type);
+
+        return $path ? asset('storage/'.$path) : null;
+    }
+
+    public function certificateTemplateAbsolutePath(string $type): ?string
+    {
+        $path = $this->certificateTemplatePath($type);
+
+        if (! $path) {
+            return null;
+        }
+
+        $absolute = Storage::disk('public')->path($path);
+
+        return is_file($absolute) ? $absolute : null;
+    }
+
+    public function hasCertificateTemplate(string $type): bool
+    {
+        return (bool) $this->certificateTemplateAbsolutePath($type);
+    }
+
+    public function brandColor(): string
+    {
+        $stored = is_array($this->settings) ? ($this->settings['brand_color'] ?? null) : null;
+
+        return WauminiBrand::normalizeHex(
+            is_string($stored) ? $stored : null,
+            (string) config('church_settings.defaults.brand_color', WauminiBrand::defaultColor())
+        );
+    }
+
+    /**
+     * @return array{
+     *     brand: string,
+     *     hover: string,
+     *     active: string,
+     *     darkest: string,
+     *     logo: string,
+     *     soft: string,
+     *     rgb: string
+     * }
+     */
+    public function brandPalette(): array
+    {
+        return WauminiBrand::palette($this->brandColor());
     }
 }

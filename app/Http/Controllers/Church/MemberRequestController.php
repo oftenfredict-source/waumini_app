@@ -71,7 +71,7 @@ class MemberRequestController extends Controller
     {
         $this->authorize('view', $memberRequest);
 
-        $memberRequest->load(['member', 'assignedLeader.member', 'responder']);
+        $memberRequest->load(['member', 'assignedLeader.member', 'responder', 'church']);
 
         return view('church.member-requests.show', [
             'memberRequest' => $memberRequest,
@@ -92,16 +92,38 @@ class MemberRequestController extends Controller
 
         $message = 'Request updated successfully.';
 
-        if ($updated->hasDownloadableCertificate()) {
-            $message .= ' The certificate has been generated and is ready for the member to download.';
+        if ($this->certificateService->isEligible($updated) && $updated->certificate_path && ! $updated->isCertificateReleased()) {
+            $message .= ' Review the certificate below, then release it when you are ready for the member to download.';
+        } elseif ($updated->hasDownloadableCertificate()) {
+            $message .= ' The certificate is released and available for the member to download.';
         } elseif ($this->certificateService->isEligible($updated) && ! $updated->certificate_path) {
             return back()
                 ->with('success', 'Request updated successfully.')
                 ->with('warning', 'The request was approved, but the certificate could not be generated. '
-                    .'Ensure the PHP GD extension is enabled (extension=gd in php.ini) and restart the server, then try downloading the certificate again.');
+                    .'Ensure the PHP GD extension is enabled (extension=gd in php.ini) and restart the server, then open Preview again.');
         }
 
         return back()->with('success', $message);
+    }
+
+    public function previewCertificate(MemberRequest $memberRequest)
+    {
+        $this->authorize('previewCertificate', $memberRequest);
+
+        return $this->certificateService->streamPreview($memberRequest);
+    }
+
+    public function releaseCertificate(MemberRequest $memberRequest): RedirectResponse
+    {
+        $this->authorize('releaseCertificate', $memberRequest);
+
+        try {
+            $this->certificateService->release($memberRequest, auth()->user());
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', __('pages.member_requests.certificate_released_success'));
     }
 
     public function downloadCertificate(MemberRequest $memberRequest)

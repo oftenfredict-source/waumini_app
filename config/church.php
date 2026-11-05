@@ -125,6 +125,11 @@ return [
             'icon' => 'fa-calendar',
             'route' => 'church.member.services.index',
         ],
+        [
+            'label' => 'menu.user_manual',
+            'icon' => 'fa-book',
+            'route' => 'church.member.manual.index',
+        ],
     ],
 
     'personal_account_menu' => [
@@ -290,8 +295,15 @@ return [
                 ['label' => 'menu.otp_management', 'route' => 'church.system.otps.index', 'permission' => 'system.users'],
                 ['label' => 'menu.sms_store', 'route' => 'church.system.sms.index', 'permission' => 'system.settings'],
                 ['label' => 'menu.upgrade_plan', 'route' => 'church.system.subscription.index', 'permission' => 'system.settings'],
+                ['label' => 'menu.support_tickets', 'route' => 'church.system.support.index', 'permission' => 'system.settings'],
                 ['label' => 'menu.terms_conditions', 'route' => 'church.system.subscription.terms'],
             ],
+        ],
+        [
+            'label' => 'menu.user_manual',
+            'icon' => 'fa-book',
+            'route' => 'church.manual.index',
+            'permission' => null,
         ],
     ],
 ];

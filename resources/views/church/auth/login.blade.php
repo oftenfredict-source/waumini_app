@@ -9,7 +9,7 @@
 @section('panel_icon', 'fa-building')
 @section('panel_eyebrow', __('auth.church_portal'))
 @section('panel_title')
-    {{ __('auth.welcome_back') }}
+    {!! __('auth.welcome_back_title') !!}
 @endsection
 @section('panel_lead')
     {{ __('auth.church_login_lead') }}
@@ -30,6 +30,13 @@
             <span>{{ __('auth.secure_access_desc') }}</span>
         </div>
     </div>
+    <div class="auth-feature">
+        <i class="fa fa-cloud"></i>
+        <div>
+            <strong>{{ __('auth.cloud_ready') }}</strong>
+            <span>{{ __('auth.cloud_ready_desc') }}</span>
+        </div>
+    </div>
 @endsection
 
 @section('form_title', __('auth.church_sign_in_form'))
@@ -42,6 +49,13 @@
         @if(!empty($ownerSessionActive))
             <div class="auth-alert auth-alert-info">
                 {{ __('auth.owner_session_active') }}
+            </div>
+        @endif
+
+        @if(session('trial_expired'))
+            <div class="auth-alert auth-alert-danger" role="alert">
+                <strong>{{ __('auth.trial_expired_title') }}</strong><br>
+                {{ __('auth.trial_expired_login') }}
             </div>
         @endif
 

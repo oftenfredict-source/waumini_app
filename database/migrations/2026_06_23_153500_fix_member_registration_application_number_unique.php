@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -43,9 +42,7 @@ return new class extends Migration
 
     private function hasIndex(string $name): bool
     {
-        return DB::select(
-            'SHOW INDEX FROM member_registration_applications WHERE Key_name = ?',
-            [$name]
-        ) !== [];
+        return collect(Schema::getIndexes('member_registration_applications'))
+            ->contains(fn (array $index) => ($index['name'] ?? null) === $name);
     }
 };

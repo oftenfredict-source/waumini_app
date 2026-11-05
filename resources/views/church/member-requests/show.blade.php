@@ -62,18 +62,66 @@
             </div>
         @endif
 
-        @if($memberRequest->hasDownloadableCertificate())
-            <div class="tile">
-                <h3 class="tile-title"><i class="fa fa-certificate"></i> {{ __('pages.member_requests.certificate_title') }}</h3>
-                <p class="mb-2 text-muted small">
-                    {{ __('pages.member_requests.certificate_generated', [
-                        'datetime' => $memberRequest->certificate_generated_at?->format('M d, Y g:i A') ?? __('pages.member_requests.certificate_generated_approval'),
-                    ]) }}
-                </p>
-                <a href="{{ route('church.member-requests.certificate', $memberRequest) }}" class="btn btn-success">
-                    <i class="fa fa-download"></i> {{ __('pages.member_requests.download_certificate_pdf') }}
-                </a>
-            </div>
+        @if($memberRequest->type->generatesCertificate())
+            @can('previewCertificate', $memberRequest)
+                <div class="tile">
+                    <h3 class="tile-title"><i class="fa fa-certificate"></i> {{ __('pages.member_requests.certificate_review_title') }}</h3>
+
+                    @if($memberRequest->isCertificateReleased())
+                        <div class="alert alert-success py-2 small mb-3">
+                            {{ __('pages.member_requests.certificate_released_notice', [
+                                'datetime' => $memberRequest->certificate_released_at?->format('M d, Y g:i A') ?? '—',
+                            ]) }}
+                        </div>
+                    @elseif($memberRequest->hasGeneratedCertificate())
+                        <div class="alert alert-warning py-2 small mb-3">
+                            {{ __('pages.member_requests.certificate_awaiting_release') }}
+                        </div>
+                    @else
+                        <div class="alert alert-info py-2 small mb-3">
+                            {{ __('pages.member_requests.certificate_preview_hint') }}
+                        </div>
+                    @endif
+
+                    @if($memberRequest->certificate_generated_at)
+                        <p class="mb-2 text-muted small">
+                            {{ __('pages.member_requests.certificate_generated', [
+                                'datetime' => $memberRequest->certificate_generated_at->format('M d, Y g:i A'),
+                            ]) }}
+                        </p>
+                    @endif
+
+                    <div class="mb-3 border rounded overflow-hidden" style="background:#f5f5f5;">
+                        <iframe
+                            title="{{ __('pages.member_requests.certificate_review_title') }}"
+                            src="{{ route('church.member-requests.certificate.preview', $memberRequest) }}"
+                            style="width:100%; height:640px; border:0; display:block;"
+                        ></iframe>
+                    </div>
+
+                    <div class="d-flex flex-wrap" style="gap:0.5rem;">
+                        <a href="{{ route('church.member-requests.certificate.preview', $memberRequest) }}" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fa fa-external-link"></i> {{ __('pages.member_requests.open_preview') }}
+                        </a>
+                        @if($memberRequest->hasGeneratedCertificate())
+                            <a href="{{ route('church.member-requests.certificate', $memberRequest) }}" class="btn btn-outline-primary">
+                                <i class="fa fa-download"></i> {{ __('pages.member_requests.download_certificate_pdf') }}
+                            </a>
+                        @endif
+                        @can('releaseCertificate', $memberRequest)
+                            @if($memberRequest->hasGeneratedCertificate() && ! $memberRequest->isCertificateReleased())
+                                <form method="POST" action="{{ route('church.member-requests.certificate.release', $memberRequest) }}" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success"
+                                            onclick="return confirm(@json(__('pages.member_requests.release_confirm')))">
+                                        <i class="fa fa-check"></i> {{ __('pages.member_requests.release_to_member') }}
+                                    </button>
+                                </form>
+                            @endif
+                        @endcan
+                    </div>
+                </div>
+            @endcan
         @endif
     </div>
 
@@ -82,9 +130,43 @@
             <div class="tile">
                 <h3 class="tile-title">{{ __('pages.member_requests.update_request') }}</h3>
                 @if($memberRequest->type->generatesCertificate())
+                    @php
+                        $hasSeal = $memberRequest->church?->hasOfficialSeal();
+                        $hasSignature = $memberRequest->church?->hasPastorSignature();
+                        $hasTemplate = $memberRequest->church?->hasCertificateTemplate($memberRequest->type->value);
+                    @endphp
                     <div class="alert alert-info py-2 small">
                         {!! __('pages.member_requests.certificate_approve_alert', ['type' => $memberRequest->type->label()]) !!}
                     </div>
+                    <ul class="list-unstyled small mb-3">
+                        <li class="mb-1">
+                            @if($hasTemplate)
+                                <i class="fa fa-check-circle text-success"></i> {{ __('pages.member_requests.template_ready') }}
+                            @else
+                                <i class="fa fa-info-circle text-muted"></i> {{ __('pages.member_requests.template_missing') }}
+                            @endif
+                        </li>
+                        <li class="mb-1">
+                            @if($hasSeal)
+                                <i class="fa fa-check-circle text-success"></i> {{ __('pages.member_requests.seal_ready') }}
+                            @else
+                                <i class="fa fa-exclamation-circle text-warning"></i> {{ __('pages.member_requests.seal_missing') }}
+                            @endif
+                        </li>
+                        <li class="mb-1">
+                            @if($hasSignature)
+                                <i class="fa fa-check-circle text-success"></i> {{ __('pages.member_requests.signature_ready') }}
+                            @else
+                                <i class="fa fa-exclamation-circle text-warning"></i> {{ __('pages.member_requests.signature_missing') }}
+                            @endif
+                        </li>
+                    </ul>
+                    @if(! $hasSeal || ! $hasSignature)
+                        <p class="small text-muted mb-3">
+                            {{ __('pages.member_requests.official_tools_missing') }}
+                            <a href="{{ route('church.system.settings.index', ['tab' => 'official']) }}">{{ __('pages.member_requests.manage_official_tools') }}</a>
+                        </p>
+                    @endif
                 @endif
                 <form method="POST" action="{{ route('church.member-requests.respond', $memberRequest) }}">
                     @csrf

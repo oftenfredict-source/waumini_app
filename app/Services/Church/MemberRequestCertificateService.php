@@ -6,9 +6,10 @@ use App\Enums\LeadershipPosition;
 use App\Enums\MemberRequestStatus;
 use App\Enums\MemberStatus;
 use App\Models\MemberRequest;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -27,10 +28,126 @@ class MemberRequestCertificateService
         ], true);
     }
 
-    public function generate(MemberRequest $request): MemberRequest
+    public function generate(MemberRequest $request, bool $clearRelease = true): MemberRequest
     {
         abort_unless($this->isEligible($request), 422, 'This request is not eligible for a certificate.');
 
+        $output = $this->renderPdfOutput($request);
+        $path = $this->storagePath($request);
+        $releasedAt = $request->certificate_released_at;
+        $releasedBy = $request->certificate_released_by;
+
+        if ($request->certificate_path && $request->certificate_path !== $path) {
+            Storage::disk('local')->delete($request->certificate_path);
+        }
+
+        Storage::disk('local')->put($path, $output);
+
+        $payload = [
+            'certificate_path' => $path,
+            'certificate_generated_at' => now(),
+        ];
+
+        if ($clearRelease) {
+            $payload['certificate_released_at'] = null;
+            $payload['certificate_released_by'] = null;
+        } else {
+            $payload['certificate_released_at'] = $releasedAt;
+            $payload['certificate_released_by'] = $releasedBy;
+        }
+
+        $request->update($payload);
+
+        return $request->fresh();
+    }
+
+    public function ensureGenerated(MemberRequest $request): MemberRequest
+    {
+        if (! $this->isEligible($request)) {
+            return $request;
+        }
+
+        if (
+            $request->certificate_path
+            && Storage::disk('local')->exists($request->certificate_path)
+            && ! $this->officialToolsUpdatedSinceGeneration($request)
+        ) {
+            return $request;
+        }
+
+        return $this->generate($request);
+    }
+
+    public function streamPreview(MemberRequest $request): Response|StreamedResponse
+    {
+        abort_unless($request->type->generatesCertificate(), 422, 'This request type has no certificate.');
+
+        if ($this->isEligible($request)) {
+            // Always rebuild on staff preview so layout/template/seal changes show immediately.
+            $request = $this->generate($request, clearRelease: false);
+
+            abort_unless(
+                $request->certificate_path && Storage::disk('local')->exists($request->certificate_path),
+                404,
+                'Certificate preview is not available yet.'
+            );
+
+            return response()->file(
+                Storage::disk('local')->path($request->certificate_path),
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="'.$this->downloadFilename($request).'"',
+                ]
+            );
+        }
+
+        return response($this->renderPdfOutput($request), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="preview-'.$this->downloadFilename($request).'"',
+        ]);
+    }
+
+    public function release(MemberRequest $request, User $user): MemberRequest
+    {
+        abort_unless($this->isEligible($request), 422, 'Approve or complete the request before releasing the certificate.');
+
+        $request = $this->ensureGenerated($request);
+
+        abort_unless(
+            $request->certificate_path && Storage::disk('local')->exists($request->certificate_path),
+            404,
+            'Certificate is not available yet.'
+        );
+
+        if (! $request->isCertificateReleased()) {
+            $request->update([
+                'certificate_released_at' => now(),
+                'certificate_released_by' => $user->id,
+            ]);
+        }
+
+        return $request->fresh(['certificateReleaser']);
+    }
+
+    public function download(MemberRequest $request): StreamedResponse
+    {
+        $request = $this->ensureGenerated($request);
+
+        abort_unless(
+            $request->certificate_path && Storage::disk('local')->exists($request->certificate_path),
+            404,
+            'Certificate is not available yet.'
+        );
+
+        return Storage::disk('local')->download(
+            $request->certificate_path,
+            $this->downloadFilename($request),
+            ['Content-Type' => 'application/pdf'],
+        );
+    }
+
+    private function renderPdfOutput(MemberRequest $request): string
+    {
         if (! extension_loaded('gd')) {
             throw new RuntimeException(
                 'Certificate PDF generation requires the PHP GD extension. Enable extension=gd in php.ini and restart the web server.'
@@ -62,55 +179,24 @@ class MemberRequestCertificateService
                 ? $this->formatSwahiliDate($request->member->membership_date)
                 : null,
             'churchLogoBase64' => $this->churchLogoBase64($branch, $request->church),
+            'churchSealBase64' => $this->imageToBase64($request->church?->sealAbsolutePath()),
+            'pastorSignatureBase64' => $this->imageToBase64($request->church?->pastorSignatureAbsolutePath()),
+            'templateBackgroundBase64' => $this->imageToBase64(
+                $request->church?->certificateTemplateAbsolutePath($request->type->value)
+            ),
+            'brandColor' => $request->church?->brandColor() ?? '#940000',
+            'hasTemplateBackground' => (bool) $request->church?->hasCertificateTemplate($request->type->value),
         ];
 
-        $pdf = Pdf::loadView($request->type->certificateView(), $data)
-            ->setPaper('a4', 'portrait');
+        // Always generate a structured certificate. Uploaded template is only a decorative
+        // background/frame — member details are laid out by the system, not scattered overlays.
+        $view = $request->church?->hasCertificateTemplate($request->type->value)
+            ? 'church.certificates.templated'
+            : $request->type->certificateView();
 
-        $path = $this->storagePath($request);
-
-        if ($request->certificate_path && $request->certificate_path !== $path) {
-            Storage::disk('local')->delete($request->certificate_path);
-        }
-
-        Storage::disk('local')->put($path, $pdf->output());
-
-        $request->update([
-            'certificate_path' => $path,
-            'certificate_generated_at' => now(),
-        ]);
-
-        return $request->fresh();
-    }
-
-    public function ensureGenerated(MemberRequest $request): MemberRequest
-    {
-        if (! $this->isEligible($request)) {
-            return $request;
-        }
-
-        if ($request->certificate_path && Storage::disk('local')->exists($request->certificate_path)) {
-            return $request;
-        }
-
-        return $this->generate($request);
-    }
-
-    public function download(MemberRequest $request): StreamedResponse
-    {
-        $request = $this->ensureGenerated($request);
-
-        abort_unless(
-            $request->certificate_path && Storage::disk('local')->exists($request->certificate_path),
-            404,
-            'Certificate is not available yet.'
-        );
-
-        return Storage::disk('local')->download(
-            $request->certificate_path,
-            $this->downloadFilename($request),
-            ['Content-Type' => 'application/pdf'],
-        );
+        return Pdf::loadView($view, $data)
+            ->setPaper('a4', 'portrait')
+            ->output();
     }
 
     public function downloadFilename(MemberRequest $request): string
@@ -195,18 +281,36 @@ class MemberRequestCertificateService
 
     private function churchLogoBase64(?\App\Models\ChurchBranch $branch, ?\App\Models\Church $church): ?string
     {
-        if (! extension_loaded('gd')) {
-            return null;
-        }
-
         $path = $branch?->logoAbsolutePath() ?? $church?->logoAbsolutePath();
 
-        if (! $path) {
+        return $this->imageToBase64($path);
+    }
+
+    private function imageToBase64(?string $path): ?string
+    {
+        if (! $path || ! extension_loaded('gd') || ! is_file($path)) {
             return null;
         }
 
         $mime = mime_content_type($path) ?: 'image/png';
 
         return 'data:'.$mime.';base64,'.base64_encode((string) file_get_contents($path));
+    }
+
+    private function officialToolsUpdatedSinceGeneration(MemberRequest $request): bool
+    {
+        $request->loadMissing('church');
+
+        $updatedAt = $request->church?->settings['official_tools_updated_at'] ?? null;
+
+        if (! $updatedAt || ! $request->certificate_generated_at) {
+            return false;
+        }
+
+        try {
+            return Carbon::parse($updatedAt)->greaterThan($request->certificate_generated_at);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

@@ -10,14 +10,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', __('auth.church_sign_in')) — {{ $appName }}</title>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
     @include('partials.brand-styles')
     @include('partials.inline-resource-css', ['file' => 'auth-login.css'])
-    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/auth-login.css') }}?v=2">
-    <style>:root { --auth-brand: {{ $brand }}; }</style>
+    <link rel="stylesheet" href="{{ \App\Support\WauminiBrand::publicAsset('css/auth-login.css') }}?v=5">
+    <style>:root { --auth-brand: {{ $brand }}; --auth-brand-dark: #6e0000; }</style>
     @stack('styles')
 </head>
 <body class="auth-portal-page">
@@ -42,6 +40,7 @@
     <main class="auth-main">
         <div class="auth-shell">
             <div class="auth-panel">
+                <p class="auth-brand-signal">{{ $appName }}</p>
                 <div class="auth-eyebrow">
                     <i class="fa @yield('panel_icon', 'fa-shield')"></i>
                     @yield('panel_eyebrow', $appName)

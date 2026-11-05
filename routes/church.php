@@ -34,6 +34,7 @@ use App\Http\Controllers\Church\System\SettingsController;
 use App\Http\Controllers\Church\System\SubscriptionController;
 use App\Http\Controllers\Church\System\OtpController;
 use App\Http\Controllers\Church\System\SmsStoreController;
+use App\Http\Controllers\Church\SupportTicketController;
 use App\Http\Controllers\Church\MemberPortal\DashboardController as MemberPortalDashboardController;
 use App\Http\Controllers\Church\MemberPortal\ProfileController as MemberPortalProfileController;
 use App\Http\Controllers\Church\MemberPortal\AnnouncementController as MemberPortalAnnouncementController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\Church\MemberPortal\RequestController as MemberPortalRe
 use App\Http\Controllers\Church\MemberRequestController;
 use App\Http\Controllers\Church\AnalyticsController;
 use App\Http\Controllers\Church\ReportController;
+use App\Http\Controllers\ManualController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('church.maintenance')->group(function () {
@@ -88,7 +90,12 @@ Route::middleware('church.maintenance')->group(function () {
         Route::post('requests', [MemberPortalRequestController::class, 'store'])->name('requests.store');
         Route::get('requests/{member_request}', [MemberPortalRequestController::class, 'show'])->name('requests.show');
         Route::get('requests/{member_request}/certificate', [MemberPortalRequestController::class, 'downloadCertificate'])->name('requests.certificate');
+        Route::get('manual', [ManualController::class, 'index'])->name('manual.index');
+        Route::get('manual/{topic}', [ManualController::class, 'show'])->name('manual.show');
     });
+
+    Route::get('manual', [ManualController::class, 'index'])->name('manual.index');
+    Route::get('manual/{topic}', [ManualController::class, 'show'])->name('manual.show');
 
     Route::get('member-registrations', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'index'])->name('member-registrations.index');
     Route::get('member-registrations/check-envelope', [\App\Http\Controllers\Church\MemberRegistrationApplicationController::class, 'checkEnvelope'])->name('member-registrations.check-envelope');
@@ -99,6 +106,8 @@ Route::middleware('church.maintenance')->group(function () {
     Route::get('member-requests', [MemberRequestController::class, 'index'])->name('member-requests.index');
     Route::get('member-requests/{member_request}', [MemberRequestController::class, 'show'])->name('member-requests.show');
     Route::get('member-requests/{member_request}/certificate', [MemberRequestController::class, 'downloadCertificate'])->name('member-requests.certificate');
+    Route::get('member-requests/{member_request}/certificate/preview', [MemberRequestController::class, 'previewCertificate'])->name('member-requests.certificate.preview');
+    Route::post('member-requests/{member_request}/certificate/release', [MemberRequestController::class, 'releaseCertificate'])->name('member-requests.certificate.release');
     Route::post('member-requests/{member_request}/respond', [MemberRequestController::class, 'respond'])->name('member-requests.respond');
 
     Route::get('members/archived', [MemberController::class, 'archived'])->name('members.archived');
@@ -236,6 +245,10 @@ Route::middleware('church.maintenance')->group(function () {
         Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
         Route::post('subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
         Route::get('terms', [SubscriptionController::class, 'terms'])->name('subscription.terms');
+        Route::get('support', [SupportTicketController::class, 'index'])->name('support.index');
+        Route::get('support/create', [SupportTicketController::class, 'create'])->name('support.create');
+        Route::post('support', [SupportTicketController::class, 'store'])->name('support.store');
+        Route::get('support/{support}', [SupportTicketController::class, 'show'])->name('support.show');
     });
     });
 });

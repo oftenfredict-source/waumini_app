@@ -3,6 +3,8 @@
 use App\Http\Controllers\Owner\ChurchController;
 use App\Http\Controllers\Owner\ChurchSubscriptionController;
 use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\Owner\DemoRequestController;
+use App\Http\Controllers\Owner\FileController;
 use App\Http\Controllers\Owner\InvoiceController;
 use App\Http\Controllers\Owner\LoginController;
 use App\Http\Controllers\Owner\PaymentController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\Owner\SmsUsageController;
 use App\Http\Controllers\Owner\SubscriptionController;
 use App\Http\Controllers\Owner\SupportTicketController;
 use App\Http\Controllers\Owner\UserController;
+use App\Http\Controllers\ManualController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -22,6 +25,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'owner'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('manual', [ManualController::class, 'index'])->name('manual.index');
+    Route::get('manual/{topic}', [ManualController::class, 'show'])->name('manual.show');
 
     Route::resource('churches', ChurchController::class);
     Route::post('churches/{church}/impersonate', [ChurchController::class, 'impersonate'])->name('churches.impersonate');
@@ -35,6 +41,7 @@ Route::middleware(['auth', 'owner'])->group(function () {
     Route::get('subscriptions/packages', [SubscriptionController::class, 'packages'])->name('subscriptions.packages');
 
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
 
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
@@ -50,7 +57,18 @@ Route::middleware(['auth', 'owner'])->group(function () {
 
     Route::get('users', [UserController::class, 'index'])->name('users.index');
 
+    Route::get('files', [FileController::class, 'index'])->name('files.index');
+    Route::post('files', [FileController::class, 'store'])->name('files.store');
+    Route::get('files/{file}/download', [FileController::class, 'download'])->name('files.download');
+    Route::delete('files/{file}', [FileController::class, 'destroy'])->name('files.destroy');
+
     Route::get('support', [SupportTicketController::class, 'index'])->name('support.index');
+    Route::get('support/{support}', [SupportTicketController::class, 'show'])->name('support.show');
+    Route::put('support/{support}', [SupportTicketController::class, 'update'])->name('support.update');
+
+    Route::get('demo-requests', [DemoRequestController::class, 'index'])->name('demo-requests.index');
+    Route::post('demo-requests/{demoRequest}/approve', [DemoRequestController::class, 'approve'])->name('demo-requests.approve');
+    Route::post('demo-requests/{demoRequest}/reject', [DemoRequestController::class, 'reject'])->name('demo-requests.reject');
 
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('settings/general', [SettingController::class, 'updateGeneral'])->name('settings.general');

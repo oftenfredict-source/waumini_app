@@ -150,6 +150,8 @@ class FormOptionsController extends PastorController
                 'kipaimara_min_age' => $this->churchSettingsService->kipaimaraMinAge($this->church()),
                 'envelope_required_from_age' => $this->churchSettingsService->envelopeRequiredFromAge($this->church()),
                 'children_education_details_enabled' => (bool) $this->churchSettingsService->get($this->church(), 'children_education_details_enabled', false),
+                'brand_color' => $this->church()->brandColor(),
+                'brand_palette' => $this->church()->brandPalette(),
             ],
         ]);
     }

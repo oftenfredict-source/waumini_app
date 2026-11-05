@@ -42,7 +42,7 @@
                                     data-yearly="{{ $package->yearly_price }}"
                                     @selected(old('package_id', $church->activeSubscription?->package_id) == $package->id)>
                                     {{ $package->name }}
-                                    ({{ $platformCurrency }} {{ number_format($package->installation_price, 0) }} + {{ number_format($package->yearly_price, 0) }}/yr)
+                                    ({{ $platformCurrency }} {{ number_format($package->installation_price, 0) }} {{ __('owner.church.install_covers_year') }}, {{ __('owner.church.then_annual') }} {{ number_format($package->yearly_price, 0) }}/yr)
                                 </option>
                             @endforeach
                         </select>
@@ -71,6 +71,7 @@
                                 <span class="label-text">{{ __('owner.church.record_installation') }}</span>
                             </label>
                         </div>
+                        <small class="text-muted d-block mb-2">{{ __('owner.church.record_installation_help') }}</small>
                         <div class="form-group">
                             <label>{{ __('owner.church.installation_amount') }}</label>
                             <input type="number" name="installation_amount" id="installation_amount" class="form-control"
@@ -81,10 +82,11 @@
                         <div class="animated-checkbox mb-2">
                             <label>
                                 <input type="checkbox" name="record_yearly" value="1" id="record_yearly"
-                                       @checked(old('record_yearly', true))>
+                                       @checked(old('record_yearly', false))>
                                 <span class="label-text">{{ __('owner.church.record_yearly') }}</span>
                             </label>
                         </div>
+                        <small class="text-muted d-block mb-2">{{ __('owner.church.record_yearly_help') }}</small>
                         <div class="form-group">
                             <label>{{ __('owner.church.yearly_amount') }}</label>
                             <input type="number" name="yearly_amount" id="yearly_amount" class="form-control"
@@ -121,10 +123,12 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success" id="subscription_submit_btn"
-                    data-swal-confirm="{{ __('owner.church.subscription_submit_confirm') }}">
-                <i class="fa fa-check"></i> {{ __('owner.church.subscription_submit') }}
-            </button>
+            <div class="mt-4 pt-2">
+                <button type="submit" class="btn btn-success" id="subscription_submit_btn"
+                        data-swal-confirm="{{ __('owner.church.subscription_submit_confirm') }}">
+                    <i class="fa fa-check"></i> {{ __('owner.church.subscription_submit') }}
+                </button>
+            </div>
         </form>
 
         @if($recentPayments->isNotEmpty())

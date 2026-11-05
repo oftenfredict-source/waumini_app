@@ -5,6 +5,7 @@ return [
     'phone' => 'Simu:',
     'issued_via' => 'Imetolewa kupitia Waumini Link',
     'official_document' => 'Huu ni waraka rasmi wa kanisa.',
+    'church_seal' => 'Muhuri wa Kanisa',
     'number' => 'Nambari:',
     'date' => 'Tarehe:',
     'baptism_title' => 'Cheti cha Ubatizo',

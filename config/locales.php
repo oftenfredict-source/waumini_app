@@ -5,10 +5,12 @@ return [
         'en' => [
             'name' => 'English',
             'native' => 'English',
+            'flag' => 'gb',
         ],
         'sw' => [
             'name' => 'Swahili',
             'native' => 'Kiswahili',
+            'flag' => 'tz',
         ],
     ],
 

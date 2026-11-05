@@ -16,4 +16,9 @@ class PaymentPolicy
     {
         return $user->can('payments.view');
     }
+
+    public function create(User $user): bool
+    {
+        return $user->can('payments.manage');
+    }
 }

@@ -17,11 +17,22 @@
 <style>
     .dash-hero {
         background: linear-gradient(135deg, #940000 0%, #600000 100%);
-        border-radius: 8px;
+        border-radius: 0;
         color: #fff;
         padding: 1.5rem 1.75rem;
-        margin-bottom: 1.5rem;
+        margin: -30px -30px 1.5rem;
         box-shadow: 0 8px 24px rgba(148, 0, 0, 0.18);
+    }
+    @media (max-width: 480px) {
+        .dash-hero {
+            margin: -15px -15px 1.25rem;
+        }
+    }
+    body.app.has-branch-context .dash-hero {
+        margin-top: 0;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 8px;
     }
     .dash-hero h1 {
         color: #fff;
@@ -40,6 +51,7 @@
         font-size: 0.8rem;
         padding: 0.25rem 0.65rem;
         border-radius: 999px;
+        margin-top: 0.35rem;
     }
     .dash-stat-card {
         border: none;
@@ -61,6 +73,8 @@
         justify-content: center;
         font-size: 1.25rem;
         color: #fff;
+        flex-shrink: 0;
+        margin-right: 0.85rem;
     }
     .dash-stat-value {
         font-size: 1.35rem;

@@ -5,6 +5,7 @@ return [
     'phone' => 'Phone:',
     'issued_via' => 'Issued via Waumini Link',
     'official_document' => 'This is an official church document.',
+    'church_seal' => 'Church Seal',
     'number' => 'Number:',
     'date' => 'Date:',
     'baptism_title' => 'Baptism Certificate',

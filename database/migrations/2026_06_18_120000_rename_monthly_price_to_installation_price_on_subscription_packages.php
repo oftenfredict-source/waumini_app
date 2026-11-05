@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasColumn('subscription_packages', 'monthly_price')) {
+            return;
+        }
+
         Schema::table('subscription_packages', function (Blueprint $table) {
             $table->renameColumn('monthly_price', 'installation_price');
         });

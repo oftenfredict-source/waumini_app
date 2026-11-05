@@ -29,6 +29,8 @@ class MemberRequest extends Model
         'responded_at',
         'certificate_path',
         'certificate_generated_at',
+        'certificate_released_at',
+        'certificate_released_by',
     ];
 
     protected function casts(): array
@@ -39,6 +41,7 @@ class MemberRequest extends Model
             'request_meta' => 'array',
             'responded_at' => 'datetime',
             'certificate_generated_at' => 'datetime',
+            'certificate_released_at' => 'datetime',
         ];
     }
 
@@ -67,6 +70,11 @@ class MemberRequest extends Model
         return $this->belongsTo(User::class, 'responded_by');
     }
 
+    public function certificateReleaser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'certificate_released_by');
+    }
+
     public function isOpen(): bool
     {
         return in_array($this->status, [
@@ -75,15 +83,29 @@ class MemberRequest extends Model
         ], true);
     }
 
-    public function hasDownloadableCertificate(): bool
+    public function hasGeneratedCertificate(): bool
     {
         if (! $this->type->generatesCertificate()) {
             return false;
         }
 
-        return in_array($this->status, [
+        if (! in_array($this->status, [
             MemberRequestStatus::Approved,
             MemberRequestStatus::Completed,
-        ], true);
+        ], true)) {
+            return false;
+        }
+
+        return filled($this->certificate_path);
+    }
+
+    public function isCertificateReleased(): bool
+    {
+        return $this->certificate_released_at !== null;
+    }
+
+    public function hasDownloadableCertificate(): bool
+    {
+        return $this->hasGeneratedCertificate() && $this->isCertificateReleased();
     }
 }
