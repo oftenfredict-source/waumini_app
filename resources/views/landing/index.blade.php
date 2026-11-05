@@ -2,8 +2,8 @@
     $brand = config('waumini.brand_color', '#940000');
     $logoUrl = \App\Support\WauminiBrand::logoUrl();
     $appName = \App\Support\WauminiBrand::appDisplayName();
-    $landingCss = \App\Support\WauminiBrand::publicAsset('css/landing.css');
     $landingJs = \App\Support\WauminiBrand::publicAsset('js/landing.js');
+    $landingJsVersion = @filemtime(public_path('js/landing.js')) ?: time();
 
     $features = [
         [
@@ -88,7 +88,8 @@
     <title>{{ $appName }} — {{ __('landing.tagline') }}</title>
     <meta name="description" content="{{ $appName }} {{ __('landing.meta_description') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{{ $landingCss }}?v=27">
+    {{-- Inline from resources/css so live matches local even when public/css is stale on the server. --}}
+    @include('partials.inline-resource-css', ['file' => 'landing.css'])
     <link rel="icon" href="{{ $logoUrl ?? \App\Support\WauminiBrand::publicAsset('waumini_link_logo.png') }}" type="image/png">
     <style>
         :root { --brand: {{ $brand }}; --brand-dark: #6e0000; --nav-height: 4.25rem; }
@@ -628,6 +629,6 @@
 </div>
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script src="{{ $landingJs }}?v=21" defer></script>
+    <script src="{{ $landingJs }}?v={{ $landingJsVersion }}" defer></script>
 </body>
 </html>
